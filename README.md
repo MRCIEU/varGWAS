@@ -6,16 +6,16 @@ Implementation of the JLST method (Staley et al) using C++
 Staley, J. R., Windmeijer, F., Suderman, M., Smith, G. D., & Tilling, K. (n.d.). A robust mean and variance test with application to epigenome-wide association studies. https://doi.org/10.1101/2020.02.06.926584
 ```
 
-# Install
+## Install
 
-## SRC
+### SRC
 
 ```sh
 git clone git@ieugit-scmv-d0.epi.bris.ac.uk:ml18692/jlst_cpp.git
 cd jlst_cpp
 ```
 
-## Libraries
+### Libraries
 
 ```sh
 mkdir -p includes
@@ -25,7 +25,7 @@ tar -xvf master.tar.gz
 cd ..
 ```
 
-## Build
+### Build
 
 ```sh
 mkdir -p build
@@ -34,7 +34,7 @@ cmake ..
 make
 ```
 
-# Usage
+## Usage
 
 ```sh
 ./jlst_cpp ../includes/bgen/example/example.v11.bgen default
