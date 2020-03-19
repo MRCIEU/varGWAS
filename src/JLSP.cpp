@@ -6,7 +6,7 @@
 #include "libscl.h"
 #include <iostream>
 
-void jlst::JLSP::get_abs_residuals_from_median() {
+void jlst::JLSP::get_linear_estimate() {
     INTEGER n = 100;
     INTEGER p = 4;
     INT_32BIT seed = 100542;

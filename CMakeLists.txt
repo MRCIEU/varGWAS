@@ -3,14 +3,19 @@ project(jlst_cpp)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(BOOST_SOURCE_DIR "includes/bgen/3rd_party/boost_1_55_0")
-set(ZSTD_SOURCE_DIR "includes/bgen/3rd_party/zstd-1.1.0")
-set(SQLITE_SOURCE_DIR "includes/bgen/3rd_party/sqlite3")
-set(DB_SOURCE_DIR "includes/bgen/db")
-set(BGEN_SOURCE_DIR "includes/bgen/src")
-set(GENFILE_SOURCE_DIR "includes/bgen/genfile")
-set(LIBSCL_SOURCE_DIR "includes/libscl_float/src")
+# sqlite3 params
+add_definitions(-DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_STAT4 -DSQLITE_MAX_EXPR_DEPTH=10000 -DSQLITE_USE_URI=1)
 
+# paths
+set(BOOST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/3rd_party/boost_1_55_0)
+set(ZSTD_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/3rd_party/zstd-1.1.0)
+set(SQLITE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/3rd_party/sqlite3)
+set(DB_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/db)
+set(BGEN_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/src)
+set(GENFILE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/genfile)
+set(LIBSCL_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl_float/src)
+
+# source files
 file(GLOB BOOST_SRC_FILES
         ${BOOST_SOURCE_DIR}/libs/system/src/*.cpp
         ${BOOST_SOURCE_DIR}/libs/thread/src/*.cpp
@@ -30,20 +35,8 @@ file(GLOB ZSTD_SRC_FILES
         )
 file(GLOB BGEN_SRC_FILES ${BGEN_SOURCE_DIR}/*.cpp)
 
-include_directories(${GENFILE_SOURCE_DIR}/include)
-include_directories(${DB_SOURCE_DIR}/include)
-include_directories(${BOOST_SOURCE_DIR})
-include_directories(${ZSTD_SOURCE_DIR})
-include_directories(${ZSTD_SOURCE_DIR}/lib)
-include_directories(${ZSTD_SOURCE_DIR}/lib/common)
-include_directories(${ZSTD_SOURCE_DIR}/lib/compress)
-include_directories(${ZSTD_SOURCE_DIR}/lib/decompress)
-include_directories(${SQLITE_SOURCE_DIR})
-include_directories(${LIBSCL_SOURCE_DIR})
-
-add_definitions(-DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_STAT4 -DSQLITE_MAX_EXPR_DEPTH=10000 -DSQLITE_USE_URI=1)
-
-set(SOURCE
+# pool sources list
+set(LIB_SRC_FILES
         ${BOOST_SRC_FILES}
         ${DB_SRC_FILES}
         ${ZSTD_SRC_FILES}
@@ -63,19 +56,22 @@ set(SOURCE
         ${LIBSCL_SOURCE_DIR}/dsvd.cpp
         ${LIBSCL_SOURCE_DIR}/sclerror.cpp
         ${LIBSCL_SOURCE_DIR}/starbox.cpp
-        main.cpp
-        DosageSetter.cpp
-        DosageSetter.h
-        ProbSetter.cpp
-        ProbSetter.h
-        BgenParser.cpp
-        BgenParser.h
-        JLSP.cpp
-        JLSP.h
         )
 
-add_executable(jlst_cpp ${SOURCE})
-add_library(jlst_lib STATIC ${SOURCE})
-target_link_libraries(jlst_cpp z)
+# source dirs
+include_directories(${GENFILE_SOURCE_DIR}/include)
+include_directories(${DB_SOURCE_DIR}/include)
+include_directories(${BOOST_SOURCE_DIR})
+include_directories(${ZSTD_SOURCE_DIR})
+include_directories(${ZSTD_SOURCE_DIR}/lib)
+include_directories(${ZSTD_SOURCE_DIR}/lib/common)
+include_directories(${ZSTD_SOURCE_DIR}/lib/compress)
+include_directories(${ZSTD_SOURCE_DIR}/lib/decompress)
+include_directories(${SQLITE_SOURCE_DIR})
+include_directories(${LIBSCL_SOURCE_DIR})
+include_directories(src)
 
-#add_subdirectory(tests)
+# src and test cmakelist
+add_subdirectory(src)
+add_subdirectory(test)
+add_subdirectory(lib/googletest-release-1.10.0)

@@ -8,7 +8,7 @@
 namespace jlst {
     class JLSP {
     public:
-        void get_abs_residuals_from_median();
+        void get_linear_estimate();
     };
 }
 

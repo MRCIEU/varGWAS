@@ -1,6 +1,5 @@
 .idea/
+build/
 cmake-build-debug/
 cmake-build-release/
-includes/
-build/
-tests/lib
+lib/

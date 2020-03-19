@@ -5,10 +5,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <iostream>
-#include <fstream>
 #include <cassert>
 #include <stdexcept>
-#include <memory>
 #include "genfile/bgen/bgen.hpp"
 #include "BgenParser.h"
 #include "ProbSetter.h"

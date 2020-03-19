@@ -18,8 +18,8 @@ cd jlst_cpp
 ### Libraries
 
 ```sh
-mkdir -p includes
-cd includes
+mkdir -p lib
+cd lib
 
 # bgen
 wget http://bitbucket.org/gavinband/bgen/get/master.tar.gz
@@ -36,8 +36,6 @@ mkdir build
 # google test
 wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz
 tar -xvf release-1.10.0.tar.gz
-mkdir tests/lib
-mv googletest-release-1.10.0 tests/lib
 
 # quantile regression
 wget --no-parent -r http://www.aronaldg.org/webfiles/compecon/src/libscl_float/
@@ -60,8 +58,18 @@ cmake ..
 make
 ```
 
+### Test
+
+```sh
+mkdir -p build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" 
+make all
+./test/jlsp_cpp_test 
+```
+
 ## Usage
 
 ```sh
-./jlst_cpp ../includes/bgen/example/example.v11.bgen default
+./jlst_cpp
 ```
