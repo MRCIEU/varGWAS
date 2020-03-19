@@ -66,12 +66,16 @@ set(SOURCE
         main.cpp
         DosageSetter.cpp
         DosageSetter.h
+        ProbSetter.cpp
+        ProbSetter.h
+        BgenParser.cpp
+        BgenParser.h
         JLSP.cpp
         JLSP.h
-)
+        )
 
 add_executable(jlst_cpp ${SOURCE})
 add_library(jlst_lib STATIC ${SOURCE})
 target_link_libraries(jlst_cpp z)
 
-add_subdirectory(tests)
+#add_subdirectory(tests)
