@@ -3,6 +3,9 @@ project(jlst_cpp)
 
 set(CMAKE_CXX_STANDARD 14)
 
+# structured following:
+# https://raymii.org/s/tutorials/Cpp_project_setup_with_cmake_and_unit_tests.html
+
 # sqlite3 params
 add_definitions(-DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_STAT4 -DSQLITE_MAX_EXPR_DEPTH=10000 -DSQLITE_USE_URI=1)
 
