@@ -41,5 +41,5 @@ include_directories(${SQLITE_SOURCE_DIR})
 
 add_definitions(-DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_STAT4 -DSQLITE_MAX_EXPR_DEPTH=10000 -DSQLITE_USE_URI=1)
 
-add_executable(jlst_cpp main.cpp ${BOOST_SRC_FILES} ${DB_SRC_FILES} ${ZSTD_SRC_FILES} ${SQLITE_SOURCE_DIR}/sqlite3/sqlite3.c ${BGEN_SRC_FILES})
+add_executable(jlst_cpp main.cpp ${BOOST_SRC_FILES} ${DB_SRC_FILES} ${ZSTD_SRC_FILES} ${SQLITE_SOURCE_DIR}/sqlite3/sqlite3.c ${BGEN_SRC_FILES} DosageSetter.cpp DosageSetter.h)
 target_link_libraries(jlst_cpp z)
