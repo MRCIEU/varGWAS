@@ -1,0 +1,1 @@
+configure_file(regression.csv ${CMAKE_CURRENT_BINARY_DIR}/regression.csv COPYONLY)
