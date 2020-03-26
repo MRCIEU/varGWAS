@@ -37,12 +37,12 @@ namespace genfile {
 
             void set_value(uint32_t, genfile::MissingValue value);
 
-            void finalise();
+            static void finalise();
 
         private:
             Data *m_result;
             std::size_t m_sample_i;
-            std::size_t m_entry_i;
+            std::size_t m_entry_i{};
         };
 
     };

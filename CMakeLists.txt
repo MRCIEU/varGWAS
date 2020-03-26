@@ -12,7 +12,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/gavinband-bgen-44fcabbc5c38/
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/gavinband-bgen-44fcabbc5c38/3rd_party/sqlite3/sqlite3)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/gavinband-bgen-44fcabbc5c38/db/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp)
-include_directories(src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # libraries
 set(BGEN_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/gavinband-bgen-44fcabbc5c38/build/libbgen.a)
@@ -23,6 +23,6 @@ set(DB_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/gavinband-bgen-44fcabbc5c38/buil
 set(LIBSCL_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp/libscl.a)
 
 # src and test cmakelist
-add_subdirectory(src)
-add_subdirectory(test)
-add_subdirectory(lib/googletest-release-1.10.0)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/googletest-release-1.10.0)

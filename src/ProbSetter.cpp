@@ -28,8 +28,8 @@ void genfile::bgen::ProbSetter::initialise(std::size_t number_of_samples, std::s
 // This enables us to set up storage for the data ahead of time.
 void genfile::bgen::ProbSetter::set_min_max_ploidy(uint32_t min_ploidy, uint32_t max_ploidy, uint32_t min_entries,
                                                    uint32_t max_entries) {
-    for (std::size_t i = 0; i < m_result->size(); ++i) {
-        m_result->at(i).reserve(max_entries);
+    for (auto &i : *m_result) {
+        i.reserve(max_entries);
     }
 };
 

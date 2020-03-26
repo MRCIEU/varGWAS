@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <memory>
 #include <stdexcept>
 #include "genfile/bgen/bgen.hpp"
 #include "BgenParser.h"
@@ -16,8 +17,8 @@
 genfile::bgen::BgenParser::BgenParser(std::string const &filename) : m_filename(filename), m_state(e_NotOpen),
                                                                      m_have_sample_ids(false) {
     // Open the stream
-    m_stream.reset(
-            new std::ifstream(filename, std::ifstream::binary)
+    m_stream = std::make_unique<std::ifstream>(
+            filename, std::ifstream::binary
     );
     if (!*m_stream) {
         throw std::invalid_argument(filename);
@@ -30,7 +31,7 @@ genfile::bgen::BgenParser::BgenParser(std::string const &filename) : m_filename(
     if (m_context.flags & genfile::bgen::e_SampleIdentifiers) {
         genfile::bgen::read_sample_identifier_block(
                 *m_stream, m_context,
-                [this](std::string id) { m_sample_ids.push_back(id); }
+                [this](const std::string &id) { m_sample_ids.push_back(id); }
         );
         m_have_sample_ids = true;
     }

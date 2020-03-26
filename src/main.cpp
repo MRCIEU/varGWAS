@@ -9,7 +9,8 @@
 #include "BgenParser.h"
 
 int main(int argc, char **argv) {
-    std::string const filename = "/Users/matthewlyon/projects/jlst_cpp/lib/bgen/example/example.v11.bgen";
+    // TODO check file exists before passing to BgenParser
+    std::string const filename = "/Users/matthewlyon/projects/jlst_cpp/lib/gavinband-bgen-44fcabbc5c38/example/example.v11.bgen";
 
     try {
         genfile::bgen::BgenParser bgenParser(filename);
@@ -42,14 +43,14 @@ int main(int argc, char **argv) {
                       << alleles[1] << '\t';
 
             bgenParser.read_probs(&probs);
-            for (std::size_t i = 0; i < probs.size(); ++i) {
+            for (auto &prob : probs) {
                 std::cout << '\t';
 
                 // only support bi-allelic variants [0, 1, 2 copies of alt]
-                assert(probs[i].size() == 3);
+                assert(prob.size() == 3);
 
                 // convert genotype probabilities to copies of alt
-                std::cout << probs[i][1] + (2 * probs[i][2]);
+                std::cout << prob[1] + (2 * prob[2]);
             }
 
             std::cout << "\n";

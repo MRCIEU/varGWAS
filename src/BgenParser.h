@@ -60,7 +60,7 @@ namespace genfile {
             genfile::bgen::Context m_context;
 
             // offset byte from top of bgen file.
-            uint32_t m_offset;
+            uint32_t m_offset{};
 
             // We keep track of our state in the file.
             // Not strictly necessary for this implentation but makes it clear that
