@@ -13,6 +13,37 @@
 
 // BgenParser is a thin wrapper around the core functions in genfile/bgen/bgen.hpp.
 // This class tracks file state and handles passing the right callbacks.
+genfile::bgen::BgenParser::BgenParser(std::string const &filename) : m_filename(filename), m_state(e_NotOpen),
+                                                                     m_have_sample_ids(false) {
+    // Open the stream
+    m_stream.reset(
+            new std::ifstream(filename, std::ifstream::binary)
+    );
+    if (!*m_stream) {
+        throw std::invalid_argument(filename);
+    }
+    m_state = e_Open;
+
+    // Read the offset, header, and sample IDs if present.
+    genfile::bgen::read_offset(*m_stream, &m_offset);
+    genfile::bgen::read_header_block(*m_stream, &m_context);
+    if (m_context.flags & genfile::bgen::e_SampleIdentifiers) {
+        genfile::bgen::read_sample_identifier_block(
+                *m_stream, m_context,
+                [this](std::string id) { m_sample_ids.push_back(id); }
+        );
+        m_have_sample_ids = true;
+    }
+
+    // Jump to the first variant data block.
+    m_stream->seekg(m_offset + 4);
+
+    // We keep track of state (though it's not really needed for this implementation.)
+    m_state = e_ReadyForVariant;
+};
+
+// BgenParser is a thin wrapper around the core functions in genfile/bgen/bgen.hpp.
+// This class tracks file state and handles passing the right callbacks.
 
 std::ostream &genfile::bgen::BgenParser::summarise(std::ostream &o) const {
     o << "BgenParser: bgen file ("

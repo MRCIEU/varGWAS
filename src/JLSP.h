@@ -7,8 +7,7 @@
 
 namespace jlst {
     class JLSP {
-    public:
-        void get_linear_estimate();
+        void fit();
     };
 }
 

@@ -9,7 +9,6 @@
 #include "BgenParser.h"
 
 int main(int argc, char **argv) {
-    std::ios_base::sync_with_stdio(false);
     std::string const filename = "/Users/matthewlyon/projects/jlst_cpp/lib/bgen/example/example.v11.bgen";
 
     try {

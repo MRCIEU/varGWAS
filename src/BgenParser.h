@@ -14,43 +14,12 @@
 #include <memory>
 #include "genfile/bgen/bgen.hpp"
 
-// BgenParser is a thin wrapper around the core functions in genfile/bgen/bgen.hpp.
-// This class tracks file state and handles passing the right callbacks.
 namespace genfile {
     namespace bgen {
 
         struct BgenParser {
-            BgenParser(std::string const &filename) :
-                    m_filename(filename),
-                    m_state(e_NotOpen),
-                    m_have_sample_ids(false) {
-                // Open the stream
-                m_stream.reset(
-                        new std::ifstream(filename, std::ifstream::binary)
-                );
-                if (!*m_stream) {
-                    throw std::invalid_argument(filename);
-                }
-                m_state = e_Open;
-
-                // Read the offset, header, and sample IDs if present.
-                genfile::bgen::read_offset(*m_stream, &m_offset);
-                genfile::bgen::read_header_block(*m_stream, &m_context);
-                if (m_context.flags & genfile::bgen::e_SampleIdentifiers) {
-                    genfile::bgen::read_sample_identifier_block(
-                            *m_stream, m_context,
-                            [this](std::string id) { m_sample_ids.push_back(id); }
-                    );
-                    m_have_sample_ids = true;
-                }
-
-                // Jump to the first variant data block.
-                m_stream->seekg(m_offset + 4);
-
-                // We keep track of state (though it's not really needed for this implementation.)
-                m_state = e_ReadyForVariant;
-            }
-
+        public:
+            explicit BgenParser(std::string const &filename);
 
             std::ostream &summarise(std::ostream &o) const;
 
@@ -71,11 +40,6 @@ namespace genfile {
                 }
             };
 
-            // Attempt to read identifying information about a variant from the bgen file, returning
-            // it in the given fields.
-            // If this method returns true, data was successfully read, and it should be safe to call read_probs()
-            // or ignore_probs().
-            // If this method returns false, data was not successfully read indicating the end of the file.
             bool read_variant(
                     std::string *chromosome,
                     uint32_t *position,
@@ -83,14 +47,8 @@ namespace genfile {
                     std::vector<std::string> *alleles
             );
 
-            // Read genotype probability data for the SNP just read using read_variant()
-            // After calling this method it should be safe to call read_variant() to fetch
-            // the next variant from the file.
             void read_probs(std::vector<std::vector<double> > *probs);
 
-            // Ignore genotype probability data for the SNP just read using read_variant()
-            // After calling this method it should be safe to call read_variant()
-            // to fetch the next variant from the file.
             void ignore_probs();
 
         private:

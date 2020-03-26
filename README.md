@@ -8,6 +8,8 @@ Staley, J. R., Windmeijer, F., Suderman, M., Smith, G. D., & Tilling, K. (n.d.).
 
 ## Install
 
+Requires UNIX environment
+
 ### SRC
 
 ```sh
@@ -22,31 +24,23 @@ mkdir -p lib
 cd lib
 
 # bgen
-wget http://bitbucket.org/gavinband/bgen/get/master.tar.gz
-tar -xvf master.tar.gz
+curl https://bitbucket.org/gavinband/bgen/get/44fcabbc5c38.zip > gavinband-bgen-44fcabbc5c38.zip
+unzip gavinband-bgen-44fcabbc5c38.zip
+cd gavinband-bgen-44fcabbc5c38
+./waf configure
+./waf
+cd ..
 
-# boost
-wget https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.tar.gz
-tar -xvf boost_1_72_0.tar.gz
-cd boost_1_72_0
-mkdir build
-./bootstrap.sh
-./b2 --with-test --prefix=$PWD/build install
+# quantile regression
+wget http://www.aronaldg.org/webfiles/libscl/libscl.tar
+tar -xvf libscl.tar
+cd libscl/gpp
+make
+cd ..
 
 # google test
 wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz
 tar -xvf release-1.10.0.tar.gz
-
-# quantile regression
-wget --no-parent -r http://www.aronaldg.org/webfiles/compecon/src/libscl_float/
-wget --no-parent -r http://www.aronaldg.org/webfiles/compecon/src/libscl_demo/
-cp libscl_float/src/scltypes.tpl libscl_float/src/scltypes.h
-
-# linear regression
-wget https://www.mlpack.org/files/mlpack-3.2.2.tar.gz
-tar -xvf mlpack-3.2.2.tar.gz
-
-cd ..
 ```
 
 ### Build
