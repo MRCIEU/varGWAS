@@ -38,6 +38,11 @@ cd libscl/gpp
 make
 cd ..
 
+# csv reader 
+curl -L https://github.com/ben-strasser/fast-cpp-csv-parser/archive/713c5fd.zip > ben-strasser-fast-cpp-csv-parser-713c5fd.zip
+unzip ben-strasser-fast-cpp-csv-parser-713c5fd.zip
+cd fast-cpp-csv-parser-713c5fd2ba1b6d145296a21fc7f9dee576daaa4f
+
 # google test
 wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz
 tar -xvf release-1.10.0.tar.gz
