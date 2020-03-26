@@ -13,6 +13,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/gavinband-bgen-44fcabbc5c38/
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/gavinband-bgen-44fcabbc5c38/db/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/fast-cpp-csv-parser-713c5fd2ba1b6d145296a21fc7f9dee576daaa4f)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen-3.3.7)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # libraries

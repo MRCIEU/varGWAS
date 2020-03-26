@@ -43,6 +43,10 @@ curl -L https://github.com/ben-strasser/fast-cpp-csv-parser/archive/713c5fd.zip 
 unzip ben-strasser-fast-cpp-csv-parser-713c5fd.zip
 cd fast-cpp-csv-parser-713c5fd2ba1b6d145296a21fc7f9dee576daaa4f
 
+# eigen
+curl https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz > eigen-3.3.7.tar.gz
+tar -xvf eigen-3.3.7.tar.gz 
+
 # google test
 wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz
 tar -xvf release-1.10.0.tar.gz
