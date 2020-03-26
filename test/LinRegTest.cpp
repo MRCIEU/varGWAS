@@ -4,36 +4,44 @@
 #include <Eigen/SVD>
 
 TEST(LinRegTest, slope_residual) {
-    Eigen::MatrixXd m(2,2);
-    m(0,0) = 3;
-    m(1,0) = 2.5;
-    m(0,1) = -1;
-    m(1,1) = m(1,0) + m(0,1);
-    std::cout << m << std::endl;
-
-
-    /*int x_f;
-    int c1_f;
+    const double intercept = 1.0;
+    double x_f;
+    double c1_f;
     double c2_f;
     double y_f;
     double d_f;
+    int n = 50000;
+    int p = 3;
+
+    Eigen::MatrixXd X = Eigen::MatrixXd(n, p + 1);
+    Eigen::VectorXd y = Eigen::VectorXd(n);
 
     // get data (see data/regression.R)
     io::CSVReader<5> in("data/regression.csv");
     in.read_header(io::ignore_extra_column, "x", "c1", "c2", "y", "d");
     int t = 0;
     while (in.read_row(x_f, c1_f, c2_f, y_f, d_f)) {
+        X(t, 0) = intercept;
+        X(t, 1) = x_f;
+        X(t, 2) = c1_f;
+        X(t, 3) = c2_f;
+        y(t, 0) = y_f;
         t++;
     }
 
-    // linear regression
-    Matrix615<double> tmpy(argv[1]); // read n * 1 matrix y
-    Matrix615<double> tmpX(argv[2]); // read n * p marrix X
-    int n = tmpX.numRows();
-    int p = tmpX.numCols();
-    MatrixXd y, X; // copy the matrices into Eigen::Matrix objects
-    tmpy.copyTo(y);
-    tmpX.copyTo(X);
+    // linear regression using SVD
+    // adapted from: https://genome.sph.umich.edu/w/images/2/2c/Biostat615-lecture14-presentation.pdf
+    Eigen::BDCSVD<Eigen::MatrixXd> svd(X, Eigen::ComputeThinU | Eigen::ComputeThinV);
+    Eigen::MatrixXd betasSvd = svd.solve(y);
 
-    // assertions*/
+    // calculate VDˆ{-1}
+    Eigen::MatrixXd ViD = svd.matrixV() * svd.singularValues().asDiagonal().inverse();
+    double sigmaSvd = (y - X * betasSvd).squaredNorm() / (n - p); // compute \sigmaˆ2
+    Eigen::MatrixXd varBetasSvd = sigmaSvd * ViD * ViD.transpose(); // Cov(\hat{beta})
+
+    // assertions
+    ASSERT_NEAR(betasSvd(0, 0), 25, 0.1);
+    ASSERT_NEAR(betasSvd(1, 0), 0.6, 0.1);
+    ASSERT_NEAR(betasSvd(2, 0), 2, 0.1);
+    ASSERT_NEAR(betasSvd(3, 0), 0.05, 0.002);
 }
