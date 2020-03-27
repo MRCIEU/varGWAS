@@ -14,6 +14,7 @@ target_link_libraries(
         ${SQLITE_LIB_PATH}
         ${DB_LIB_PATH}
         ${LIBSCL_LIB_PATH}
+        ${GLOG_LIB_PATH}
 )
 
 add_library(${BINARY}_lib STATIC ${SOURCES})
