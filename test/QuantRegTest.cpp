@@ -39,7 +39,7 @@ TEST(QuantRegTest, slope_residual) {
 
     // model
     REAL p = 0.5;
-    b = quantreg(y, X, p);
+    b = scl::quantreg(y, X, p);
 
     // slop & intercept assertions
     ASSERT_NEAR(b[1], 25, 0.1);
