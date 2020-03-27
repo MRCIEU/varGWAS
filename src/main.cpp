@@ -9,6 +9,18 @@
 #include "BgenParser.h"
 
 int main(int argc, char **argv) {
+    // TODO prog args
+
+    // TODO read into memory CSV containing Y and covar
+
+    // TODO initalize static JSLP obj with Y and covar
+
+    // TODO init multiple threads
+
+    // TODO foreach variant estimate SNP-trait effect adjusted for covar one on each thread
+
+    // TODO write out SNP-trait assoc to CSV using mutex?
+
     // TODO check file exists before passing to BgenParser
     std::string const filename = "/Users/matthewlyon/projects/jlst_cpp/lib/gavinband-bgen-44fcabbc5c38/example/example.v11.bgen";
 
