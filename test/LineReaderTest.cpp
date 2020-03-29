@@ -7,7 +7,7 @@ TEST(LinReaderTest, test) {
     while (char *line = in.next_line()) {
         pch = strtok(line, ",");
         while (pch != nullptr) {
-            printf("%s\n", pch);
+            //printf("%s\n", pch);
             pch = strtok(nullptr, ",");
         }
     }

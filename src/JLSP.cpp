@@ -4,8 +4,11 @@
 
 #include "JLSP.h"
 #include "libscl.h"
+#include <glog/logging.h>
 #include <iostream>
 
-void jlst::JLSP::fit() {
-
+namespace jlst {
+void JLSP::fit() {
+  LOG(INFO) << "Fitting JLSP model";
+}
 }

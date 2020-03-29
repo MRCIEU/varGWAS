@@ -1,38 +1,65 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
-#include <fstream>
+#include <glog/logging.h>
+#include "PhenotypeFile.h"
 
 /*
- * Class to read phenotype CSV
- *
+ * Class to read in phenotype and covariate(s) into memory
  * */
 
 namespace jlst {
-    class PhenotypeFile {
-    public:
-        PhenotypeFile(const std::string &phenoFile, const std::vector<std::string> &covariateFields,
-                      const std::string &outcomeField, const std::string &sep) {
-            this->phenoFile = phenoFile;
-            this->covariateFields = covariateFields;
-            this->outcomeField = outcomeField;
-            this->sep = sep;
-        };
+PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
+                             const std::vector<std::string> &covariateColumnHeaders,
+                             const std::string &outcomeColumnHeader,
+                             const char &sep) {
+    this->phenoFilePath = phenoFilePath;
+    this->covariateColumnHeaders = covariateColumnHeaders;
+    this->outcomeColumnHeader = outcomeColumnHeader;
+    this->sep = sep;
+};
 
-        void readfile() {
-            std::ifstream file(phenoFile);
-            if (file.is_open()) {
-                std::string line;
-                while (getline(file, line)) {
+void PhenotypeFile::load() {
+    // TODO implement using boost to allow for quotes in the file
+    LOG(INFO) << "Parsing phenotype from: " << phenoFilePath;
+    static std::ifstream file(phenoFilePath);
 
+    if (file.is_open()) {
+        static bool passedFirstLine = false;
+        static std::string line;
+        static std::string token;
+
+        while (getline(file, line)) {
+            std::istringstream tokenStream(line);
+
+            if (passedFirstLine) {
+                static std::vector<double> fields;
+                while (std::getline(tokenStream, token, sep)) {
+                    fields.push_back(std::stod(token));
                 }
-                file.close();
+                fileBody.push_back(fields);
+            } else {
+                while (std::getline(tokenStream, token, sep)) {
+                    fileHeader.push_back(token);
+                }
+                passedFirstLine = true;
             }
-        };
-    private:
-        std::string phenoFile;
-        std::vector<std::string> covariateFields;
-        std::string outcomeField;
-        std::string sep;
-    };
+
+        }
+        file.close();
+    }
+
+}
+const std::vector<std::string> &PhenotypeFile::GetCovariateColumnHeaders() const {
+    return covariateColumnHeaders;
+}
+const std::string &PhenotypeFile::GetOutcomeColumnHeader() const {
+    return outcomeColumnHeader;
+}
+const std::vector<std::string> &PhenotypeFile::GetFileHeader() const {
+    return fileHeader;
+}
+const std::vector<std::vector<double>> &PhenotypeFile::GetFileBody() const {
+    return fileBody;
+};
 }
