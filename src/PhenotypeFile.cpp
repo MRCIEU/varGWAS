@@ -22,7 +22,7 @@ PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
 void PhenotypeFile::load() {
     // TODO implement using boost to allow for quotes in the file
     LOG(INFO) << "Parsing phenotype from: " << phenoFilePath;
-    static std::ifstream file(phenoFilePath);
+    static std::ifstream file(phenoFilePath.c_str());
 
     if (file.is_open()) {
         static bool passedFirstLine = false;
@@ -46,7 +46,10 @@ void PhenotypeFile::load() {
             }
 
         }
+
         file.close();
+    } else {
+        throw std::runtime_error("Could not open file: " + phenoFilePath);
     }
 
 }
