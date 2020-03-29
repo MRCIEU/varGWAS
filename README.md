@@ -87,3 +87,9 @@ make all
 ```sh
 ./jlst_cpp
 ```
+
+Unordered categorical variables should be one-hot encoded.
+
+## Contributing
+
+This project follows the [Google style guide](https://google.github.io/styleguide/cppguide.html)
