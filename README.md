@@ -24,27 +24,29 @@ mkdir -p lib
 cd lib
 
 # bgen
-curl https://bitbucket.org/gavinband/bgen/get/44fcabbc5c38.zip > gavinband-bgen-44fcabbc5c38.zip
-unzip gavinband-bgen-44fcabbc5c38.zip
-cd gavinband-bgen-44fcabbc5c38
+curl -L http://code.enkre.net/bgen/tarball/release/bgen.tgz > bgen.tar.gz
+tar -xvf bgen.tar.gz
+mv bgen.tgz bgen
+cd bgen
 ./waf configure
 ./waf
 cd ..
 
 # quantile regression
-wget http://www.aronaldg.org/webfiles/libscl/libscl.tar
+curl -L http://www.aronaldg.org/webfiles/libscl/libscl.tar > libscl.tar
 tar -xvf libscl.tar
 cd libscl/gpp
 make
-cd ..
+cd ../..
 
 # csv reader 
-curl -L https://github.com/ben-strasser/fast-cpp-csv-parser/archive/713c5fd.zip > fast-cpp-csv-parser-713c5fd2ba1b6d145296a21fc7f9dee576daaa4f.zip
-unzip fast-cpp-csv-parser-713c5fd2ba1b6d145296a21fc7f9dee576daaa4f.zip
+curl -L https://github.com/ben-strasser/fast-cpp-csv-parser/archive/master.zip > fast-cpp-csv-parser.zip
+unzip fast-cpp-csv-parser.zip
+mv fast-cpp-csv-parser-master fast-cpp-csv-parser
 
 # eigen
 curl https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz > eigen-3.3.7.tar.gz
-tar -xvf eigen-3.3.7.tar.gz 
+tar -xvf eigen-3.3.7.tar.gz
 
 # cxxopts
 curl -L https://github.com/jarro2783/cxxopts/archive/v2.2.0.tar.gz > cxxopts-2.2.0.tar.gz
@@ -55,11 +57,12 @@ curl -L https://github.com/google/glog/archive/v0.4.0.tar.gz > glog-0.4.0.tar.gz
 tar -xvf glog-0.4.0.tar.gz
 cd glog-0.4.0
 mkdir bin
+cd bin
 cmake ..
 make
 
 # google test
-wget https://github.com/google/googletest/archive/release-1.10.0.tar.gz
+curl -L https://github.com/google/googletest/archive/release-1.10.0.tar.gz > release-1.10.0.tar.gz
 tar -xvf release-1.10.0.tar.gz
 ```
 
@@ -79,7 +82,7 @@ mkdir -p build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" 
 make all
-./test/jlsp_cpp_test 
+./test/jlst_cpp_test
 ```
 
 ## Usage
