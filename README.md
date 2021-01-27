@@ -100,3 +100,4 @@ This project follows the [Google style guide](https://google.github.io/styleguid
 ## Performance
 
 OpenCL/CUDA, OpenMP and MPI?
+code optimization and performance tuning, parallelization using both shared memory (OpenMP) and message passing (MPI) paradigms
