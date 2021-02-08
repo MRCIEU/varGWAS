@@ -69,8 +69,6 @@ int main(int argc, char **argv) {
 
   // TODO write out SNP-trait assoc to CSV using mutex?
 
-  // TODO check file exists before passing to BgenParser
-
   try {
     LOG(INFO) << "Reading variants from: " << bgen_file;
     genfile::bgen::BgenParser bgenParser(bgen_file);

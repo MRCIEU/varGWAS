@@ -6,9 +6,12 @@ TEST(LinReaderTest, test) {
     char *pch;
     while (char *line = in.next_line()) {
         pch = strtok(line, ",");
+        printf("%s\n", pch);
+        break;
         while (pch != nullptr) {
-            //printf("%s\n", pch);
             pch = strtok(nullptr, ",");
+            //printf("%s\n", pch);
+            //break;
         }
     }
 }
