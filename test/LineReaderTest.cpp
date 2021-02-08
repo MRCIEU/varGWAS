@@ -1,6 +1,10 @@
 #include "csv.h"
 #include "gtest/gtest.h"
 
+/*
+ * Test to read CSV file
+ * */
+
 TEST(LinReaderTest, test) {
     io::LineReader in("data/regression.csv");
     char *pch;

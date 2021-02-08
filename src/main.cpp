@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 
   // TODO pass bgen chunk & pheno obj to JLSP for est
 
-  // TODO sync threads and write to CSV
+  // TODO sync threads and write results to CSV
 
   try {
     LOG(INFO) << "Reading variants from: " << bgen_file;
