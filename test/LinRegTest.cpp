@@ -3,6 +3,10 @@
 #include <Eigen/Core>
 #include <Eigen/SVD>
 
+/*
+ * Test for performing linear regression model
+ * */
+
 TEST(LinRegTest, slope_residual) {
     const double intercept = 1.0;
     double x_f;
@@ -40,6 +44,11 @@ TEST(LinRegTest, slope_residual) {
     Eigen::MatrixXd varBetasSvd = sigmaSvd * ViD * ViD.transpose(); // Cov(\hat{beta})
 
     // assertions
+    std::cout << "Int: " << betasSvd(0, 0) << std::endl;
+    std::cout << "X: " << betasSvd(1, 0) << std::endl;
+    std::cout << "C1: " << betasSvd(2, 0) << std::endl;
+    std::cout << "C2: " << betasSvd(3, 0) << std::endl;
+
     ASSERT_NEAR(betasSvd(0, 0), 25, 0.1);
     ASSERT_NEAR(betasSvd(1, 0), 0.6, 0.1);
     ASSERT_NEAR(betasSvd(2, 0), 2, 0.1);

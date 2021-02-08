@@ -3,6 +3,10 @@
 #include "gtest/gtest.h"
 #include <cmath>
 
+/*
+ * Test for performing quantile regression
+ * */
+
 TEST(QuantRegTest, slope_residual) {
     INTEGER x_f;
     INTEGER c1_f;

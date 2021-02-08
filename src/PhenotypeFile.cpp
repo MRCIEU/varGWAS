@@ -21,6 +21,7 @@ PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
 
 void PhenotypeFile::load() {
     // TODO implement using boost to allow for quotes in the file
+    // TODO improve performance
     LOG(INFO) << "Parsing phenotype from: " << phenoFilePath;
     static std::ifstream file(phenoFilePath.c_str());
 

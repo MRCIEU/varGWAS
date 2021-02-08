@@ -1,6 +1,10 @@
 #include "PhenotypeFile.h"
 #include "gtest/gtest.h"
 
+/*
+ * Test for reading phenotype file
+ * */
+
 TEST(PhenotypeFileTest, load) {
   std::string filename = "data/regression.csv";
   std::string outcomeColumnHeader = "y";
@@ -8,8 +12,10 @@ TEST(PhenotypeFileTest, load) {
   char sep = ',';
 
   // read file
+  std::cout << "Reading phenotype file..." << std::endl;
   jlst::PhenotypeFile p(filename, covariateColumnHeaders, outcomeColumnHeader, sep);
   p.load();
+  std::cout << "Done!" << std::endl;
 
   // assertions
   ASSERT_EQ(p.GetFileHeader()[0], "x");
