@@ -8,6 +8,7 @@
  * */
 
 TEST(LinRegTest, slope_residual) {
+    std::cout << "Hi 23" << std::endl;
     const double intercept = 1.0;
     double x_f;
     double c1_f;
@@ -21,6 +22,7 @@ TEST(LinRegTest, slope_residual) {
     Eigen::VectorXd y = Eigen::VectorXd(n);
 
     // get data (see data/regression.R)
+    std::cout << "Reading phenotype file..." << std::endl;
     io::CSVReader<5> in("data/regression.csv");
     in.read_header(io::ignore_extra_column, "x", "c1", "c2", "y", "d");
     int t = 0;
@@ -32,6 +34,7 @@ TEST(LinRegTest, slope_residual) {
         y(t, 0) = y_f;
         t++;
     }
+    std::cout << "Done!" << std::endl;
 
     // linear regression using SVD
     // adapted from: https://genome.sph.umich.edu/w/images/2/2c/Biostat615-lecture14-presentation.pdf
