@@ -60,14 +60,14 @@ int main(int argc, char **argv) {
   jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, sep);
   phenotype_file.load();
 
-  // TODO initalize static JSLP obj with Y and covar
+  // TODO read BGEN index and chunk into n=threads
 
   // TODO init multiple threads
   LOG(INFO) << "Running with " << threads << " threads";
 
-  // TODO foreach variant estimate SNP-trait effect adjusted for covar one on each thread
+  // TODO pass bgen chunk & pheno obj to JLSP for est
 
-  // TODO write out SNP-trait assoc to CSV using mutex?
+  // TODO sync threads and write to CSV
 
   try {
     LOG(INFO) << "Reading variants from: " << bgen_file;
