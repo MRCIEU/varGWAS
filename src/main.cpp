@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
       ("o,output_file", "Path to output file", cxxopts::value<std::string>())
       ("b,bgen_file", "Path to BGEN file", cxxopts::value<std::string>())
       ("p,phenotype", "Column name for phenotype", cxxopts::value<std::string>())
+      ("i,id", "Column name for genotype identifier", cxxopts::value<std::string>())
       ("t,threads", "Number of threads", cxxopts::value<int>()->default_value("1"));
   auto result = options.parse(argc, argv);
 
@@ -44,6 +45,7 @@ int main(int argc, char **argv) {
   std::string output_file = result["output_file"].as<std::string>();
   std::string bgen_file = result["bgen_file"].as<std::string>();
   std::string phenotype = result["phenotype"].as<std::string>();
+  std::string id = result["id"].as<std::string>();
   int threads = result["threads"].as<int>();
 
   // check files exist
