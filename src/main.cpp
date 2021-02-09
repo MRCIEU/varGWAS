@@ -9,6 +9,7 @@
 #include "genfile/bgen/bgen.hpp"
 #include "csv.h"
 #include <glog/logging.h>
+#include "ThreadPool.h"
 #include "BgenParser.h"
 #include "PhenotypeFile.h"
 

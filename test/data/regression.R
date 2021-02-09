@@ -28,5 +28,6 @@ summary(fit)
 d <- abs(resid(fit))
 
 # write out csv
-df <- data.frame(x=x, c1=c1, c2=c2, y=y, d=d)
+id <- seq(1, n_obs)
+df <- data.frame(x, c1, c2, y, d, id=paste0("S", id))
 write.csv(df, file="regression.csv", quote=F, row.names=F)

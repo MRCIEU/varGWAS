@@ -17,6 +17,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen-3.3.7)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/cxxopts-2.2.0/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/glog-0.4.0/bin)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/glog-0.4.0/src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/ThreadPool)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # libraries
