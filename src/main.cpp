@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cassert>
 #include <stdexcept>
+#include <thread>
 #include <cxxopts.hpp>
 #include "genfile/bgen/bgen.hpp"
 #include "csv.h"
@@ -22,7 +23,7 @@ int main(int argc, char **argv) {
   // Initialize Google's logging library.
   google::InitGoogleLogging(argv[0]);
 
-  // Parse arguments
+  // Configure arguments
   cxxopts::Options options("JLST C++", "Program to perform vGWAS of trait against variants in the BGEN format");
   options.add_options()
       ("v,variable_file", "Path to phenotype file", cxxopts::value<std::string>())
@@ -34,9 +35,10 @@ int main(int argc, char **argv) {
       ("b,bgen_file", "Path to BGEN file", cxxopts::value<std::string>())
       ("p,phenotype", "Column name for phenotype", cxxopts::value<std::string>())
       ("i,id", "Column name for genotype identifier", cxxopts::value<std::string>())
-      ("t,threads", "Number of threads", cxxopts::value<int>()->default_value("1"));
+      ("t,threads", "Number of threads", cxxopts::value<int>()->default_value(std::to_string(std::thread::hardware_concurrency())));
   auto result = options.parse(argc, argv);
 
+  // Parse arguments
   std::string variable_file = result["variable_file"].as<std::string>();
   char sep = result["sep"].as<char>();
   std::vector<std::string> covariates;
@@ -59,69 +61,78 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  // Read phenotype and covariates into memory
-  jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, sep);
-  phenotype_file.load();
-
-  // TODO read BGEN index and chunk into n=threads
-
-  // TODO init multiple threads
+  // create thread pool with N worker threads
   LOG(INFO) << "Running with " << threads << " threads";
-
-  // TODO pass bgen chunk & pheno obj to JLSP for est
-
-  // TODO sync threads and write results to CSV
+  ThreadPool pool(threads);
 
   try {
+    // Parse BGEN
     LOG(INFO) << "Reading variants from: " << bgen_file;
     genfile::bgen::BgenParser bgenParser(bgen_file);
 
-    bgenParser.summarise(std::cerr);
-
-    // Output header
-    std::cout << "CHROM\tPOS\tID\tREF\tALT";
+    // Parse sample list
+    static std::vector<std::string> samples;
     bgenParser.get_sample_ids(
-        [](std::string const &id) { std::cout << "\t" << id; }
+        [](std::string const &id) { samples.push_back(id); }
     );
-    std::cout << "\n";
 
-    // Output variants
+    // Read phenotype and covariates into memory
+    // TODO pass sample list from BGEN to subset phenotypes
+    // TODO return Eigen matrix
+    /*jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, sep);
+    phenotype_file.GetMatrix(samples);*/
+
+    // Read variants
     std::string chromosome;
     uint32_t position;
     std::string rsid;
     std::vector<std::string> alleles;
     std::vector<std::vector<double> > probs;
+    static std::vector<double> dosages;
 
     while (bgenParser.read_variant(&chromosome, &position, &rsid, &alleles)) {
-      LOG_EVERY_N(INFO, 10) << "Got the " << google::COUNTER << "th cookie";
+      LOG_EVERY_N(INFO, 1000) << "Read the " << google::COUNTER << "th variant";
 
       // only support bi-allelic variants
-      assert(alleles.size() == 2);
+      if (alleles.size() != 2){
+        LOG(WARNING) << "Skipping non bi-allelic variant: " << rsid;
+        continue;
+      }
 
       // print variant
-      std::cout << chromosome << '\t'
+      /*std::cout << chromosome << '\t'
                 << position << '\t'
                 << rsid << '\t'
                 << alleles[0] << '\t'
-                << alleles[1] << '\t';
+                << alleles[1] << '\t';*/
 
+      // convert probabilities to dosage values
       bgenParser.read_probs(&probs);
+      dosages.clear();
       for (auto &prob : probs) {
-        std::cout << '\t';
-
         // only support bi-allelic variants [0, 1, 2 copies of alt]
         assert(prob.size() == 3);
 
         // convert genotype probabilities to copies of alt
-        std::cout << prob[1] + (2 * prob[2]);
+        // TODO check for null values
+        dosages.push_back(prob[1] + (2 * prob[2]));
       }
 
-      std::cout << "\n";
+      // check no missing values between sample list and dosage
+      assert(dosages.size() == samples.size());
+
+      // TODO add dosage values to Eigen matrix
+
+      // enqueue and store future
+      // auto assoc = pool.enqueue([](int answer) { return answer; }, 42);
     }
+
+    // get result from future
+    // std::cout << assoc.get() << std::endl;
 
     return 0;
   } catch (genfile::bgen::BGenError const &e) {
-    std::cerr << "Error parsing bgen file.\n";
+    LOG(FATAL) << "Error parsing BGEN file: " << e.what();
     return -1;
   }
 

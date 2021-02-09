@@ -19,9 +19,10 @@ PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
     this->sep = sep;
 };
 
-void PhenotypeFile::load() {
+void PhenotypeFile::GetMatrix(std::vector<std::string> samples) {
     // TODO implement using boost to allow for quotes in the file
     // TODO improve performance
+    // TODO return Eign matrix for subset samples
     LOG(INFO) << "Parsing phenotype from: " << phenoFilePath;
     static std::ifstream file(phenoFilePath.c_str());
 
