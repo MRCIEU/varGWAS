@@ -61,6 +61,12 @@ int main(int argc, char **argv) {
     return -1;
   }
 
+  // Read phenotype and covariates into memory
+  // TODO pass sample list from BGEN to subset phenotypes
+  // TODO return Eigen matrix
+  jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, sep);
+  phenotype_file.GetMatrix(samples);
+
   // create thread pool with N worker threads
   LOG(INFO) << "Running with " << threads << " threads";
   ThreadPool pool(threads);
@@ -75,12 +81,6 @@ int main(int argc, char **argv) {
     bgenParser.get_sample_ids(
         [](std::string const &id) { samples.push_back(id); }
     );
-
-    // Read phenotype and covariates into memory
-    // TODO pass sample list from BGEN to subset phenotypes
-    // TODO return Eigen matrix
-    /*jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, sep);
-    phenotype_file.GetMatrix(samples);*/
 
     // Read variants
     std::string chromosome;
@@ -135,5 +135,7 @@ int main(int argc, char **argv) {
     LOG(FATAL) << "Error parsing BGEN file: " << e.what();
     return -1;
   }
+
+  // TODO write output to CSV
 
 }
