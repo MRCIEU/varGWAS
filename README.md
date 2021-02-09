@@ -82,6 +82,15 @@ make
 
 ### Test
 
+Create some test data
+
+```sh
+cd test/data
+Rscript regression.R
+```
+
+Run application tests
+
 ```sh
 mkdir -p build
 cd build
