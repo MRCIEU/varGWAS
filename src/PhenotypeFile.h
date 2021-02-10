@@ -24,6 +24,7 @@ class PhenotypeFile {
   const std::vector<std::string> &GetSampleIdentifierColumn() const;
   const std::vector<double> &GetOutcomeColumn() const;
   const std::vector<std::vector<double>> &GetCovariateColumn() const;
+  int GetNSamples() const;
 
  private:
   std::string phenoFilePath;
@@ -34,7 +35,7 @@ class PhenotypeFile {
   std::vector<double> outcomeColumn;
   std::vector<std::vector<double>> covariateColumn;
   char sep;
-
+  int n_samples;
 };
 }
 

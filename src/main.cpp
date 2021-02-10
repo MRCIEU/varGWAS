@@ -21,6 +21,7 @@ bool file_exists(const std::string &name) {
 
 int main(int argc, char **argv) {
   // Initialize Google's logging library.
+  // TODO fix logging
   google::InitGoogleLogging(argv[0]);
 
   // Configure arguments
@@ -82,7 +83,7 @@ int main(int argc, char **argv) {
 
     // Perform locus association tests
     LOG(INFO) << "Running model";
-    jlst::Model::fit(phenotype_file, bgen_parser);
+    jlst::Model::run(phenotype_file, bgen_parser);
 
     // write output to CSV
     // TODO

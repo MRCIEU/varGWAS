@@ -7,20 +7,34 @@
 #include "PhenotypeFile.h"
 #include "BgenParser.h"
 #include "Result.h"
+#include <Eigen/Core>
+#include <Eigen/SVD>
 
 /*
  * Class to perform association testing
  * */
 namespace jlst {
 void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &bgen_parser) {
-  // Create Eigen matrix of phenotypes
-  phenotype_mat = NULL;
+
+  // Create Eigen matrix of phenotypes wo dosage
+  Eigen::MatrixXd X = Eigen::MatrixXd(phenotype_file.GetNSamples(), phenotype_file.GetCovariateColumn().size() + 2);
+  Eigen::VectorXd y = Eigen::VectorXd(phenotype_file.GetNSamples());
+
+  // Populate matrix
+  for (unsigned i = 0; i < phenotype_file.GetNSamples(); i++) {
+    X(i, 0) = 1; // intercept
+    X(i, 1) = 0; // dosage set to zero
+    for (unsigned j = 0; j < phenotype_file.GetCovariateColumn().size(); j++) {
+      X(i, j + 2) = phenotype_file.GetCovariateColumn()[j][i]; // covariates
+    }
+    y(i, 0) = phenotype_file.GetOutcomeColumn()[i]; // outcome
+  }
 
   std::string chromosome;
   uint32_t position;
   std::string rsid;
   std::vector<std::string> alleles;
-  std::vector<std::vector<double> > probs;
+  std::vector<std::vector<double>> probs;
   std::vector<double> dosages;
 
   // Read variant-by-variant
@@ -35,7 +49,7 @@ void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &
 
     // convert probabilities to dosage values
     bgen_parser.read_probs(&probs);
-    dosages.clear();
+
     for (auto &prob : probs) {
       // only support bi-allelic variants [0, 1, 2 copies of alt]
       assert(prob.size() == 3);
@@ -46,19 +60,21 @@ void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &
     }
 
     // check no missing values between sample list and dosage
-    assert(dosages.size() == phenotype_file.GetSampleIdentifierColumn().size());
+    assert(dosages.size() == phenotype_file.GetNSamples());
 
-    // enqueue and store future
-    // auto assoc = pool.enqueue([](int answer) { return answer; }, 42);
-
-    Model::fit(chromosome, position, rsid, alleles, dosages, phenotype_mat);
+    // fit model
+    Result result = Model::fit(chromosome, position, rsid, alleles, dosages, X, y);
   }
-
-  // get result from future
-  // std::cout << assoc.get() << std::endl;
-
 }
-jlst::Result Model::fit(chromosome, position, rsid, alleles, dosages, phenotype_mat){
+
+Result Model::fit(std::string chromosome,
+                  uint32_t position,
+                  std::string rsid,
+                  std::vector<std::string> alleles,
+                  std::vector<double> dosages,
+                  Eigen::MatrixXd X,
+                  const Eigen::VectorXd &y) {
+
   // Build results struct
   jlst::Result res;
   res.chromosome = chromosome;

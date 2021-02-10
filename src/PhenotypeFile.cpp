@@ -25,6 +25,7 @@ PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
   this->outcomeColumnHeader = outcomeColumnHeader;
   this->idColumnHeader = idColumnHeader;
   this->sep = sep;
+  this->n_samples = -1;
 };
 
 /*
@@ -107,7 +108,7 @@ void PhenotypeFile::parse() {
   } else {
     throw std::runtime_error("Could not open file: " + phenoFilePath);
   }
-
+  n_samples = sampleIdentifierColumn.size();
 }
 /*
  * Function to subset data using provided list of sample identifiers
@@ -116,7 +117,7 @@ void PhenotypeFile::subset_samples(const std::vector<std::string> &samples) {
   // create sample identifier-to-index mapping
   std::unordered_map<std::string, unsigned> mapping;
   for (unsigned i = 0; i < sampleIdentifierColumn.size(); ++i) {
-    if (mapping.count(sampleIdentifierColumn[i])){
+    if (mapping.count(sampleIdentifierColumn[i])) {
       throw std::runtime_error("Duplicate identifiers were detected for: " + sampleIdentifierColumn[i]);
     }
     // store array index against column identifier
@@ -127,14 +128,14 @@ void PhenotypeFile::subset_samples(const std::vector<std::string> &samples) {
   std::vector<std::string> sampleIdentifierColumnTmp;
   std::vector<double> outcomeColumnTmp;
   std::vector<std::vector<double>> covariateColumnTmp;
-  for (unsigned i = 0; i < covariateColumn.size(); ++i){
+  for (unsigned i = 0; i < covariateColumn.size(); ++i) {
     covariateColumnTmp.emplace_back();
   }
 
   // subset data using new ordering
   for (auto &sample : samples) {
     // get index for sample
-    if (mapping.count(sample) == 0){
+    if (mapping.count(sample) == 0) {
       throw std::runtime_error("Missing sample from phenotype file: " + sample);
     }
 
@@ -142,7 +143,7 @@ void PhenotypeFile::subset_samples(const std::vector<std::string> &samples) {
     unsigned idx = mapping[sample];
     sampleIdentifierColumnTmp.push_back(sampleIdentifierColumn[idx]);
     outcomeColumnTmp.push_back(outcomeColumn[idx]);
-    for (unsigned i = 0; i < covariateColumn.size(); ++i){
+    for (unsigned i = 0; i < covariateColumn.size(); ++i) {
       covariateColumnTmp[i].push_back(covariateColumn[i][idx]);
     }
   }
@@ -150,7 +151,7 @@ void PhenotypeFile::subset_samples(const std::vector<std::string> &samples) {
   // check variables are the same length
   assert(sampleIdentifierColumnTmp.size() == samples.size());
   assert(outcomeColumnTmp.size() == samples.size());
-  for (unsigned i = 0; i < covariateColumn.size(); ++i){
+  for (unsigned i = 0; i < covariateColumn.size(); ++i) {
     assert(covariateColumnTmp[i].size() == samples.size());
   }
 
@@ -158,6 +159,7 @@ void PhenotypeFile::subset_samples(const std::vector<std::string> &samples) {
   sampleIdentifierColumn = sampleIdentifierColumnTmp;
   outcomeColumn = outcomeColumnTmp;
   covariateColumn = covariateColumnTmp;
+  n_samples = sampleIdentifierColumn.size();
 }
 const std::vector<std::string> &PhenotypeFile::GetSampleIdentifierColumn() const {
   return sampleIdentifierColumn;
@@ -167,5 +169,11 @@ const std::vector<double> &PhenotypeFile::GetOutcomeColumn() const {
 }
 const std::vector<std::vector<double>> &PhenotypeFile::GetCovariateColumn() const {
   return covariateColumn;
+}
+int PhenotypeFile::GetNSamples() const {
+  if (n_samples == -1){
+    throw std::runtime_error("Value not set");
+  }
+  return n_samples;
 }
 }

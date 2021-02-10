@@ -6,7 +6,7 @@
 #define JLST_CPP_SRC_RESULT_H_
 
 namespace jlst {
-struct Result {
+struct Result{
   std::string chromosome;
   uint32_t position;
   std::string rsid;
