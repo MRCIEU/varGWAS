@@ -45,12 +45,6 @@ TEST(QuantRegTest, slope_residual) {
   REAL p = 0.5;
   b = scl::quantreg(y, X, p);
 
-  // slop & intercept assertions
-  std::cout << "Int: " << b[1] << std::endl;
-  std::cout << "X: " << b[2] << std::endl;
-  std::cout << "C1: " << b[3] << std::endl;
-  std::cout << "C2: " << b[4] << std::endl;
-
   ASSERT_NEAR(b[1], 25, 0.1);
   ASSERT_NEAR(b[2], 0.6, 0.1);
   ASSERT_NEAR(b[3], 2, 0.1);

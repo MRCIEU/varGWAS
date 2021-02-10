@@ -9,6 +9,7 @@
 #include "Result.h"
 #include <Eigen/Core>
 #include <Eigen/SVD>
+#include <utility>
 
 /*
  * Class to perform association testing
@@ -30,14 +31,13 @@ void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &
     y(i, 0) = phenotype_file.GetOutcomeColumn()[i]; // outcome
   }
 
+  // Read variant-by-variant
   std::string chromosome;
   uint32_t position;
   std::string rsid;
   std::vector<std::string> alleles;
   std::vector<std::vector<double>> probs;
   std::vector<double> dosages;
-
-  // Read variant-by-variant
   while (bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
     LOG_EVERY_N(INFO, 1000) << "Read the " << google::COUNTER << "th variant";
 
@@ -67,24 +67,32 @@ void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &
   }
 }
 
-// TODO
-Result Model::fit(std::string chromosome,
-                  uint32_t position,
-                  std::string rsid,
-                  std::vector<std::string> alleles,
-                  std::vector<double> dosages,
-                  Eigen::MatrixXd X,
-                  const Eigen::VectorXd &y) {
+Result Model::fit(std::string chromosome, uint32_t position, std::string rsid, std::vector<std::string> alleles, std::vector<double> dosages, Eigen::MatrixXd X, const Eigen::VectorXd &y) {
+  // set dosage values
+  for (unsigned i = 0; i < dosages.size(); i++) {
+    X(i, 1) = dosages[i];
+  }
+
+  // linear regression using SVD
+  // adapted from: https://genome.sph.umich.edu/w/images/2/2c/Biostat615-lecture14-presentation.pdf
+  Eigen::BDCSVD<Eigen::MatrixXd> svd(X, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  Eigen::MatrixXd betasSvd = svd.solve(y);
+
+  // calculate VDˆ{-1}
+  Eigen::MatrixXd ViD = svd.matrixV() * svd.singularValues().asDiagonal().inverse();
+  double sigmaSvd = (y - X * betasSvd).squaredNorm() / (X.rows() - X.cols()); // compute \sigmaˆ2
+  Eigen::MatrixXd varBetasSvd = sigmaSvd * ViD * ViD.transpose(); // Cov(\hat{beta})
 
   // Build results struct
   jlst::Result res;
-  res.chromosome = chromosome;
+  res.chromosome = std::move(chromosome);
   res.position = position;
-  res.rsid = rsid;
+  res.rsid = std::move(rsid);
   res.effect_allele = alleles[1];
   res.other_allele = alleles[0];
-  // Perform model
-  // TODO add dosage values to Eigen matrix
+  res.beta = betasSvd(1, 0);
+  res.se = varBetasSvd(1, 0);
+
   return res;
 }
 }
