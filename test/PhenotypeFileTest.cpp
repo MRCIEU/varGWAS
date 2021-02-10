@@ -14,10 +14,10 @@ TEST(PhenotypeFileTest, parse_should_function) {
   static char sep = ',';
 
   jlst::PhenotypeFile phenotypeFile(filePath,
-                        covariateColumnHeaders,
-                        outcomeColumnHeader,
-                        idColumnHeader,
-                        sep);
+                                    covariateColumnHeaders,
+                                    outcomeColumnHeader,
+                                    idColumnHeader,
+                                    sep);
   phenotypeFile.parse();
 
   ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn()[0], "S1");
@@ -44,9 +44,9 @@ TEST(PhenotypeFileTest, parse_missing_exposure_field) {
                                       sep);
     phenotypeFile.parse();
     FAIL() << "Expected PhenotypeFileException";
-  } catch(jlst::PhenotypeFileException const &err) {
-    EXPECT_EQ(err.what(),std::string("Field missing from phenotype file: NA"));
-  } catch(...){
+  } catch (jlst::PhenotypeFileException const &err) {
+    EXPECT_EQ(err.what(), std::string("Field missing from phenotype file: NA"));
+  } catch (...) {
     FAIL() << "Expected PhenotypeFileException";
   }
 }
@@ -65,7 +65,7 @@ TEST(PhenotypeFileTest, subset_samples_should_function) {
                                     sep);
   phenotypeFile.parse();
   ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn().size(), 50000);
-  phenotypeFile.subset_samples(std::vector<std::string> { "S1", "S4", "S100" });
+  phenotypeFile.subset_samples(std::vector<std::string>{"S1", "S4", "S100"});
   ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn().size(), 3);
 
   ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn()[2], "S100");
@@ -88,11 +88,11 @@ TEST(PhenotypeFileTest, subset_samples_missing_sample) {
                                     sep);
   phenotypeFile.parse();
   try {
-    phenotypeFile.subset_samples(std::vector<std::string> { "abc123" });
+    phenotypeFile.subset_samples(std::vector<std::string>{"abc123"});
     FAIL() << "Expected std::runtime_error";
-  } catch (std::runtime_error &err){
-    EXPECT_EQ(err.what(),std::string("Missing sample from phenotype file: abc123"));
-  } catch (...){
+  } catch (std::runtime_error &err) {
+    EXPECT_EQ(err.what(), std::string("Missing sample from phenotype file: abc123"));
+  } catch (...) {
     FAIL() << "Expected std::runtime_error";
   }
 }

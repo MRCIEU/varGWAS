@@ -3,7 +3,6 @@
 //
 
 #include <iostream>
-#include <cassert>
 #include <stdexcept>
 #include <thread>
 #include <cxxopts.hpp>
@@ -13,6 +12,7 @@
 #include "BgenParser.h"
 #include "PhenotypeFile.h"
 #include "PhenotypeFileException.h"
+#include "Model.h"
 
 bool file_exists(const std::string &name) {
   std::ifstream f(name.c_str());
@@ -76,16 +76,16 @@ int main(int argc, char **argv) {
     phenotype_file.parse();
     phenotype_file.subset_samples(samples);
 
-    // Create Eigen matrix
-    //Eigen::MatrixXd X = Eigen::MatrixXd(n, p + 1);
-    //Eigen::VectorXd y = Eigen::VectorXd(n);
-
     // create thread pool with N worker threads
-    // LOG(INFO) << "Running with " << threads << " threads";
-    // ThreadPool pool(threads);
+    LOG(INFO) << "Running with " << threads << " threads";
+    //ThreadPool pool(threads);
 
+    // Perform locus association tests
+    LOG(INFO) << "Running model";
+    jlst::Model::fit(phenotype_file, bgen_parser);
 
-
+    // write output to CSV
+    // TODO
 
   } catch (jlst::PhenotypeFileException const &e) {
     LOG(FATAL) << "Error parsing phenotype file. " << e.what();
@@ -94,64 +94,5 @@ int main(int argc, char **argv) {
     LOG(FATAL) << "Error parsing BGEN file: " << e.what();
     return -1;
   }
-
-  try {
-    LOG(INFO) << "Reading variants from: " << bgen_file;
-    genfile::bgen::BgenParser bgen_parser(bgen_file);
-    std::string chromosome;
-    uint32_t position;
-    std::string rsid;
-    std::vector<std::string> alleles;
-    std::vector<std::vector<double> > probs;
-    static std::vector<double> dosages;
-
-    // Read variant-by-variant
-    while (bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
-      LOG_EVERY_N(INFO, 1000) << "Read the " << google::COUNTER << "th variant";
-
-      // only support bi-allelic variants
-      if (alleles.size() != 2) {
-        LOG(WARNING) << "Skipping non bi-allelic variant: " << rsid;
-        continue;
-      }
-
-      // print variant
-      /*std::cout << chromosome << '\t'
-                << position << '\t'
-                << rsid << '\t'
-                << alleles[0] << '\t'
-                << alleles[1] << '\t';*/
-
-      // convert probabilities to dosage values
-      bgen_parser.read_probs(&probs);
-      dosages.clear();
-      for (auto &prob : probs) {
-        // only support bi-allelic variants [0, 1, 2 copies of alt]
-        assert(prob.size() == 3);
-
-        // convert genotype probabilities to copies of alt
-        // TODO check for null values
-        dosages.push_back(prob[1] + (2 * prob[2]));
-      }
-
-      // check no missing values between sample list and dosage
-      //assert(dosages.size() == samples.size());
-
-      // TODO add dosage values to Eigen matrix
-
-      // enqueue and store future
-      // auto assoc = pool.enqueue([](int answer) { return answer; }, 42);
-    }
-
-    // get result from future
-    // std::cout << assoc.get() << std::endl;
-
-    return 0;
-  } catch (genfile::bgen::BGenError const &e) {
-    LOG(FATAL) << "Error parsing BGEN file: " << e.what();
-    return -1;
-  }
-
-  // TODO write output to CSV
 
 }
