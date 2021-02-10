@@ -64,7 +64,7 @@ void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &
     // check no missing values between sample list and dosage
     assert(dosages.size() == phenotype_file.GetNSamples());
 
-    // TODO multithread
+    // TODO multi-thread
     Result result = Model::fit(chromosome, position, rsid, alleles, dosages, X, y);
   }
 }

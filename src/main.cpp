@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 
     // Perform locus association tests
     LOG(INFO) << "Running model";
-    jlst::Model::run(phenotype_file, bgen_parser);
+    jlst::Model::run(phenotype_file, bgen_parser, threads);
 
     // write output to CSV
     // TODO
