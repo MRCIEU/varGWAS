@@ -3,19 +3,21 @@
 //
 
 #include <glog/logging.h>
+#include <Eigen/Core>
+#include <Eigen/SVD>
+#include <utility>
+#include <vector>
+#include <iostream>
 #include "Model.h"
 #include "PhenotypeFile.h"
 #include "BgenParser.h"
 #include "Result.h"
-#include <Eigen/Core>
-#include <Eigen/SVD>
-#include <utility>
 
 /*
  * Class to perform association testing
  * */
 namespace jlst {
-void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &bgen_parser) {
+void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &bgen_parser, int threads) {
 
   // Create Eigen matrix of phenotypes wo dosage
   Eigen::MatrixXd X = Eigen::MatrixXd(phenotype_file.GetNSamples(), phenotype_file.GetCovariateColumn().size() + 2);
@@ -62,12 +64,19 @@ void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &
     // check no missing values between sample list and dosage
     assert(dosages.size() == phenotype_file.GetNSamples());
 
-    // fit model
+    // TODO multithread
     Result result = Model::fit(chromosome, position, rsid, alleles, dosages, X, y);
   }
 }
 
-Result Model::fit(std::string chromosome, uint32_t position, std::string rsid, std::vector<std::string> alleles, std::vector<double> dosages, Eigen::MatrixXd X, const Eigen::VectorXd &y) {
+Result Model::fit(std::string chromosome,
+                  uint32_t position,
+                  std::string rsid,
+                  std::vector<std::string> alleles,
+                  std::vector<double> dosages,
+                  Eigen::MatrixXd X,
+                  const Eigen::VectorXd &y) {
+
   // set dosage values
   for (unsigned i = 0; i < dosages.size(); i++) {
     X(i, 1) = dosages[i];
@@ -92,6 +101,9 @@ Result Model::fit(std::string chromosome, uint32_t position, std::string rsid, s
   res.other_allele = alleles[0];
   res.beta = betasSvd(1, 0);
   res.se = varBetasSvd(1, 0);
+  res.pval = 0;
+
+  // TODO second stage model
 
   return res;
 }

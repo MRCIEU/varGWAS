@@ -19,7 +19,7 @@
 namespace jlst {
 class Model {
  public:
-  static void run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &bgen_parser);
+  static void run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &bgen_parser, int threads);
   static Result fit(std::string chromosome,
                   uint32_t position,
                   std::string rsid,
