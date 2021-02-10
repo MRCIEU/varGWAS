@@ -78,10 +78,10 @@ void PhenotypeFile::parse() {
         }
 
         if (outIdx == -1) {
-          throw PhenotypeFileException("Field missing from phenotype file: " + outcomeColumnHeader);
+          throw jlst::PhenotypeFileException("Field missing from phenotype file: " + outcomeColumnHeader);
         }
         if (sidIdx == -1) {
-          throw PhenotypeFileException("Field missing from phenotype file: " + idColumnHeader);
+          throw jlst::PhenotypeFileException("Field missing from phenotype file: " + idColumnHeader);
         }
         passedFirstLine = true;
 

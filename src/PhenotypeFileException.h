@@ -5,15 +5,16 @@
 #ifndef JLST_CPP_SRC_PHENOTYPEFILEEXCEPTION_H_
 #define JLST_CPP_SRC_PHENOTYPEFILEEXCEPTION_H_
 
+#include <exception>
+#include <string>
+
 namespace jlst {
-class PhenotypeFileException : public exception {
-
+class PhenotypeFileException : public std::exception {
  public:
-  PhenotypeFileException(const std::string &ex);
-  virtual const char *what() const throw();
+  explicit PhenotypeFileException(const std::string &msg);
+  const char *what() const noexcept override;
  private:
-  std::string ex;
-
+  std::string msg;
 };
 }
 
