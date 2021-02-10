@@ -12,6 +12,7 @@
 #include "ThreadPool.h"
 #include "BgenParser.h"
 #include "PhenotypeFile.h"
+#include "PhenotypeFileException.h"
 
 bool file_exists(const std::string &name) {
   std::ifstream f(name.c_str());
@@ -34,7 +35,9 @@ int main(int argc, char **argv) {
       ("b,bgen_file", "Path to BGEN file", cxxopts::value<std::string>())
       ("p,phenotype", "Column name for phenotype", cxxopts::value<std::string>())
       ("i,id", "Column name for genotype identifier", cxxopts::value<std::string>())
-      ("t,threads", "Number of threads", cxxopts::value<int>()->default_value(std::to_string(std::thread::hardware_concurrency())));
+      ("t,threads",
+       "Number of threads",
+       cxxopts::value<int>()->default_value(std::to_string(std::thread::hardware_concurrency())));
   auto result = options.parse(argc, argv);
 
   // Parse arguments
@@ -60,46 +63,40 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  // Read phenotype data
   try {
-    jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
-    phenotype_file.parse();
-  } catch (std::runtime_error const &e) {
-    LOG(FATAL) << "Error parsing phenotype file: " << e.what();
-    return -1;
-  }
-
-  // Read sample list from BGEN
-  try {
-    genfile::bgen::BgenParser bgenParser(bgen_file);
+    // Read BGEN
+    genfile::bgen::BgenParser bgen_parser(bgen_file);
     static std::vector<std::string> samples;
-    bgenParser.get_sample_ids(
+    bgen_parser.get_sample_ids(
         [](std::string const &id) { samples.push_back(id); }
     );
+
+    // Read phenotypes
+    jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
+    phenotype_file.parse();
+    phenotype_file.subset_samples(samples);
+
+    // Create Eigen matrix
+
+
+    // create thread pool with N worker threads
+    // LOG(INFO) << "Running with " << threads << " threads";
+    // ThreadPool pool(threads);
+
+
+
+
+  } catch (jlst::PhenotypeFileException const &e) {
+    LOG(FATAL) << "Error parsing phenotype file. " << e.what();
+    return -1;
   } catch (genfile::bgen::BGenError const &e) {
     LOG(FATAL) << "Error parsing BGEN file: " << e.what();
     return -1;
   }
 
-  // Extract samples from phenotype data
-
-
-    // create thread pool with N worker threads
-  LOG(INFO) << "Running with " << threads << " threads";
-  ThreadPool pool(threads);
-
   try {
-    // Parse BGEN
     LOG(INFO) << "Reading variants from: " << bgen_file;
-    genfile::bgen::BgenParser bgenParser(bgen_file);
-
-    // Parse sample list
-    static std::vector<std::string> samples;
-    bgenParser.get_sample_ids(
-        [](std::string const &id) { samples.push_back(id); }
-    );
-
-    // Read variants
+    genfile::bgen::BgenParser bgen_parser(bgen_file);
     std::string chromosome;
     uint32_t position;
     std::string rsid;
@@ -107,11 +104,12 @@ int main(int argc, char **argv) {
     std::vector<std::vector<double> > probs;
     static std::vector<double> dosages;
 
-    while (bgenParser.read_variant(&chromosome, &position, &rsid, &alleles)) {
+    // Read variant-by-variant
+    while (bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
       LOG_EVERY_N(INFO, 1000) << "Read the " << google::COUNTER << "th variant";
 
       // only support bi-allelic variants
-      if (alleles.size() != 2){
+      if (alleles.size() != 2) {
         LOG(WARNING) << "Skipping non bi-allelic variant: " << rsid;
         continue;
       }
@@ -124,7 +122,7 @@ int main(int argc, char **argv) {
                 << alleles[1] << '\t';*/
 
       // convert probabilities to dosage values
-      bgenParser.read_probs(&probs);
+      bgen_parser.read_probs(&probs);
       dosages.clear();
       for (auto &prob : probs) {
         // only support bi-allelic variants [0, 1, 2 copies of alt]

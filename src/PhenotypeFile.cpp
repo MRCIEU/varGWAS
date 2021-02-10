@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
 #include <glog/logging.h>
 #include "PhenotypeFile.h"
 #include "PhenotypeFileException.h"
@@ -11,6 +12,9 @@
  * */
 
 namespace jlst {
+/*
+ * Class for working with phenotype files
+ * */
 PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
                              const std::vector<std::string> &covariateColumnHeaders,
                              const std::string &outcomeColumnHeader,
@@ -23,7 +27,9 @@ PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
   this->sep = sep;
 };
 
-// TODO implement using boost to allow for quotes in the file
+/*
+ * Function to parse file
+ * */
 void PhenotypeFile::parse() {
   LOG(INFO) << "Parsing phenotype from: " << phenoFilePath;
   std::ifstream file(phenoFilePath.c_str());
@@ -45,6 +51,7 @@ void PhenotypeFile::parse() {
       if (passedFirstLine) { // read file body
         i = 0;
 
+        // TODO implement using boost to allow for quotes in the file
         while (std::getline(tokenStream, token, sep)) {
           if (i == outIdx) {
             outcomeColumn.push_back(std::stod(token));
@@ -101,6 +108,57 @@ void PhenotypeFile::parse() {
     throw std::runtime_error("Could not open file: " + phenoFilePath);
   }
 
+}
+/*
+ * Function to subset data using provided list of sample identifiers
+ * */
+void PhenotypeFile::subset_samples(const std::vector<std::string> &samples) {
+  // create sample identifier-to-index mapping
+  std::unordered_map<std::string, unsigned> mapping;
+  for (unsigned i = 0; i < sampleIdentifierColumn.size(); ++i) {
+    if (mapping.count(sampleIdentifierColumn[i])){
+      throw std::runtime_error("Duplicate identifiers were detected for: " + sampleIdentifierColumn[i]);
+    }
+    // store array index against column identifier
+    mapping[sampleIdentifierColumn[i]] = i;
+  }
+
+  // create tmp data stores
+  std::vector<std::string> sampleIdentifierColumnTmp;
+  std::vector<double> outcomeColumnTmp;
+  std::vector<std::vector<double>> covariateColumnTmp;
+  for (unsigned i = 0; i < covariateColumn.size(); ++i){
+    covariateColumnTmp.emplace_back();
+  }
+
+  // subset data using new ordering
+  for (auto &sample : samples) {
+    try {
+      // get index for sample
+      unsigned idx = mapping[sample];
+
+      // subset data
+      sampleIdentifierColumnTmp.push_back(sampleIdentifierColumn[idx]);
+      outcomeColumnTmp.push_back(outcomeColumn[idx]);
+      for (unsigned i = 0; i < covariateColumn.size(); ++i){
+        covariateColumnTmp[i].push_back(covariateColumn[i][idx]);
+      }
+    } catch (std::overflow_error &e) {
+      throw std::runtime_error("Sample not found in phenotype file: " + sample);
+    }
+  }
+
+  // check variables are the same length
+  assert(sampleIdentifierColumnTmp.size() == samples.size());
+  assert(outcomeColumn.size() == samples.size());
+  for (unsigned i = 0; i < covariateColumn.size(); ++i){
+    assert(covariateColumnTmp[i].size() == samples.size());
+  }
+
+  // set variables
+  sampleIdentifierColumn = sampleIdentifierColumnTmp;
+  outcomeColumn = outcomeColumnTmp;
+  covariateColumn = covariateColumnTmp;
 }
 const std::vector<std::string> &PhenotypeFile::GetSampleIdentifierColumn() const {
   return sampleIdentifierColumn;
