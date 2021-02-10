@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
       }
 
       // check no missing values between sample list and dosage
-      assert(dosages.size() == samples.size());
+      //assert(dosages.size() == samples.size());
 
       // TODO add dosage values to Eigen matrix
 

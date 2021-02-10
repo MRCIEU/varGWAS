@@ -133,24 +133,23 @@ void PhenotypeFile::subset_samples(const std::vector<std::string> &samples) {
 
   // subset data using new ordering
   for (auto &sample : samples) {
-    try {
-      // get index for sample
-      unsigned idx = mapping[sample];
+    // get index for sample
+    if (mapping.count(sample) == 0){
+      throw std::runtime_error("Missing sample from phenotype file: " + sample);
+    }
 
-      // subset data
-      sampleIdentifierColumnTmp.push_back(sampleIdentifierColumn[idx]);
-      outcomeColumnTmp.push_back(outcomeColumn[idx]);
-      for (unsigned i = 0; i < covariateColumn.size(); ++i){
-        covariateColumnTmp[i].push_back(covariateColumn[i][idx]);
-      }
-    } catch (std::overflow_error &e) {
-      throw std::runtime_error("Sample not found in phenotype file: " + sample);
+    // subset data
+    unsigned idx = mapping[sample];
+    sampleIdentifierColumnTmp.push_back(sampleIdentifierColumn[idx]);
+    outcomeColumnTmp.push_back(outcomeColumn[idx]);
+    for (unsigned i = 0; i < covariateColumn.size(); ++i){
+      covariateColumnTmp[i].push_back(covariateColumn[i][idx]);
     }
   }
 
   // check variables are the same length
   assert(sampleIdentifierColumnTmp.size() == samples.size());
-  assert(outcomeColumn.size() == samples.size());
+  assert(outcomeColumnTmp.size() == samples.size());
   for (unsigned i = 0; i < covariateColumn.size(); ++i){
     assert(covariateColumnTmp[i].size() == samples.size());
   }

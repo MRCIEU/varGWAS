@@ -6,7 +6,7 @@
  * Tests for reading phenotype file
  * */
 
-TEST(PhenotypeFileTest, parse) {
+TEST(PhenotypeFileTest, parse_should_function) {
   static std::string filePath = "data/regression.csv";
   static std::vector<std::string> covariateColumnHeaders = {"c1", "c2"};
   static std::string outcomeColumnHeader = "y";
@@ -30,7 +30,7 @@ TEST(PhenotypeFileTest, parse) {
   ASSERT_NEAR(phenotypeFile.GetOutcomeColumn()[49999], 35.0527037914899, 1e-10);
 }
 
-TEST(PhenotypeFileTest, missing_exposure_field) {
+TEST(PhenotypeFileTest, parse_missing_exposure_field) {
   static std::string filePath = "data/regression.csv";
   static std::vector<std::string> covariateColumnHeaders = {"c1", "c2"};
   static std::string outcomeColumnHeader = "NA";
@@ -48,5 +48,51 @@ TEST(PhenotypeFileTest, missing_exposure_field) {
     EXPECT_EQ(err.what(),std::string("Field missing from phenotype file: NA"));
   } catch(...){
     FAIL() << "Expected PhenotypeFileException";
+  }
+}
+
+TEST(PhenotypeFileTest, subset_samples_should_function) {
+  static std::string filePath = "data/regression.csv";
+  static std::vector<std::string> covariateColumnHeaders = {"c1", "c2"};
+  static std::string outcomeColumnHeader = "y";
+  static std::string idColumnHeader = "id";
+  static char sep = ',';
+
+  jlst::PhenotypeFile phenotypeFile(filePath,
+                                    covariateColumnHeaders,
+                                    outcomeColumnHeader,
+                                    idColumnHeader,
+                                    sep);
+  phenotypeFile.parse();
+  ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn().size(), 50000);
+  phenotypeFile.subset_samples(std::vector<std::string> { "S1", "S4", "S100" });
+  ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn().size(), 3);
+
+  ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn()[2], "S100");
+  ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[0][2], 0, 1e-10);
+  ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[1][2], 39.3593977019191, 1e-10);
+  ASSERT_NEAR(phenotypeFile.GetOutcomeColumn()[2], 32.1264679946589, 1e-10);
+}
+
+TEST(PhenotypeFileTest, subset_samples_missing_sample) {
+  static std::string filePath = "data/regression.csv";
+  static std::vector<std::string> covariateColumnHeaders = {"c1", "c2"};
+  static std::string outcomeColumnHeader = "y";
+  static std::string idColumnHeader = "id";
+  static char sep = ',';
+
+  jlst::PhenotypeFile phenotypeFile(filePath,
+                                    covariateColumnHeaders,
+                                    outcomeColumnHeader,
+                                    idColumnHeader,
+                                    sep);
+  phenotypeFile.parse();
+  try {
+    phenotypeFile.subset_samples(std::vector<std::string> { "abc123" });
+    FAIL() << "Expected std::runtime_error";
+  } catch (std::runtime_error &err){
+    EXPECT_EQ(err.what(),std::string("Missing sample from phenotype file: abc123"));
+  } catch (...){
+    FAIL() << "Expected std::runtime_error";
   }
 }
