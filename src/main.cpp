@@ -77,7 +77,8 @@ int main(int argc, char **argv) {
     phenotype_file.subset_samples(samples);
 
     // Create Eigen matrix
-
+    //Eigen::MatrixXd X = Eigen::MatrixXd(n, p + 1);
+    //Eigen::VectorXd y = Eigen::VectorXd(n);
 
     // create thread pool with N worker threads
     // LOG(INFO) << "Running with " << threads << " threads";
