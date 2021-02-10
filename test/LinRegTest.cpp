@@ -1,7 +1,7 @@
 #include "csv.h"
 #include "gtest/gtest.h"
 #include <Eigen/Core>
-//#include <Eigen/SVD>
+#include <Eigen/SVD>
 
 /*
  * Test for performing linear regression model
@@ -21,7 +21,7 @@ TEST(LinRegTest, slope_residual) {
     Eigen::MatrixXd X = Eigen::MatrixXd(n, p + 1);
     Eigen::VectorXd y = Eigen::VectorXd(n);
 
-    /*// get data (see data/regression.R)
+    // get data (see data/regression.R)
     std::cout << "Reading phenotype file..." << std::endl;
     io::CSVReader<5> in("data/regression.csv");
     in.read_header(io::ignore_extra_column, "x", "c1", "c2", "y", "d");
@@ -55,5 +55,5 @@ TEST(LinRegTest, slope_residual) {
     ASSERT_NEAR(betasSvd(0, 0), 25, 0.1);
     ASSERT_NEAR(betasSvd(1, 0), 0.6, 0.1);
     ASSERT_NEAR(betasSvd(2, 0), 2, 0.1);
-    ASSERT_NEAR(betasSvd(3, 0), 0.05, 0.002);*/
+    ASSERT_NEAR(betasSvd(3, 0), 0.05, 0.002);
 }
