@@ -64,8 +64,8 @@ int main(int argc, char **argv) {
   // Read phenotype and covariates into memory
   // TODO pass sample list from BGEN to subset phenotypes
   // TODO return Eigen matrix
-  jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, sep);
-  phenotype_file.GetMatrix(samples);
+  jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
+  phenotype_file.GetMatrix();
 
   // create thread pool with N worker threads
   LOG(INFO) << "Running with " << threads << " threads";

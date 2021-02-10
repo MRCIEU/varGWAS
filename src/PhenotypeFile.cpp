@@ -12,17 +12,18 @@ namespace jlst {
 PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
                              const std::vector<std::string> &covariateColumnHeaders,
                              const std::string &outcomeColumnHeader,
+                             const std::string &idColumnHeader,
                              const char &sep) {
     this->phenoFilePath = phenoFilePath;
     this->covariateColumnHeaders = covariateColumnHeaders;
     this->outcomeColumnHeader = outcomeColumnHeader;
+    this->idColumnHeader = idColumnHeader;
     this->sep = sep;
 };
 
 void PhenotypeFile::GetMatrix(std::vector<std::string> samples) {
     // TODO implement using boost to allow for quotes in the file
     // TODO improve performance
-    // TODO return Eign matrix for subset samples
     LOG(INFO) << "Parsing phenotype from: " << phenoFilePath;
     static std::ifstream file(phenoFilePath.c_str());
 

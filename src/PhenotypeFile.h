@@ -15,6 +15,7 @@ class PhenotypeFile {
       const std::string &phenoFilePath,
       const std::vector<std::string> &covariateColumnHeaders,
       const std::string &outcomeColumnHeader,
+      const std::string &idColumnHeader,
       const char &sep
   );
   void GetMatrix(std::vector<std::string>samples);
@@ -27,6 +28,7 @@ class PhenotypeFile {
   std::string phenoFilePath;
   std::vector<std::string> covariateColumnHeaders;
   std::string outcomeColumnHeader;
+  std::string idColumnHeader;
   char sep;
   std::vector<std::string> fileHeader;
   std::vector<std::vector<double>> fileBody;
