@@ -67,6 +67,7 @@ void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &
   }
 }
 
+// TODO
 Result Model::fit(std::string chromosome,
                   uint32_t position,
                   std::string rsid,
