@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
 
   try {
     // Read BGEN
+    LOG(INFO) << "Reading samples from BGEN";
     genfile::bgen::BgenParser bgen_parser(bgen_file);
     static std::vector<std::string> samples;
     bgen_parser.get_sample_ids(
@@ -77,16 +78,8 @@ int main(int argc, char **argv) {
     phenotype_file.parse();
     phenotype_file.subset_samples(samples);
 
-    // create thread pool with N worker threads
-    LOG(INFO) << "Running with " << threads << " threads";
-    //ThreadPool pool(threads);
-
     // Perform locus association tests
-    LOG(INFO) << "Running model";
-    jlst::Model::run(phenotype_file, bgen_parser, threads);
-
-    // write output to CSV
-    // TODO
+    jlst::Model::run(phenotype_file, bgen_parser, threads, output_file);
 
   } catch (jlst::PhenotypeFileException const &e) {
     LOG(FATAL) << "Error parsing phenotype file. " << e.what();

@@ -17,7 +17,9 @@
  * Class to perform association testing
  * */
 namespace jlst {
-void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &bgen_parser, int threads) {
+void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &bgen_parser, int threads,
+                std::string out_file) {
+  LOG(INFO) << "Running model";
 
   // Create Eigen matrix of phenotypes wo dosage
   Eigen::MatrixXd X = Eigen::MatrixXd(phenotype_file.GetNSamples(), phenotype_file.GetCovariateColumn().size() + 2);
@@ -41,7 +43,7 @@ void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &
   std::vector<std::vector<double>> probs;
   std::vector<double> dosages;
   while (bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
-    LOG_EVERY_N(INFO, 1000) << "Read the " << google::COUNTER << "th variant";
+    LOG_EVERY_N(INFO, 1000) << "Processed " << google::COUNTER << "th variant";
 
     // only support bi-allelic variants
     if (alleles.size() != 2) {
@@ -65,6 +67,7 @@ void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &
     assert(dosages.size() == phenotype_file.GetNSamples());
 
     // TODO multi-thread
+    LOG(INFO) << "Running with " << threads << " threads";
     Result result = Model::fit(chromosome, position, rsid, alleles, dosages, X, y);
   }
 }
@@ -101,9 +104,11 @@ Result Model::fit(std::string chromosome,
   res.other_allele = alleles[0];
   res.beta = betasSvd(1, 0);
   res.se = varBetasSvd(1, 0);
+  // TODO
   res.pval = 0;
 
-  // TODO second stage model
+  // second stage model
+  // TODO
 
   return res;
 }
