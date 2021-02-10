@@ -19,6 +19,8 @@ bool file_exists(const std::string &name) {
   return f.good();
 }
 
+
+
 int main(int argc, char **argv) {
   // Initialize Google's logging library.
   google::InitGoogleLogging(argv[0]);
