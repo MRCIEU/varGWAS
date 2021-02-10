@@ -8,7 +8,6 @@
 #include <thread>
 #include <cxxopts.hpp>
 #include "genfile/bgen/bgen.hpp"
-#include "csv.h"
 #include <glog/logging.h>
 #include "ThreadPool.h"
 #include "BgenParser.h"
@@ -18,8 +17,6 @@ bool file_exists(const std::string &name) {
   std::ifstream f(name.c_str());
   return f.good();
 }
-
-
 
 int main(int argc, char **argv) {
   // Initialize Google's logging library.
@@ -63,13 +60,31 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  // Read phenotype and covariates into memory
-  // TODO pass sample list from BGEN to subset phenotypes
-  // TODO return Eigen matrix
-  jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
-  phenotype_file.GetMatrix();
+  // Read phenotype data
+  try {
+    jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
+    phenotype_file.parse();
+  } catch (std::runtime_error const &e) {
+    LOG(FATAL) << "Error parsing phenotype file: " << e.what();
+    return -1;
+  }
 
-  // create thread pool with N worker threads
+  // Read sample list from BGEN
+  try {
+    genfile::bgen::BgenParser bgenParser(bgen_file);
+    static std::vector<std::string> samples;
+    bgenParser.get_sample_ids(
+        [](std::string const &id) { samples.push_back(id); }
+    );
+  } catch (genfile::bgen::BGenError const &e) {
+    LOG(FATAL) << "Error parsing BGEN file: " << e.what();
+    return -1;
+  }
+
+  // Extract samples from phenotype data
+
+
+    // create thread pool with N worker threads
   LOG(INFO) << "Running with " << threads << " threads";
   ThreadPool pool(threads);
 

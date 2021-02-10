@@ -6,26 +6,28 @@
  * */
 
 TEST(PhenotypeFileTest, load) {
-  std::string filename = "data/regression.csv";
-  std::string outcomeColumnHeader = "y";
+  std::string filePath = "data/regression.csv";
+  std::string exposureColumnHeader = "x";
   std::vector<std::string> covariateColumnHeaders = {"c1", "c2"};
+  std::string outcomeColumnHeader = "y";
+  std::string idColumnHeader = "id";
   char sep = ',';
 
-  // read file
-  std::cout << "Reading phenotype file..." << std::endl;
-  jlst::PhenotypeFile p(filename, covariateColumnHeaders, outcomeColumnHeader, sep);
-  p.load();
-  std::cout << "Done!" << std::endl;
+  // parse phenotype file
+  jlst::PhenotypeFile phenotypeFile(filePath,
+                        covariateColumnHeaders,
+                        outcomeColumnHeader,
+                        idColumnHeader,
+                        sep);
+  phenotypeFile.parse();
 
-  // assertions
-  ASSERT_EQ(p.GetFileHeader()[0], "x");
-  ASSERT_EQ(p.GetFileHeader()[1], "c1");
-  ASSERT_EQ(p.GetFileHeader()[2], "c2");
-  ASSERT_EQ(p.GetFileHeader()[3], "y");
-  ASSERT_EQ(p.GetFileHeader()[4], "d");
-  ASSERT_NEAR(p.GetFileBody()[0][0], (double) 1, 0.001);
-  ASSERT_NEAR(p.GetFileBody()[0][1], (double) 0, 0.001);
-  ASSERT_NEAR(p.GetFileBody()[0][2], (double) 32.435, 0.001);
-  ASSERT_NEAR(p.GetFileBody()[0][3], (double) 17.733, 0.001);
-  ASSERT_NEAR(p.GetFileBody()[0][4], (double) 9.527, 0.001);
+  // check values
+  ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn()[0], "S1");
+  ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[0][0], 0, 1e-10);
+  ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[1][0], 32.4359168112278, 1e-10);
+  ASSERT_NEAR(phenotypeFile.GetOutcomeColumn()[0], 17.7335116415805, 1e-10);
+  ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn()[49999], "S50000");
+  ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[0][49999], 0, 1e-10);
+  ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[1][49999], 52.4099412281066, 1e-10);
+  ASSERT_NEAR(phenotypeFile.GetOutcomeColumn()[49999], 35.0527037914899, 1e-10);
 }

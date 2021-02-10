@@ -4,20 +4,19 @@
 #include <algorithm>
 #include <glog/logging.h>
 #include "PhenotypeFile.h"
+#include "PhenotypeFileException.h"
 
 /*
- * Class to read in exposure, outcome, covariate(s) and sample identifier into memory
+ * Class to read in outcome, covariate(s) and sample identifier into memory
  * */
 
 namespace jlst {
 PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
-                             const std::string &exposureColumnHeader,
                              const std::vector<std::string> &covariateColumnHeaders,
                              const std::string &outcomeColumnHeader,
                              const std::string &idColumnHeader,
                              const char &sep) {
   this->phenoFilePath = phenoFilePath;
-  this->exposureColumnHeader = exposureColumnHeader;
   this->covariateColumnHeaders = covariateColumnHeaders;
   this->outcomeColumnHeader = outcomeColumnHeader;
   this->idColumnHeader = idColumnHeader;
@@ -25,11 +24,9 @@ PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
 };
 
 // TODO implement using boost to allow for quotes in the file
-// TODO improve performance
 void PhenotypeFile::parse() {
   LOG(INFO) << "Parsing phenotype from: " << phenoFilePath;
   std::ifstream file(phenoFilePath.c_str());
-  int expIdx = -1;
   int outIdx = -1;
   int sidIdx = -1;
   std::vector<int> covIdx;
@@ -49,9 +46,6 @@ void PhenotypeFile::parse() {
         i = 0;
 
         while (std::getline(tokenStream, token, sep)) {
-          if (i == expIdx) {
-            exposureColumn.push_back(std::stod(token));
-          }
           if (i == outIdx) {
             outcomeColumn.push_back(std::stod(token));
           }
@@ -74,8 +68,6 @@ void PhenotypeFile::parse() {
               != covariateColumnHeaders.end()) {
             covIdx.push_back(i);
             covariateColumn.emplace_back(); // instantiate v of v
-          } else if (token == exposureColumnHeader) {
-            expIdx = i;
           } else if (token == outcomeColumnHeader) {
             outIdx = i;
           } else if (token == idColumnHeader) {
@@ -85,14 +77,11 @@ void PhenotypeFile::parse() {
           i++;
         }
 
-        if (expIdx == -1) {
-          throw std::runtime_error("Field missing from phenotype file: " + exposureColumnHeader);
-        }
         if (outIdx == -1) {
-          throw std::runtime_error("Field missing from phenotype file: " + outcomeColumnHeader);
+          throw PhenotypeFileException("Field missing from phenotype file: " + outcomeColumnHeader);
         }
         if (sidIdx == -1) {
-          throw std::runtime_error("Field missing from phenotype file: " + idColumnHeader);
+          throw PhenotypeFileException("Field missing from phenotype file: " + idColumnHeader);
         }
         passedFirstLine = true;
 
@@ -115,9 +104,6 @@ void PhenotypeFile::parse() {
 }
 const std::vector<std::string> &PhenotypeFile::GetSampleIdentifierColumn() const {
   return sampleIdentifierColumn;
-}
-const std::vector<double> &PhenotypeFile::GetExposureColumn() const {
-  return exposureColumn;
 }
 const std::vector<double> &PhenotypeFile::GetOutcomeColumn() const {
   return outcomeColumn;
