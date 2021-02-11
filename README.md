@@ -82,6 +82,8 @@ make
 
 ### Test
 
+TODO - create test bgen file & phenotypes file from a single simulated dataset
+
 Create some test data
 
 ```sh
