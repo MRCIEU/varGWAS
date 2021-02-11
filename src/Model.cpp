@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 #include <iostream>
+#include <boost/math/distributions/students_t.hpp>
 #include "Model.h"
 #include "PhenotypeFile.h"
 #include "BgenParser.h"
@@ -17,18 +18,26 @@
  * Class to perform association testing
  * */
 namespace jlst {
-void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &bgen_parser, int threads,
-                std::string &out_file) {
-  LOG(INFO) << "Running model";
+std::vector<Result> Model::run(jlst::PhenotypeFile &phenotype_file,
+                               genfile::bgen::BgenParser &bgen_parser,
+                               int threads) {
+
+  std::vector<Result> results;
+  std::string chromosome;
+  uint32_t position;
+  std::string rsid;
+  std::vector<std::string> alleles;
+  std::vector<std::vector<double>> probs;
+  std::vector<double> dosages;
 
   // Create Eigen matrix of phenotypes wo dosage
   Eigen::MatrixXd X = Eigen::MatrixXd(phenotype_file.GetNSamples(), phenotype_file.GetCovariateColumn().size() + 2);
   Eigen::VectorXd y = Eigen::VectorXd(phenotype_file.GetNSamples());
 
-  // Populate matrix
+  // Populate Eigen matrices
   for (unsigned i = 0; i < phenotype_file.GetNSamples(); i++) {
     X(i, 0) = 1; // intercept
-    X(i, 1) = 0; // dosage set to zero
+    X(i, 1) = 0; // dosage values are initially set to zero
     for (unsigned j = 0; j < phenotype_file.GetCovariateColumn().size(); j++) {
       X(i, j + 2) = phenotype_file.GetCovariateColumn()[j][i]; // covariates
     }
@@ -36,18 +45,12 @@ void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &
   }
 
   // Read variant-by-variant
-  std::string chromosome;
-  uint32_t position;
-  std::string rsid;
-  std::vector<std::string> alleles;
-  std::vector<std::vector<double>> probs;
-  std::vector<double> dosages;
   while (bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
     LOG_EVERY_N(INFO, 1000) << "Processed " << google::COUNTER << "th variant";
 
     // only support bi-allelic variants
     if (alleles.size() != 2) {
-      LOG(WARNING) << "Skipping non bi-allelic variant: " << rsid;
+      LOG(WARNING) << "Skipping multi-allelic variant: " << rsid;
       continue;
     }
 
@@ -66,50 +69,74 @@ void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &
     // check no missing values between sample list and dosage
     assert(dosages.size() == phenotype_file.GetNSamples());
 
-    // TODO multi-thread
-    LOG(INFO) << "Running with " << threads << " threads";
-    Result result = Model::fit(chromosome, position, rsid, alleles, dosages, X, y);
+    // Create result struct
+    Result res;
+    res.chromosome = chromosome;
+    res.position = position;
+    res.rsid = rsid;
+    res.effect_allele = alleles[1]; // TODO check allele order
+    res.other_allele = alleles[0];
+
+    // store result
+    results.push_back(res);
+
+    // pass result-by-reference to allow population in the fit function
+    // TODO multi-thread function
+    Model::fit(results.back(), dosages, X, y);
   }
+
+  // TODO write to file to avoid memory issues
+  return results;
 }
 
-Result Model::fit(std::string chromosome,
-                  uint32_t position,
-                  std::string rsid,
-                  std::vector<std::string> alleles,
-                  std::vector<double> dosages,
-                  Eigen::MatrixXd X,
-                  const Eigen::VectorXd &y) {
+void Model::fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, const Eigen::VectorXd &y) {
+  int n = X.rows();
+  int p = X.cols();
 
   // set dosage values
+  // X is passed without reference to allow for modification on each thread
   for (unsigned i = 0; i < dosages.size(); i++) {
     X(i, 1) = dosages[i];
   }
 
-  // linear regression using SVD
-  // adapted from: https://genome.sph.umich.edu/w/images/2/2c/Biostat615-lecture14-presentation.pdf
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(X, Eigen::ComputeThinU | Eigen::ComputeThinV);
-  Eigen::MatrixXd betasSvd = svd.solve(y);
-
-  // calculate VDˆ{-1}
-  Eigen::MatrixXd ViD = svd.matrixV() * svd.singularValues().asDiagonal().inverse();
-  double sigmaSvd = (y - X * betasSvd).squaredNorm() / (X.rows() - X.cols()); // compute \sigmaˆ2
-  Eigen::MatrixXd varBetasSvd = sigmaSvd * ViD * ViD.transpose(); // Cov(\hat{beta})
-
-  // Build results struct
-  jlst::Result res;
-  res.chromosome = std::move(chromosome);
-  res.position = position;
-  res.rsid = std::move(rsid);
-  res.effect_allele = alleles[1];
-  res.other_allele = alleles[0];
-  res.beta = betasSvd(1, 0);
-  res.se = varBetasSvd(1, 0);
-  // TODO
-  res.pval = 0;
+  // first stage model
+  Eigen::BDCSVD<Eigen::MatrixXd> solver(X, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  Eigen::MatrixXd fit1 = solver.solve(y);
+  Eigen::VectorXd y_hat = X * fit1;
+  Eigen::VectorXd y_delta = y - y_hat;
+  Eigen::VectorXd y_deltasq = y_delta.cwiseProduct(y_delta);
 
   // second stage model
-  // TODO
+  Eigen::MatrixXd fit2 = solver.solve(y_deltasq);
 
-  return res;
+  // epsilon variance
+  double e_var = (y - X * fit2).squaredNorm() / (n - p);
+
+  // coeff se
+  Eigen::MatrixXd ViD = solver.matrixV() * solver.singularValues().asDiagonal().inverse();
+  Eigen::MatrixXd varBetasSvd = e_var * ViD * ViD.transpose();
+  Eigen::VectorXd se = varBetasSvd.diagonal().array().sqrt();
+
+  // t-stat
+  Eigen::VectorXd tstat = fit2.array() / se.array();
+
+  // P
+  std::vector<double> pvalues = get_p(tstat, n, p);
+
+  // set results
+  result.beta = fit2(1, 0);
+  result.se = se(1, 0);
+  result.pval = pvalues[1];
 }
+
+std::vector<double> Model::get_p(Eigen::VectorXd &tstat, int n, int p) {
+  boost::math::students_t dist(n - (p + 1)); // use student's t-distribution to compute p-value
+  std::vector<double> pvalues;
+  for (int i = 0; i < tstat.size(); i++) {
+    double pval = 2.0 * cdf(complement(dist, tstat[i] > 0 ? tstat[i] : (0 - tstat[i])));
+    pvalues.push_back(pval);
+  }
+  return pvalues;
+}
+
 }

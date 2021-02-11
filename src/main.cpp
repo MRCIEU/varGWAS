@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
   }
 
   try {
-    // Read BGEN
+    // Open BGEN and read sample list
     LOG(INFO) << "Reading samples from BGEN";
     genfile::bgen::BgenParser bgen_parser(bgen_file);
     static std::vector<std::string> samples;
@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
         [](std::string const &id) { samples.push_back(id); }
     );
 
-    // Read phenotypes
+    // Read phenotypes and subset using sample list
     jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
     phenotype_file.parse();
     phenotype_file.subset_samples(samples);
@@ -82,11 +82,12 @@ int main(int argc, char **argv) {
     jlst::Model::run(phenotype_file, bgen_parser, threads, output_file);
 
   } catch (jlst::PhenotypeFileException const &e) {
-    LOG(FATAL) << "Error parsing phenotype file. " << e.what();
+    LOG(FATAL) << "Error parsing phenotype file: " << e.what();
     return -1;
   } catch (genfile::bgen::BGenError const &e) {
     LOG(FATAL) << "Error parsing BGEN file: " << e.what();
     return -1;
   }
 
+  return 0;
 }

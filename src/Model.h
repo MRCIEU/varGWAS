@@ -19,18 +19,12 @@
 namespace jlst {
 class Model {
  public:
-  static void run(jlst::PhenotypeFile &phenotype_file,
-                  genfile::bgen::BgenParser &bgen_parser,
-                  int threads,
-                  std::string &out_file);
+  static std::vector<Result> run(jlst::PhenotypeFile &phenotype_file,
+                                 genfile::bgen::BgenParser &bgen_parser,
+                                 int threads);
 
-  static Result fit(std::string chromosome,
-                    uint32_t position,
-                    std::string rsid,
-                    std::vector<std::string> alleles,
-                    std::vector<double> dosages,
-                    Eigen::MatrixXd X,
-                    const Eigen::VectorXd &y);
+  static void fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, const Eigen::VectorXd &y);
+  static std::vector<double> get_p(Eigen::VectorXd &tstat, int n, int p);
  private:
 };
 }

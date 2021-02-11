@@ -7,14 +7,14 @@
 
 namespace jlst {
 struct Result{
-  std::string chromosome;
-  uint32_t position;
-  std::string rsid;
-  std::string effect_allele;
-  std::string other_allele;
-  double pval;
-  double beta;
-  double se;
+  std::string chromosome{};
+  uint32_t position{};
+  std::string rsid{};
+  std::string effect_allele{};
+  std::string other_allele{};
+  double pval{};
+  double beta{};
+  double se{};
 };
 }
 
