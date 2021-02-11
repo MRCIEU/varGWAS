@@ -57,6 +57,7 @@ std::vector<Result> Model::run(jlst::PhenotypeFile &phenotype_file,
     // convert probabilities to dosage values
     bgen_parser.read_probs(&probs);
 
+    dosages.clear();
     for (auto &prob : probs) {
       // only support bi-allelic variants [0, 1, 2 copies of alt]
       assert(prob.size() == 3);
