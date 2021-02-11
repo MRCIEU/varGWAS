@@ -18,7 +18,7 @@
  * */
 namespace jlst {
 void Model::run(jlst::PhenotypeFile &phenotype_file, genfile::bgen::BgenParser &bgen_parser, int threads,
-                std::string out_file) {
+                std::string &out_file) {
   LOG(INFO) << "Running model";
 
   // Create Eigen matrix of phenotypes wo dosage

@@ -22,7 +22,7 @@ class Model {
   static void run(jlst::PhenotypeFile &phenotype_file,
                   genfile::bgen::BgenParser &bgen_parser,
                   int threads,
-                  std::string out_file);
+                  std::string &out_file);
 
   static Result fit(std::string chromosome,
                     uint32_t position,

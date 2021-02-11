@@ -3,12 +3,14 @@
 #include "iostream"
 #include <Eigen/Core>
 #include <Eigen/SVD>
+#include <boost/math/distributions/students_t.hpp>
+
 
 /*
  * Test for performing linear regression model
  * */
 
-TEST(LinRegTest, slope_residual) {
+TEST(LinRegTest, svd) {
   const double intercept = 1.0;
   double x_f;
   double c1_f;
@@ -36,16 +38,56 @@ TEST(LinRegTest, slope_residual) {
 
   // linear regression using SVD
   // adapted from: https://genome.sph.umich.edu/w/images/2/2c/Biostat615-lecture14-presentation.pdf
-  Eigen::BDCSVD<Eigen::MatrixXd> svd(X, Eigen::ComputeThinU | Eigen::ComputeThinV);
-  Eigen::MatrixXd betasSvd = svd.solve(y);
+  Eigen::BDCSVD<Eigen::MatrixXd> solver(X, Eigen::ComputeThinU | Eigen::ComputeThinV);
 
-  // calculate VDˆ{-1}
-  Eigen::MatrixXd ViD = svd.matrixV() * svd.singularValues().asDiagonal().inverse();
-  double sigmaSvd = (y - X * betasSvd).squaredNorm() / (n - p); // compute \sigmaˆ2
-  Eigen::MatrixXd varBetasSvd = sigmaSvd * ViD * ViD.transpose(); // Cov(\hat{beta})
+  // beta
+  Eigen::MatrixXd betas = solver.solve(y); // betas
+  assert(betas.size() == p + 1);
+  ASSERT_NEAR(betas(0, 0), 25, 0.1);
+  ASSERT_NEAR(betas(1, 0), 0.6, 0.1);
+  ASSERT_NEAR(betas(2, 0), 2, 0.1);
+  ASSERT_NEAR(betas(3, 0), 0.05, 0.002);
 
-  ASSERT_NEAR(betasSvd(0, 0), 25, 0.1);
-  ASSERT_NEAR(betasSvd(1, 0), 0.6, 0.1);
-  ASSERT_NEAR(betasSvd(2, 0), 2, 0.1);
-  ASSERT_NEAR(betasSvd(3, 0), 0.05, 0.002);
+  // predicted Y
+  Eigen::VectorXd y_hat = X * betas;
+  assert(y_hat.size() == n);
+
+  // residuals
+  Eigen::VectorXd y_delta = y - y_hat;
+  assert(y_delta.size() == n);
+
+  // squared residuals
+  Eigen::VectorXd y_deltasq = y_delta.cwiseProduct(y_delta);
+  assert(y_deltasq.size() == n);
+  assert(y_deltasq[0] == y_delta[0] * y_delta[0]);
+  assert(y_deltasq[100] == y_delta[100] * y_delta[100]);
+
+  // unbiased variance of error term
+  double e_var = (y - X * betas).squaredNorm() / (n - p);
+
+  // se
+  Eigen::MatrixXd ViD = solver.matrixV() * solver.singularValues().asDiagonal().inverse();
+  Eigen::MatrixXd varBetasSvd = e_var * ViD * ViD.transpose();
+  Eigen::VectorXd se = varBetasSvd.diagonal().array().sqrt();
+  assert(se.size() == p + 1);
+  ASSERT_NEAR(se(0, 0), 0.106721, 5e-5);
+  ASSERT_NEAR(se(1, 0), 0.031774, 5e-5);
+  ASSERT_NEAR(se(2, 0), 0.044778, 5e-5);
+  ASSERT_NEAR(se(3, 0), 0.001942, 5e-5);
+
+  // t-stat
+  Eigen::VectorXd tstat = betas.array() / se.array();
+
+  // pval
+  boost::math::students_t dist(n - (p + 1)); // use student's t-distribution to compute p-value
+  std::vector<double> pvalues;
+  for (int i = 0; i < tstat.size(); i++) {
+    double pval = 2.0 * cdf(complement(dist, tstat[i] > 0 ? tstat[i] : (0 - tstat[i])));
+    pvalues.push_back(pval);
+  }
+  assert(pvalues.size() == p + 1);
+  ASSERT_NEAR(pvalues[0], 0, 5e-5);
+  ASSERT_NEAR(pvalues[1], 1.07e-87, 5e-5);
+  ASSERT_NEAR(pvalues[2], 0, 5e-5);
+  ASSERT_NEAR(pvalues[3], 5.26e-148, 5e-5);
 }
