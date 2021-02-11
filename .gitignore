@@ -3,5 +3,5 @@ build/
 cmake-build-debug/
 cmake-build-release/
 lib/
-test/data/output.csv
+test/data/output.tsv
 test/data/regression.csv
