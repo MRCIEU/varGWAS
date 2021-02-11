@@ -30,4 +30,4 @@ d <- abs(resid(fit))
 # write out csv
 id <- seq(1, n_obs)
 df <- data.frame(x, c1, c2, y, d, id=paste0("S", id))
-write.csv(df, file="regression.csv", quote=F, row.names=F)
+write.csv(df, file="phenotype.csv", quote=F, row.names=F)

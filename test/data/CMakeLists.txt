@@ -1,1 +1,1 @@
-configure_file(regression.csv ${CMAKE_CURRENT_BINARY_DIR}/regression.csv COPYONLY)
+configure_file(phenotype.csv ${CMAKE_CURRENT_BINARY_DIR}/phenotype.csv COPYONLY)
