@@ -5,6 +5,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <thread>
+#include <fstream>
 #include <cxxopts.hpp>
 #include "genfile/bgen/bgen.hpp"
 #include <glog/logging.h>
@@ -13,6 +14,7 @@
 #include "PhenotypeFile.h"
 #include "PhenotypeFileException.h"
 #include "Model.h"
+#include "Result.h"
 
 bool file_exists(const std::string &name) {
   std::ifstream f(name.c_str());
@@ -79,7 +81,17 @@ int main(int argc, char **argv) {
     phenotype_file.subset_samples(samples);
 
     // Perform locus association tests
-    jlst::Model::run(phenotype_file, bgen_parser, threads, output_file);
+    std::vector<jlst::Result> results = jlst::Model::run(phenotype_file, bgen_parser, threads);
+
+    // write to file
+    std::ofstream file;
+    file.open(output_file);
+    file << "CHR\tPOS\tRSID\tOA\tEA\tBETA\tSE\tP\n";
+    for (auto &res : results) {
+      file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
+           << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.pval << "\n";
+    }
+    file.close();
 
   } catch (jlst::PhenotypeFileException const &e) {
     LOG(FATAL) << "Error parsing phenotype file: " << e.what();
