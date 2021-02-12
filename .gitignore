@@ -5,3 +5,5 @@ cmake-build-release/
 lib/
 test/data/*csv
 test/data/*tsv
+test/data/*gen
+test/data/*bgi
