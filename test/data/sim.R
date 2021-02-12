@@ -22,29 +22,35 @@ delta <- sqrt(pwr.f2.test(u = 1, v = n_obs - 1 - 1, sig.level = alpha, power = 0
 results <- data.frame()
 for (phi in seq(0, 6, 0.5)){
     theta <- delta * phi
-    b1 <- delta - theta
+    beta <- delta - theta
     for (af in c(0.05, 0.1, 0.2, 0.4)){
         for (lambda in c(1, 10, 100, 1000, 10000)){
             for (i in 1:n_sim){
                 # simulate data
                 x <- get_simulated_genotypes(af, n_obs * lambda)
                 u <- rnorm(n_obs * lambda)
-                y <- x*b1 + x*u*theta + rnorm(n_obs * lambda)
+                y <- x*beta + x*u*theta + rnorm(n_obs * lambda)
                 s <- paste0("S", seq(1, n_obs * lambda))
 
                 # write out GEN file
-                g=sapply(x, function(g) if (g==0) { "0 0 0" } else if (g==1) {"0 1 0"} else if (g==2){"0 0 1"})
-                df=data.frame(chr=rep("01", n_obs * lambda), rsid=paste0("rs", seq(1, n_obs * lambda)), g)
+                fileConn<-file("genotypes.gen")
+                writeLines(c(paste("01","rs123", "1", "A", "G", paste(sapply(x, function(g) if (g==0) { "0 0 0" } else if (g==1) {"0 1 0"} else if (g==2){"0 0 1"}), collapse=" "), collapse=" ")), fileConn)
+                close(fileConn)
 
-                # write BGEN file
-                system(paste0("qctool -g example_#.gen -og example.bgen"))
+                # convert to BGEN file
+                system("qctool -g genotypes.gen -og genotypes.bgen")
+                system("../../lib/bgen/build/apps/bgenix -g genotypes.bgen -index")
                 
                 # write phenotype file
-                write.table(file=paste0(), data.frame(s, y))
+                write.table(file="phenotypes.csv", sep=",", quote=F, data.frame(s, y))
+
+                # run vGWAS
+                system("../../build/jlst_cpp -v phenotypes.csv -s , -o gwas.txt -p y -i s")
+
+                # parse output
+                res <- fread("gwas.txt")
+                break
             }
         }
     }
 }
-
-# run vGWAS
-system(paste0("../../build/jlst_cpp"))
