@@ -1,10 +1,22 @@
 library("data.table")
+library("broom")
 library("pwr")
 set.seed(12345)
 
 n_obs <- 200
-n_sim <- 200
+n_sim <- 5
 alpha <- 0.05
+
+#' Function to perform Breusch-Pagan test
+#' @param x vector of genotype
+#' @param y vector of response
+bp <- function(x, y){
+    fit1 <- lm(y ~ x)
+    d <- resid(fit1)^2
+    fit2 <- lm(d ~ x)
+    fit2 <- tidy(fit2)
+    return(data.frame(BETA.r=fit2$estimate[2], SE.r=fit2$std.error[2], P.r=fit2$p.value[2]))
+}
 
 #' Function to simulate genotypes in HWE
 #' @param q Recessive/alternative allele frequency
@@ -20,11 +32,11 @@ delta <- sqrt(pwr.f2.test(u = 1, v = n_obs - 1 - 1, sig.level = alpha, power = 0
 
 # simulate GxE interaction effects and estimate power
 results <- data.frame()
-for (phi in seq(0, 6, 0.5)){
+for (phi in seq(0)){ #0, 6, 0.5
     theta <- delta * phi
     beta <- delta - theta
-    for (af in c(0.05, 0.1, 0.2, 0.4)){
-        for (lambda in c(1, 10, 100, 1000, 10000)){
+    for (af in c(0.1)){ #0.05, 0.1, 0.2, 0.4
+        for (lambda in c(1000)){ #1, 10, 100, 1000, 10000
             for (i in 1:n_sim){
                 # simulate data
                 x <- get_simulated_genotypes(af, n_obs * lambda)
@@ -34,22 +46,30 @@ for (phi in seq(0, 6, 0.5)){
 
                 # write out GEN file
                 fileConn<-file("genotypes.gen")
-                writeLines(c(paste("01","rs123", "1", "A", "G", paste(sapply(x, function(g) if (g==0) { "0 0 0" } else if (g==1) {"0 1 0"} else if (g==2){"0 0 1"}), collapse=" "), collapse=" ")), fileConn)
+                writeLines(c(paste("01","SNPID_1", "RSID_1", "1", "A", "G", paste(sapply(x, function(g) if (g==0) { "0 0 0" } else if (g==1) {"0 1 0"} else if (g==2){"0 0 1"}), collapse=" "), collapse=" ")), fileConn)
                 close(fileConn)
 
                 # convert to BGEN file
                 system("qctool -g genotypes.gen -og genotypes.bgen")
-                system("../../lib/bgen/build/apps/bgenix -g genotypes.bgen -index")
+                system("../../lib/bgen/build/apps/bgenix -g genotypes.bgen -clobber -index")
                 
                 # write phenotype file
-                write.table(file="phenotypes.csv", sep=",", quote=F, data.frame(s, y))
+                write.table(file="phenotypes.csv", sep=",", quote=F, row.names=F, data.frame(s, y))
 
-                # run vGWAS
-                system("../../build/jlst_cpp -v phenotypes.csv -s , -o gwas.txt -p y -i s")
+                # run vGWAS using C++
+                system("../../build/src/jlst_cpp_run -v phenotypes.csv -s , -o gwas.txt -b genotypes.bgen -p y -i s")
 
                 # parse output
-                res <- fread("gwas.txt")
-                break
+                res <- fread("gwas.txt", select=c("BETA", "SE", "P"), col.names=c("BETA.cpp", "SE.cpp", "P.cpp"))
+
+                # run B-P using R
+                res <- cbind(res, bp(x, y))
+
+                # add params
+                res$phi <- phi
+                res$af <- af
+                res$lambda <- lambda
+                results <- rbind(results, res)
             }
         }
     }

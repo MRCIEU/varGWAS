@@ -48,6 +48,8 @@ std::vector<Result> Model::run(jlst::PhenotypeFile &phenotype_file,
   while (bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
     LOG_EVERY_N(INFO, 1000) << "Processed " << google::COUNTER << "th variant";
 
+    std::cout << "chr " << chromosome << std::endl;
+
     // only support bi-allelic variants
     if (alleles.size() != 2) {
       LOG(WARNING) << "Skipping multi-allelic variant: " << rsid;

@@ -7,3 +7,4 @@ test/data/*csv
 test/data/*tsv
 test/data/*gen
 test/data/*bgi
+test/data/*txt
