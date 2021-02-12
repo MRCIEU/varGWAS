@@ -5,7 +5,6 @@
 #include <iostream>
 #include <stdexcept>
 #include <thread>
-#include <fstream>
 #include <cxxopts.hpp>
 #include "genfile/bgen/bgen.hpp"
 #include <glog/logging.h>
