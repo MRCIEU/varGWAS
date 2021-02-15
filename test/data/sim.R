@@ -4,18 +4,32 @@ library("pwr")
 set.seed(12345)
 
 n_obs <- 200
-n_sim <- 5
+n_sim <- 1
 alpha <- 0.05
 
-#' Function to perform Breusch-Pagan test
+#' Function to perform Breusch-Pagan test using t-test
 #' @param x vector of genotype
 #' @param y vector of response
-bp <- function(x, y){
+bp_t <- function(x, y){
     fit1 <- lm(y ~ x)
     d <- resid(fit1)^2
     fit2 <- lm(d ~ x)
     fit2 <- tidy(fit2)
     return(data.frame(BETA.r=fit2$estimate[2], SE.r=fit2$std.error[2], P.r=fit2$p.value[2]))
+}
+
+#' Function to perform Breusch-Pagan test using f-test
+#' @param x vector of genotype
+#' @param y vector of response
+bp_f <- function(x, y){
+    fit1 <- lm(y ~ x)
+    d <- resid(fit1)^2
+    fit2 <- lm(d ~ x)
+    fit0 <- lm(d ~ 1)
+    f <- anova(fit0, fit2)
+    fit2 <- tidy(fit2)
+    f <- tidy(f)
+    return(data.frame(BETA.r=fit2$estimate[2], SE.r=fit2$std.error[2], P.r=f$p.value[2]))
 }
 
 #' Function to simulate genotypes in HWE
@@ -32,11 +46,11 @@ delta <- sqrt(pwr.f2.test(u = 1, v = n_obs - 1 - 1, sig.level = alpha, power = 0
 
 # simulate GxE interaction effects and estimate power
 results <- data.frame()
-for (phi in seq(0)){ #0, 6, 0.5
+for (phi in seq(0, 6, 0.5)){
     theta <- delta * phi
     beta <- delta - theta
-    for (af in c(0.1)){ #0.05, 0.1, 0.2, 0.4
-        for (lambda in c(1000)){ #1, 10, 100, 1000, 10000
+    for (af in c(0.05, 0.1, 0.2, 0.4)){
+        for (lambda in c(1, 10, 100, 1000, 10000)){
             for (i in 1:n_sim){
                 # simulate data
                 x <- get_simulated_genotypes(af, n_obs * lambda)
@@ -50,8 +64,8 @@ for (phi in seq(0)){ #0, 6, 0.5
                 close(fileConn)
 
                 # convert to BGEN file
-                system("qctool -g genotypes.gen -og genotypes.bgen")
-                system("../../lib/bgen/build/apps/bgenix -g genotypes.bgen -clobber -index")
+                system("qctool -g genotypes.gen -og genotypes.bgen 2> /dev/null")
+                system("../../lib/bgen/build/apps/bgenix -g genotypes.bgen -clobber -index 2> /dev/null")
                 
                 # write phenotype file
                 write.table(file="phenotypes.csv", sep=",", quote=F, row.names=F, data.frame(s, y))
@@ -63,7 +77,7 @@ for (phi in seq(0)){ #0, 6, 0.5
                 res <- fread("gwas.txt", select=c("BETA", "SE", "P"), col.names=c("BETA.cpp", "SE.cpp", "P.cpp"))
 
                 # run B-P using R
-                res <- cbind(res, bp(x, y))
+                res <- cbind(res, bp_t(x, y))
 
                 # add params
                 res$phi <- phi
