@@ -98,6 +98,7 @@ void Model::fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, 
 
   // set dosage values
   // X is passed without reference to allow for modification on each thread
+  assert(dosages.size() == n);
   for (unsigned i = 0; i < dosages.size(); i++) {
     X(i, 1) = dosages[i];
   }
