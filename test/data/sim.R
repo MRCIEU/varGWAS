@@ -42,15 +42,16 @@ get_simulated_genotypes <- function(q, n_obs){
 }
 
 # effect size to detect with assuming power, alpha and n_obs params
+# TODO add AF
 delta <- sqrt(pwr.f2.test(u = 1, v = n_obs - 1 - 1, sig.level = alpha, power = 0.8)$f2)
 
 # simulate GxE interaction effects and estimate power
 results <- data.frame()
-for (phi in seq(0, 6, 0.5)){
+for (phi in seq(2)){
     theta <- delta * phi
     beta <- delta - theta
-    for (af in c(0.05, 0.1, 0.2, 0.4)){
-        for (lambda in c(1, 10, 100, 1000, 10000)){
+    for (af in c(0.4)){
+        for (lambda in c(1)){
             for (i in 1:n_sim){
                 # simulate data
                 x <- get_simulated_genotypes(af, n_obs * lambda)
@@ -62,6 +63,7 @@ for (phi in seq(0, 6, 0.5)){
                 fileConn<-file("genotypes.gen")
                 writeLines(c(paste("01","SNPID_1", "RSID_1", "1", "A", "G", paste(sapply(x, function(g) if (g==0) { "0 0 0" } else if (g==1) {"0 1 0"} else if (g==2){"0 0 1"}), collapse=" "), collapse=" ")), fileConn)
                 close(fileConn)
+                write.csv(data.frame(s, x), file="genotypes.csv", quote=F, row.names=F)
 
                 # convert to BGEN file
                 system("qctool -g genotypes.gen -og genotypes.bgen 2> /dev/null")
