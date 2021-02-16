@@ -4,7 +4,7 @@ library("pwr")
 set.seed(12345)
 
 n_obs <- 200
-n_sim <- 1
+n_sim <- 20
 alpha <- 0.05
 
 #' Function to perform Breusch-Pagan test using t-test
@@ -47,7 +47,7 @@ delta <- sqrt(pwr.f2.test(u = 1, v = n_obs - 1 - 1, sig.level = alpha, power = 0
 
 # simulate GxE interaction effects and estimate power
 results <- data.frame()
-for (phi in seq(2)){
+for (phi in seq(1)){
     theta <- delta * phi
     beta <- delta - theta
     for (af in c(0.4)){
@@ -58,6 +58,9 @@ for (phi in seq(2)){
                 u <- rnorm(n_obs * lambda)
                 y <- x*beta + x*u*theta + rnorm(n_obs * lambda)
                 s <- paste0("S", seq(1, n_obs * lambda))
+                A <- 0*0*1+1
+                B <- 2*0*theta*1
+                C <- theta*theta*1
 
                 # write out GEN file
                 fileConn<-file("genotypes.gen")
@@ -82,9 +85,14 @@ for (phi in seq(2)){
                 res <- cbind(res, bp_t(x, y))
 
                 # add params
+                res$A<-A
+                res$B<-B
+                res$C<-C
                 res$phi <- phi
                 res$af <- af
                 res$lambda <- lambda
+                res$theta <- theta
+                res$beta <- beta
                 results <- rbind(results, res)
             }
         }
