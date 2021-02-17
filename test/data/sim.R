@@ -46,53 +46,57 @@ delta <- as.numeric(genpwr.calc(calc = "es", model = "linear", ge.interaction = 
 
 # simulate GxE interaction effects and estimate power
 results <- data.frame()
-for (phi in seq(0, 6, 0.5)){
+for (phi in seq(2, 2, 2)){
     theta <- delta * phi
-    beta <- delta - theta
 
-    for (lambda in c(1)){
+    for (lambda in c(1000)){
         for (i in 1:n_sim){
             # simulate data
             x <- get_simulated_genotypes(af, n_obs * lambda)
             u <- rnorm(n_obs * lambda)
-            y <- x*beta + x*u*theta + rnorm(n_obs * lambda)
+            y <- x*delta + x*u*theta + rnorm(n_obs * lambda)
             s <- paste0("S", seq(1, n_obs * lambda))
-            A <- 0*0*1+1
-            B <- 2*0*theta*1
-            C <- theta*theta*1
 
             # write out GEN file
-            #fileConn<-file("genotypes.gen")
-            #writeLines(c(paste("01","SNPID_1", "RSID_1", "1", "A", "G", paste(sapply(x, function(g) if (g==0) { "0 0 0" } else if (g==1) {"0 1 0"} else if (g==2){"0 0 1"}), collapse=" "), collapse=" ")), fileConn)
-            #close(fileConn)
-            #write.csv(data.frame(s, x), file="genotypes.csv", quote=F, row.names=F)
+            fileConn<-file("genotypes.gen")
+            writeLines(c(paste("01","SNPID_1", "RSID_1", "1", "A", "G", paste(sapply(x, function(g) if (g==0) { "0 0 0" } else if (g==1) {"0 1 0"} else if (g==2){"0 0 1"}), collapse=" "), collapse=" ")), fileConn)
+            close(fileConn)
+            write.csv(data.frame(s, x), file="genotypes.csv", quote=F, row.names=F)
 
             # convert to BGEN file
-            #system("qctool -g genotypes.gen -og genotypes.bgen 2> /dev/null")
-            #system("../../lib/bgen/build/apps/bgenix -g genotypes.bgen -clobber -index 2> /dev/null")
+            system("qctool -g genotypes.gen -og genotypes.bgen 2> /dev/null")
+            system("../../lib/bgen/build/apps/bgenix -g genotypes.bgen -clobber -index 2> /dev/null")
             
             # write phenotype file
-            #write.table(file="phenotypes.csv", sep=",", quote=F, row.names=F, data.frame(s, y))
+            write.table(file="phenotypes.csv", sep=",", quote=F, row.names=F, data.frame(s, y))
 
             # run vGWAS using C++
-            #system("../../build/src/jlst_cpp_run -v phenotypes.csv -s , -o gwas.txt -b genotypes.bgen -p y -i s")
+            system("../../build/src/jlst_cpp_run -v phenotypes.csv -s , -o gwas.txt -b genotypes.bgen -p y -i s")
 
             # parse output
-            #res <- fread("gwas.txt", select=c("BETA", "SE", "P"), col.names=c("BETA.cpp", "SE.cpp", "P.cpp"))
+            res <- fread("gwas.txt", select=c("BETA", "SE", "P"), col.names=c("BETA.cpp", "SE.cpp", "P.cpp"))
 
             # run B-P using R
-            #res <- cbind(res, bp_t(x, y))
-            res <- bp_t(x, y)
+            res <- cbind(res, bp_t(x, y))
+
+            # run LM
+            fit <- tidy(lm(y ~x*u))
+            res$BETA.x <- fit$estimate[2]
+            res$BETA.u <- fit$estimate[3]
+            res$BETA.xu <- fit$estimate[4]
+            res$SE.x <- fit$std.error[2]
+            res$SE.u <- fit$std.error[3]
+            res$SE.xu <- fit$std.error[4]
 
             # add params
-            res$A<-A
-            res$B<-B
-            res$C<-C
             res$phi <- phi
             res$af <- af
             res$lambda <- lambda
             res$theta <- theta
-            res$beta <- beta
+            res$delta <- delta
+            res$var <- 2 * theta^2
+
+            # store result
             results <- rbind(results, res)
         }
     }
