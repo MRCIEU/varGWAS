@@ -46,10 +46,10 @@ delta <- as.numeric(genpwr.calc(calc = "es", model = "linear", ge.interaction = 
 
 # simulate GxE interaction effects and estimate power
 results <- data.frame()
-for (phi in seq(2, 2, 2)){
+for (phi in seq(10,10,10)){
     theta <- delta * phi
 
-    for (lambda in c(1000)){
+    for (lambda in c(1)){
         for (i in 1:n_sim){
             # simulate data
             x <- get_simulated_genotypes(af, n_obs * lambda)
