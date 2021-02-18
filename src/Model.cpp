@@ -64,7 +64,11 @@ std::vector<Result> Model::run(jlst::PhenotypeFile &phenotype_file,
 
       // convert genotype probabilities to copies of alt
       // TODO check for null values
-      dosages.push_back(prob[1] + (2 * prob[2]));
+      if (prob[0] == -1 && prob[1] == -1 && prob[2] == -1){
+        dosages.push_back(0);
+      } else {
+        dosages.push_back(prob[1] + (2 * prob[2]));
+      }
     }
 
     // check no missing values between sample list and dosage
@@ -100,6 +104,8 @@ void Model::fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, 
   for (unsigned i = 0; i < dosages.size(); i++) {
     X(i, 1) = dosages[i];
   }
+
+  std::cout << X << std::endl;
 
   // first stage model
   Eigen::BDCSVD<Eigen::MatrixXd> solver(X, Eigen::ComputeThinU | Eigen::ComputeThinV);
