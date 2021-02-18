@@ -13,14 +13,16 @@
 #include "PhenotypeFile.h"
 #include "BgenParser.h"
 #include "Result.h"
+#include "SynchronizedFile.h"
 
 /*
  * Class to perform association testing
  * */
 namespace jlst {
-std::vector<Result> Model::run(jlst::PhenotypeFile &phenotype_file,
-                               genfile::bgen::BgenParser &bgen_parser,
-                               int threads) {
+void Model::run(jlst::PhenotypeFile &phenotype_file,
+                genfile::bgen::BgenParser &bgen_parser,
+                jlst::SynchronizedFile &output_file,
+                int threads) {
 
   std::vector<Result> results;
   std::string chromosome;
@@ -78,19 +80,20 @@ std::vector<Result> Model::run(jlst::PhenotypeFile &phenotype_file,
     res.chromosome = chromosome;
     res.position = position;
     res.rsid = rsid;
-    res.effect_allele = alleles[1]; // TODO check allele order
+    res.effect_allele = alleles[1];
     res.other_allele = alleles[0];
+
+    // TODO multi-thread function
 
     // store result
     results.push_back(res);
 
     // pass result-by-reference to allow population in the fit function
-    // TODO multi-thread function
     Model::fit(results.back(), dosages, X, y);
-  }
 
-  // TODO write to file to avoid memory issues
-  return results;
+    // write to file
+    output_file.write(results.back());
+  }
 }
 
 void Model::fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, Eigen::VectorXd y) {

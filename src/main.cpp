@@ -14,6 +14,10 @@
 #include "PhenotypeFileException.h"
 #include "Model.h"
 #include "Result.h"
+#include "SynchronizedFile.h"
+#include "Writer.h"
+
+// TODO check header declarations are correct
 
 bool file_exists(const std::string &name) {
   std::ifstream f(name.c_str());
@@ -79,19 +83,16 @@ int main(int argc, char **argv) {
     phenotype_file.parse();
     phenotype_file.subset_samples(samples);
 
-    // Perform locus association tests
-    std::vector<jlst::Result> results = jlst::Model::run(phenotype_file, bgen_parser, threads);
+    // Create the synchronized file
+    auto synchronized_file = std::make_shared<jlst::SynchronizedFile>(output_file);
 
-    // write to file
-    std::ofstream file;
-    file.open(output_file);
-    file << "CHR\tPOS\tRSID\tOA\tEA\tBETA\tSE\tP\tN\tEAF\n";
-    for (auto &res : results) {
-      file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
-           << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.pval << "\t" << res.n << "\t"
-           << res.eaf << "\n";
-    }
-    file.close();
+    //synchronized_file->write(result);
+
+    // close file
+    synchronized_file->close();
+
+    // Perform locus association tests
+    jlst::Model::run(phenotype_file, bgen_parser, output_file, threads);
 
   } catch (jlst::PhenotypeFileException const &e) {
     LOG(FATAL) << "Error parsing phenotype file: " << e.what();

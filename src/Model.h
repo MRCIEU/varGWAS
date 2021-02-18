@@ -12,6 +12,7 @@
 #include "PhenotypeFile.h"
 #include "BgenParser.h"
 #include "Result.h"
+#include "SynchronizedFile.h"
 
 #ifndef JLST_CPP_SRC_ASSOC_H_
 #define JLST_CPP_SRC_ASSOC_H_
@@ -19,10 +20,10 @@
 namespace jlst {
 class Model {
  public:
-  static std::vector<Result> run(jlst::PhenotypeFile &phenotype_file,
-                                 genfile::bgen::BgenParser &bgen_parser,
-                                 int threads);
-
+  static void run(jlst::PhenotypeFile &phenotype_file,
+           genfile::bgen::BgenParser &bgen_parser,
+           jlst::SynchronizedFile &output_file,
+           int threads);
   static void fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, Eigen::VectorXd y);
   static std::vector<double> get_p(Eigen::VectorXd &tstat, int n, int p);
   static void remove_row_mat(Eigen::MatrixXd &matrix, unsigned int rowToRemove);
