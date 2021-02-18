@@ -46,10 +46,10 @@ delta <- as.numeric(genpwr.calc(calc = "es", model = "linear", ge.interaction = 
 
 # simulate GxE interaction effects and estimate power
 results <- data.frame()
-for (phi in seq(10,10,10)){
+for (phi in seq(0,6,0.5)){
     theta <- delta * phi
 
-    for (lambda in c(1)){
+    for (lambda in c(1, 10, 100, 1000, 10000)){
         for (i in 1:n_sim){
             # simulate data
             x <- get_simulated_genotypes(af, n_obs * lambda)
@@ -59,7 +59,7 @@ for (phi in seq(10,10,10)){
 
             # write out GEN file
             fileConn<-file("genotypes.gen")
-            writeLines(c(paste("01","SNPID_1", "RSID_1", "1", "A", "G", paste(sapply(x, function(g) if (g==0) { "0 0 0" } else if (g==1) {"0 1 0"} else if (g==2){"0 0 1"}), collapse=" "), collapse=" ")), fileConn)
+            writeLines(c(paste("01","SNPID_1", "RSID_1", "1", "A", "G", paste(sapply(x, function(g) if (g==0) { "1 0 0" } else if (g==1) {"0 1 0"} else if (g==2){"0 0 1"}), collapse=" "), collapse=" ")), fileConn)
             close(fileConn)
             write.csv(data.frame(s, x), file="genotypes.csv", quote=F, row.names=F)
 

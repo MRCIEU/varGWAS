@@ -15,6 +15,8 @@ struct Result {
   double pval{};
   double beta{};
   double se{};
+  double eaf{};
+  unsigned n{};
 };
 }
 

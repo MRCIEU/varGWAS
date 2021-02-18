@@ -23,8 +23,10 @@ class Model {
                                  genfile::bgen::BgenParser &bgen_parser,
                                  int threads);
 
-  static void fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, const Eigen::VectorXd &y);
+  static void fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, Eigen::VectorXd y);
   static std::vector<double> get_p(Eigen::VectorXd &tstat, int n, int p);
+  static void remove_row_mat(Eigen::MatrixXd &matrix, unsigned int rowToRemove);
+  static void remove_row_vec(Eigen::VectorXd &vec, unsigned int rowToRemove);
  private:
 };
 }

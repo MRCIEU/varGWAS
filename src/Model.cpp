@@ -63,9 +63,8 @@ std::vector<Result> Model::run(jlst::PhenotypeFile &phenotype_file,
       assert(prob.size() == 3);
 
       // convert genotype probabilities to copies of alt
-      // TODO check for null values
-      if (prob[0] == -1 && prob[1] == -1 && prob[2] == -1){
-        dosages.push_back(0);
+      if (prob[0] == -1 && prob[1] == -1 && prob[2] == -1) {
+        dosages.push_back(-1);
       } else {
         dosages.push_back(prob[1] + (2 * prob[2]));
       }
@@ -94,15 +93,26 @@ std::vector<Result> Model::run(jlst::PhenotypeFile &phenotype_file,
   return results;
 }
 
-void Model::fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, const Eigen::VectorXd &y) {
+void Model::fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, Eigen::VectorXd y) {
   int n = X.rows();
   int p = X.cols();
+  std::vector<unsigned> nulls;
 
   // set dosage values
   // X is passed without reference to allow for modification on each thread
   assert(dosages.size() == n);
   for (unsigned i = 0; i < dosages.size(); i++) {
-    X(i, 1) = dosages[i];
+    if (dosages[i] == -1) {
+      nulls.push_back(i);
+    } else {
+      X(i, 1) = dosages[i];
+    }
+  }
+
+  // subset data with missing values
+  for (unsigned i = 0; i < nulls.size(); ++i) {
+    remove_row_mat(X, i);
+    remove_row_vec(y, i);
   }
 
   // first stage model
@@ -110,13 +120,13 @@ void Model::fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, 
   Eigen::MatrixXd fit1 = solver.solve(y);
   Eigen::VectorXd y_hat = X * fit1;
   Eigen::VectorXd y_delta = y - y_hat;
-  Eigen::VectorXd y_deltasq = y_delta.cwiseProduct(y_delta);
+  Eigen::VectorXd y_deltasq = y_delta.array().square();
 
   // second stage model
   Eigen::MatrixXd fit2 = solver.solve(y_deltasq);
 
   // epsilon variance
-  double e_var = (y_deltasq - X * fit2).squaredNorm() / (n - p); // this is wrong
+  double e_var = (y_deltasq - X * fit2).squaredNorm() / (n - p);
 
   // coeff se
   Eigen::MatrixXd ViD = solver.matrixV() * solver.singularValues().asDiagonal().inverse();
@@ -133,6 +143,8 @@ void Model::fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, 
   result.beta = fit2(1, 0);
   result.se = se(1, 0);
   result.pval = pvalues[1];
+  result.n = X.rows();
+  result.eaf = X.col(1).mean() * 0.5;
 }
 
 std::vector<double> Model::get_p(Eigen::VectorXd &tstat, int n, int p) {
@@ -143,6 +155,28 @@ std::vector<double> Model::get_p(Eigen::VectorXd &tstat, int n, int p) {
     pvalues.push_back(pval);
   }
   return pvalues;
+}
+
+void Model::remove_row_mat(Eigen::MatrixXd &matrix, unsigned int rowToRemove) {
+  unsigned int numRows = matrix.rows() - 1;
+  unsigned int numCols = matrix.cols();
+
+  if (rowToRemove < numRows)
+    matrix.block(rowToRemove, 0, numRows - rowToRemove, numCols) =
+        matrix.block(rowToRemove + 1, 0, numRows - rowToRemove, numCols);
+
+  matrix.conservativeResize(numRows, numCols);
+}
+
+void Model::remove_row_vec(Eigen::VectorXd &vec, unsigned int rowToRemove) {
+  unsigned int numRows = vec.rows() - 1;
+  unsigned int numCols = vec.cols();
+
+  if (rowToRemove < numRows)
+    vec.block(rowToRemove, 0, numRows - rowToRemove, numCols) =
+        vec.block(rowToRemove + 1, 0, numRows - rowToRemove, numCols);
+
+  vec.conservativeResize(numRows, numCols);
 }
 
 }

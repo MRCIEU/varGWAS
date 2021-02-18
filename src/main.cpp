@@ -85,10 +85,11 @@ int main(int argc, char **argv) {
     // write to file
     std::ofstream file;
     file.open(output_file);
-    file << "CHR\tPOS\tRSID\tOA\tEA\tBETA\tSE\tP\n";
+    file << "CHR\tPOS\tRSID\tOA\tEA\tBETA\tSE\tP\tN\tEAF\n";
     for (auto &res : results) {
       file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
-           << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.pval << "\n";
+           << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.pval << "\t" << res.n << "\t"
+           << res.eaf << "\n";
     }
     file.close();
 
