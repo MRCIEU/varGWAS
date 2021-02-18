@@ -3,9 +3,10 @@
 #include <iostream>
 #include <algorithm>
 #include <unordered_map>
-#include <glog/logging.h>
 #include "PhenotypeFile.h"
 #include "PhenotypeFileException.h"
+#include "spdlog/spdlog.h"
+
 
 /*
  * Class to read in outcome, covariate(s) and sample identifier into memory
@@ -32,7 +33,7 @@ PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
  * Function to parse file
  * */
 void PhenotypeFile::parse() {
-  LOG(INFO) << "Parsing phenotype from: " << phenoFilePath;
+  spdlog::info("Parsing phenotype from: {}", phenoFilePath);
   std::ifstream file(phenoFilePath.c_str());
   int outIdx = -1;
   int sidIdx = -1;
@@ -171,7 +172,7 @@ const std::vector<std::vector<double>> &PhenotypeFile::GetCovariateColumn() cons
   return covariateColumn;
 }
 int PhenotypeFile::GetNSamples() const {
-  if (n_samples == -1){
+  if (n_samples == -1) {
     throw std::runtime_error("Value not set");
   }
   return n_samples;

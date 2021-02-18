@@ -2,7 +2,6 @@
 // Created by Matt Lyon on 10/02/2021.
 //
 
-#include <glog/logging.h>
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <utility>
@@ -12,6 +11,8 @@
 #include "Model.h"
 #include "PhenotypeFile.h"
 #include "Result.h"
+#include "spdlog/spdlog.h"
+
 
 /*
  * Class to perform association testing
@@ -44,11 +45,10 @@ void Model::run() {
 
   // Read variant-by-variant
   while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
-    LOG_EVERY_N(INFO, 1000) << "Processed " << google::COUNTER << "th variant";
 
     // only support bi-allelic variants
     if (alleles.size() != 2) {
-      LOG(WARNING) << "Skipping multi-allelic variant: " << rsid;
+      spdlog::warn("Skipping multi-allelic variant: {}", rsid);
       continue;
     }
 

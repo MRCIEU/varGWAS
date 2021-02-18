@@ -52,14 +52,10 @@ tar -xvf eigen-3.3.7.tar.gz
 curl -L https://github.com/jarro2783/cxxopts/archive/v2.2.0.tar.gz > cxxopts-2.2.0.tar.gz
 tar -xvf cxxopts-2.2.0.tar.gz
 
-# google logging
-curl -L https://github.com/google/glog/archive/v0.4.0.tar.gz > glog-0.4.0.tar.gz
-tar -xvf glog-0.4.0.tar.gz
-cd glog-0.4.0
-mkdir bin
-cd bin
-cmake ..
-make
+# spdlog
+git clone https://github.com/gabime/spdlog.git
+cd spdlog && mkdir build && cd build
+cmake .. && make -j
 
 # google test
 curl -L https://github.com/google/googletest/archive/release-1.10.0.tar.gz > release-1.10.0.tar.gz

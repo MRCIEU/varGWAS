@@ -2,12 +2,11 @@
 // Created by Matthew Lyon on 19/03/2020.
 //
 
-#include <iostream>
 #include <stdexcept>
 #include <thread>
 #include <cxxopts.hpp>
 #include "genfile/bgen/bgen.hpp"
-#include <glog/logging.h>
+#include "spdlog/spdlog.h"
 #include "ThreadPool.h"
 #include "BgenParser.h"
 #include "PhenotypeFile.h"
@@ -21,10 +20,6 @@ bool file_exists(const std::string &name) {
 }
 
 int main(int argc, char **argv) {
-  // Initialize Google's logging library.
-  // TODO fix logging
-  google::InitGoogleLogging(argv[0]);
-
   // Configure arguments
   // TODO stop if no args given
   cxxopts::Options options("JLST C++", "Program to perform vGWAS of trait against variants in the BGEN format");
@@ -58,17 +53,17 @@ int main(int argc, char **argv) {
 
   // check files exist
   if (!file_exists(variable_file)) {
-    LOG(FATAL) << "File does not exist or is not readable: " << variable_file;
+    spdlog::error("File does not exist or is not readable: {}", variable_file);
     return -1;
   }
   if (!file_exists(bgen_file)) {
-    LOG(FATAL) << "File does not exist or is not readable: " << bgen_file;
+    spdlog::error("File does not exist or is not readable: {}", bgen_file);
     return -1;
   }
 
   try {
     // Open BGEN and read sample list
-    LOG(INFO) << "Reading samples from BGEN";
+    spdlog::info("Reading samples from BGEN");
     genfile::bgen::BgenParser bgen_parser(bgen_file);
     static std::vector<std::string> samples;
     bgen_parser.get_sample_ids(
@@ -91,10 +86,10 @@ int main(int argc, char **argv) {
     synchronized_file->close();
 
   } catch (jlst::PhenotypeFileException const &e) {
-    LOG(FATAL) << "Error parsing phenotype file: " << e.what();
+    spdlog::error("Error parsing phenotype file: {}", e.what());
     return -1;
   } catch (genfile::bgen::BGenError const &e) {
-    LOG(FATAL) << "Error parsing BGEN file: " << e.what();
+    spdlog::error("Error parsing BGEN file: ", e.what());
     return -1;
   }
 

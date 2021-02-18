@@ -15,9 +15,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/fast-cpp-csv-parser)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen-3.3.7)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/cxxopts-2.2.0/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/glog-0.4.0/bin)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/glog-0.4.0/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/ThreadPool)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # libraries
@@ -26,7 +25,7 @@ set(BOOST_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/boost_1_
 set(ZSTD_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/zstd-1.1.0/libzstd.a)
 set(SQLITE_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/sqlite3/libsqlite3.a)
 set(DB_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db/libdb.a)
-set(GLOG_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/glog-0.4.0/bin/libglog.a)
+set(SPDLOG_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build/libglog.a)
 set(LIBSCL_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp/libscl.a)
 
 # src and test cmakelist
