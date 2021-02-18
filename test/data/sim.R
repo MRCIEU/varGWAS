@@ -71,7 +71,7 @@ for (phi in seq(2,2,2)){
             write.table(file="phenotypes.csv", sep=",", quote=F, row.names=F, data.frame(s, y))
 
             # run vGWAS using C++
-            system("../../build/src/jlst_cpp_run -v phenotypes.csv -s , -o gwas.txt -b genotypes.bgen -p y -i s")
+            system("../../build/src/jlst_cpp_run -v phenotypes.csv -s , -o gwas.txt -b genotypes.bgen -p y -i s -t 1")
 
             # parse output
             res <- fread("gwas.txt", select=c("BETA", "SE", "P"), col.names=c("BETA.cpp", "SE.cpp", "P.cpp"))
