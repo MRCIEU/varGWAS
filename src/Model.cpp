@@ -105,8 +105,6 @@ void Model::fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, 
     X(i, 1) = dosages[i];
   }
 
-  std::cout << X << std::endl;
-
   // first stage model
   Eigen::BDCSVD<Eigen::MatrixXd> solver(X, Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::MatrixXd fit1 = solver.solve(y);
