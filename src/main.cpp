@@ -21,7 +21,6 @@ bool file_exists(const std::string &name) {
 
 int main(int argc, char **argv) {
   // Configure arguments
-  // TODO stop if no args given
   cxxopts::Options options("JLST C++", "Program to perform vGWAS of trait against variants in the BGEN format");
   options.add_options()
       ("v,variable_file", "Path to phenotype file", cxxopts::value<std::string>())
@@ -33,10 +32,46 @@ int main(int argc, char **argv) {
       ("b,bgen_file", "Path to BGEN file", cxxopts::value<std::string>())
       ("p,phenotype", "Column name for phenotype", cxxopts::value<std::string>())
       ("i,id", "Column name for genotype identifier", cxxopts::value<std::string>())
+      ("h,help", "Print usage")
       ("t,threads",
        "Number of threads",
        cxxopts::value<int>()->default_value(std::to_string(std::thread::hardware_concurrency())));
   auto result = options.parse(argc, argv);
+
+  if (result.count("help")) {
+    std::cout << options.help() << std::endl;
+    exit(0);
+  }
+
+  if (result.count("variable_file")) {
+    std::cerr << "Phenotype file not provided" << std::endl;
+    exit(1);
+  }
+
+  if (result.count("sep")) {
+    std::cerr << "Phenotype file separator not provided" << std::endl;
+    exit(1);
+  }
+
+  if (result.count("output_file")) {
+    std::cerr << "Output file not provided" << std::endl;
+    exit(1);
+  }
+
+  if (result.count("bgen_file")) {
+    std::cerr << "BGEN file not provided" << std::endl;
+    exit(1);
+  }
+
+  if (result.count("phenotype")) {
+    std::cerr << "Column name of the phenotype not provided" << std::endl;
+    exit(1);
+  }
+
+  if (result.count("id")) {
+    std::cerr << "Column name of the sample identifier not provided" << std::endl;
+    exit(1);
+  }
 
   // Parse arguments
   std::string variable_file = result["variable_file"].as<std::string>();
