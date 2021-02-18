@@ -15,7 +15,6 @@
 #include "Model.h"
 #include "Result.h"
 #include "SynchronizedFile.h"
-#include "Writer.h"
 
 // TODO check header declarations are correct
 
@@ -86,13 +85,12 @@ int main(int argc, char **argv) {
     // Create the synchronized file
     auto synchronized_file = std::make_shared<jlst::SynchronizedFile>(output_file);
 
-    //synchronized_file->write(result);
+    // Perform locus association tests
+    jlst::Model model(phenotype_file, bgen_parser, synchronized_file, threads);
+    model.run();
 
     // close file
     synchronized_file->close();
-
-    // Perform locus association tests
-    jlst::Model::run(phenotype_file, bgen_parser, output_file, threads);
 
   } catch (jlst::PhenotypeFileException const &e) {
     LOG(FATAL) << "Error parsing phenotype file: " << e.what();

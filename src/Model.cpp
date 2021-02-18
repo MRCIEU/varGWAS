@@ -11,19 +11,14 @@
 #include <boost/math/distributions/students_t.hpp>
 #include "Model.h"
 #include "PhenotypeFile.h"
-#include "BgenParser.h"
 #include "Result.h"
-#include "SynchronizedFile.h"
 
 /*
  * Class to perform association testing
  * */
 namespace jlst {
-void Model::run(jlst::PhenotypeFile &phenotype_file,
-                genfile::bgen::BgenParser &bgen_parser,
-                jlst::SynchronizedFile &output_file,
-                int threads) {
 
+void Model::run() {
   std::vector<Result> results;
   std::string chromosome;
   uint32_t position;
@@ -33,21 +28,21 @@ void Model::run(jlst::PhenotypeFile &phenotype_file,
   std::vector<double> dosages;
 
   // Create Eigen matrix of phenotypes wo dosage
-  Eigen::MatrixXd X = Eigen::MatrixXd(phenotype_file.GetNSamples(), phenotype_file.GetCovariateColumn().size() + 2);
-  Eigen::VectorXd y = Eigen::VectorXd(phenotype_file.GetNSamples());
+  Eigen::MatrixXd X = Eigen::MatrixXd(_phenotype_file.GetNSamples(), _phenotype_file.GetCovariateColumn().size() + 2);
+  Eigen::VectorXd y = Eigen::VectorXd(_phenotype_file.GetNSamples());
 
   // Populate Eigen matrices
-  for (unsigned i = 0; i < phenotype_file.GetNSamples(); i++) {
+  for (unsigned i = 0; i < _phenotype_file.GetNSamples(); i++) {
     X(i, 0) = 1; // intercept
     X(i, 1) = 0; // dosage values are initially set to zero
-    for (unsigned j = 0; j < phenotype_file.GetCovariateColumn().size(); j++) {
-      X(i, j + 2) = phenotype_file.GetCovariateColumn()[j][i]; // covariates
+    for (unsigned j = 0; j < _phenotype_file.GetCovariateColumn().size(); j++) {
+      X(i, j + 2) = _phenotype_file.GetCovariateColumn()[j][i]; // covariates
     }
-    y(i, 0) = phenotype_file.GetOutcomeColumn()[i]; // outcome
+    y(i, 0) = _phenotype_file.GetOutcomeColumn()[i]; // outcome
   }
 
   // Read variant-by-variant
-  while (bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
+  while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
     LOG_EVERY_N(INFO, 1000) << "Processed " << google::COUNTER << "th variant";
 
     // only support bi-allelic variants
@@ -57,7 +52,7 @@ void Model::run(jlst::PhenotypeFile &phenotype_file,
     }
 
     // convert probabilities to dosage values
-    bgen_parser.read_probs(&probs);
+    _bgen_parser.read_probs(&probs);
 
     dosages.clear();
     for (auto &prob : probs) {
@@ -73,7 +68,7 @@ void Model::run(jlst::PhenotypeFile &phenotype_file,
     }
 
     // check no missing values between sample list and dosage
-    assert(dosages.size() == phenotype_file.GetNSamples());
+    assert(dosages.size() == _phenotype_file.GetNSamples());
 
     // Create result struct
     Result res;
@@ -92,7 +87,7 @@ void Model::run(jlst::PhenotypeFile &phenotype_file,
     Model::fit(results.back(), dosages, X, y);
 
     // write to file
-    output_file.write(results.back());
+    _sf->write(results.back());
   }
 }
 

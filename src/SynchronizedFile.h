@@ -14,14 +14,13 @@
 namespace jlst {
 class SynchronizedFile {
  public:
-  explicit SynchronizedFile(const std::string &path) : path(path) {
+  explicit SynchronizedFile(const std::string &path) {
     file.open(path);
     file << "CHR\tPOS\tRSID\tOA\tEA\tBETA\tSE\tP\tN\tEAF\n";
   }
   void write(const jlst::Result &result);
   void close();
  private:
-  std::string path;
   std::ofstream file;
   std::mutex writer_mutex;
 };
