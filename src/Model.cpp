@@ -26,6 +26,7 @@ void Model::run() {
   std::vector<std::string> alleles;
   std::vector<std::vector<double>> probs;
   std::vector<double> dosages;
+  ThreadPool pool(_threads);
 
   // Create Eigen matrix of phenotypes wo dosage
   Eigen::MatrixXd X = Eigen::MatrixXd(_phenotype_file.GetNSamples(), _phenotype_file.GetCovariateColumn().size() + 2);
@@ -70,31 +71,31 @@ void Model::run() {
     // check no missing values between sample list and dosage
     assert(dosages.size() == _phenotype_file.GetNSamples());
 
-    // Create result struct
-    Result res;
-    res.chromosome = chromosome;
-    res.position = position;
-    res.rsid = rsid;
-    res.effect_allele = alleles[1];
-    res.other_allele = alleles[0];
-
-    // TODO multi-thread function
-
-    // store result
-    results.push_back(res);
-
-    // pass result-by-reference to allow population in the fit function
-    Model::fit(results.back(), dosages, X, y);
+    // enqueue and store future
+    auto result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, X, y);
 
     // write to file
-    _sf->write(results.back());
+    _sf->write(result.get());
   }
 }
 
-void Model::fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, Eigen::VectorXd y) {
+Result Model::fit(std::string &chromosome,
+                  uint32_t position,
+                  std::string &rsid,
+                  std::string &effect_allele,
+                  std::string &other_allele,
+                  std::vector<double> dosages,
+                  Eigen::MatrixXd X,
+                  Eigen::VectorXd y) {
   int n = X.rows();
   int p = X.cols();
   std::vector<unsigned> nulls;
+  Result res;
+  res.chromosome = chromosome;
+  res.position = position;
+  res.rsid = rsid;
+  res.effect_allele = effect_allele;
+  res.other_allele = other_allele;
 
   // set dosage values
   // X is passed without reference to allow for modification on each thread
@@ -138,11 +139,13 @@ void Model::fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, 
   std::vector<double> pvalues = get_p(tstat, n, p);
 
   // set results
-  result.beta = fit2(1, 0);
-  result.se = se(1, 0);
-  result.pval = pvalues[1];
-  result.n = X.rows();
-  result.eaf = X.col(1).mean() * 0.5;
+  res.beta = fit2(1, 0);
+  res.se = se(1, 0);
+  res.pval = pvalues[1];
+  res.n = X.rows();
+  res.eaf = X.col(1).mean() * 0.5;
+
+  return res;
 }
 
 std::vector<double> Model::get_p(Eigen::VectorXd &tstat, int n, int p) {
