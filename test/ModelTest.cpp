@@ -2,13 +2,14 @@
 #include "gtest/gtest.h"
 #include "iostream"
 #include "Model.h"
+#include "Result.h"
 
 /*
  * Test for performing Breusch-Pagan model
  * */
 
 TEST(ModelTest, fit) {
-  Result result;
+  jlst::Result result;
   std::vector<double> dosages =
       {0, 2, 0, 2, 1, 1, 1, 0, 0, 2, 1, 1, 0, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 2, 2,
        0, 1, 0, 1, 2, 0, 1, 1, 1, 1, 1, 0, 2, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 2, 0, 2, 1, 2, 1, 0, 2, 0, 0, 1, 1, 1, 0,
@@ -54,16 +55,22 @@ TEST(ModelTest, fit) {
        -0.0667603749217124, -1.50640197948602, -0.768897643472178, 0.61137004449463, -1.67139577461645,
        -0.846710740540237, -0.26177714473706, 0.234486767492085};
   Eigen::MatrixXd X;
-  Eigen::VectorXd y(pheno);
+  Eigen::VectorXd y;
 
   // initialise empty matrix
+  assert(dosages.size() == pheno.size());
   for (unsigned n = 0; n < dosages.size(); ++n) {
     X(n, 0) = 1;
     X(n, 1) = 0;
+    y(n) = pheno[n];
   }
 
   // fit B-P model
-  fit(result, dosages, X, y);
+  jlst::Model::fit(result, dosages, X, y);
+
+  std::cout << result.beta << std::endl;
+  std::cout << result.se << std::endl;
+  std::cout << result.pval << std::endl;
 
   // check output
   ASSERT_NEAR(result.beta, 0, 0.01);
