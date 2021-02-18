@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
   google::InitGoogleLogging(argv[0]);
 
   // Configure arguments
+  // TODO stop if no args given
   cxxopts::Options options("JLST C++", "Program to perform vGWAS of trait against variants in the BGEN format");
   options.add_options()
       ("v,variable_file", "Path to phenotype file", cxxopts::value<std::string>())
@@ -83,7 +84,7 @@ int main(int argc, char **argv) {
     auto synchronized_file = std::make_shared<jlst::SynchronizedFile>(output_file);
 
     // Perform locus association tests & write to file
-    jlst::Model model(phenotype_file, bgen_parser, synchronized_file, 1);
+    jlst::Model model(phenotype_file, bgen_parser, synchronized_file, threads);
     model.run();
 
     // close file
