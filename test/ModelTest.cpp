@@ -31,13 +31,12 @@ TEST(ModelTest, fit) {
   // fit B-P model
   jlst::Model::fit(result, dosages, X, y);
 
-  // print summary stats
-  std::cout << result.beta << std::endl;
-  std::cout << result.se << std::endl;
-  std::cout << result.pval << std::endl;
+  // check estimate and SE are similar to R
+  ASSERT_NEAR(result.beta, 12.79318, 0.01);
+  ASSERT_NEAR(result.se, 2.298094, 0.01);
+  ASSERT_NEAR(result.pval, 8.36e-08, 0.01);
 
-  // check output
-  /*ASSERT_NEAR(result.beta, 0, 0.01);
-  ASSERT_NEAR(result.se, 0, 0.01);
-  ASSERT_NEAR(result.pval, 0, 0.01);*/
+  // check 95% CI contains true value
+  ASSERT_GT(result.beta, 16.03478 - (result.se * 1.96));
+  ASSERT_LT(result.beta, 16.03478 + (result.se * 1.96));
 }

@@ -112,7 +112,7 @@ void Model::fit(Result &result, std::vector<double> dosages, Eigen::MatrixXd X, 
   Eigen::MatrixXd fit2 = solver.solve(y_deltasq);
 
   // epsilon variance
-  double e_var = (y - X * fit2).squaredNorm() / (n - p);
+  double e_var = (y_deltasq - X * fit2).squaredNorm() / (n - p); // this is wrong
 
   // coeff se
   Eigen::MatrixXd ViD = solver.matrixV() * solver.singularValues().asDiagonal().inverse();
