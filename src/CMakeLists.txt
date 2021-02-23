@@ -4,8 +4,6 @@ file(GLOB_RECURSE SOURCES LIST_DIRECTORIES true *.h *.cpp)
 
 set(SOURCES ${SOURCES})
 
-message(${SQLITE_LIB_PATH})
-
 #${SQLITE_LIB_PATH}
 add_executable(${BINARY} ${SOURCES})
 target_link_libraries(

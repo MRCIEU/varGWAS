@@ -9,7 +9,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # TODO update boost to avoid compile warnings
 
 find_package(Threads)
-find_package(SQLite3)
+#find_package(SQLite3)
+set(SQLITE3_INCLUDE_DIRS /mnt/storage/easybuild/software/SQLite/3.13.0-GCC-5.4.0-2.26/include)
+set(SQLITE3_LIBRARIES /mnt/storage/easybuild/software/SQLite/3.13.0-GCC-5.4.0-2.26/lib/libsqlite3.a)
 
 # include
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/genfile/include)
@@ -30,7 +32,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(BGEN_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/libbgen.a)
 set(BOOST_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/boost_1_55_0/libboost.a)
 set(ZSTD_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/zstd-1.1.0/libzstd.a)
-set(SQLITE_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/sqlite3/libsqlite3.a)
+#set(SQLITE_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/sqlite3/libsqlite3.a)
 set(DB_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db/libdb.a)
 set(SPDLOG_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build/libglog.a)
 set(LIBSCL_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp/libscl.a)
