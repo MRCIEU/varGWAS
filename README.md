@@ -72,7 +72,7 @@ mv ThreadPool-master ThreadPool
 ```sh
 mkdir -p build
 cd build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release
 make
 ```
 

@@ -4,6 +4,9 @@ cmake_minimum_required(VERSION 3.15)
 project(jlst_cpp)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# TODO update boost to avoid compile warnings
 
 # include
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/genfile/include)
@@ -28,7 +31,12 @@ set(DB_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db/libdb.a)
 set(SPDLOG_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build/libglog.a)
 set(LIBSCL_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp/libscl.a)
 
-# src and test cmakelist
+# src
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/googletest-release-1.10.0)
+
+# build tests if in debug mode
+if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    message("Building tests")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/googletest-release-1.10.0)
+endif ()
