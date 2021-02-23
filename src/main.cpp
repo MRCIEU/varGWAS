@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
        cxxopts::value<int>()->default_value(std::to_string(std::thread::hardware_concurrency())));
   auto result = options.parse(argc, argv);
 
-  if (result.count("help")) {
+  if (argc == 1 || result.count("help")) {
     std::cout << options.help() << std::endl;
     exit(0);
   }
