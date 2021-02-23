@@ -76,6 +76,16 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make
 ```
 
+Note on HPC systems you may need to explicitly set the compiler path
+
+```sh
+# BC4
+module load languages/gcc/9.1.0
+CC=/mnt/storage/software/languages/gcc-9.1/bin/gcc \
+CXX=/mnt/storage/software/languages/gcc-9.1/bin/g++ \
+../lib/cmake-3.18.6/bin/cmake .. -DCMAKE_BUILD_TYPE=Release
+```
+
 ### Test
 
 TODO - create test bgen file & phenotypes file from a single simulated dataset

@@ -5,7 +5,7 @@
 #include "SynchronizedFile.h"
 #include "Result.h"
 #include <iostream>
-#include <string>
+#include <mutex>
 
 namespace jlst {
 void SynchronizedFile::write(const jlst::Result &res) {
