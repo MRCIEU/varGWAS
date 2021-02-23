@@ -20,6 +20,8 @@ bool file_exists(const std::string &name) {
 }
 
 int main(int argc, char **argv) {
+  bool no_args = (argc == 1);
+
   // Configure arguments
   cxxopts::Options options("JLST C++", "Program to perform vGWAS of trait against variants in the BGEN format");
   options.add_options()
@@ -38,7 +40,7 @@ int main(int argc, char **argv) {
        cxxopts::value<int>()->default_value(std::to_string(std::thread::hardware_concurrency())));
   auto result = options.parse(argc, argv);
 
-  if (argc == 1 || result.count("help")) {
+  if (no_args || result.count("help")) {
     std::cout << options.help() << std::endl;
     exit(0);
   }
