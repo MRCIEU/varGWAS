@@ -4,7 +4,7 @@ library("genpwr")
 set.seed(12345)
 
 n_obs <- 200
-n_sim <- 1
+n_sim <- 200
 af <- 0.4
 
 #' Function to perform Breusch-Pagan test using t-test
@@ -46,10 +46,10 @@ delta <- as.numeric(genpwr.calc(calc = "es", model = "linear", ge.interaction = 
 
 # simulate GxE interaction effects and estimate power
 results <- data.frame()
-for (phi in seq(2,2,2)){
+for (phi in seq(0,6,0.5)){
     theta <- delta * phi
 
-    for (lambda in c(1)){
+    for (lambda in c(1, 10, 100, 1000)){
         for (i in 1:n_sim){
             # simulate data
             x <- get_simulated_genotypes(af, n_obs * lambda)
@@ -65,13 +65,13 @@ for (phi in seq(2,2,2)){
 
             # convert to BGEN file
             system("qctool -g genotypes.gen -og genotypes.bgen 2> /dev/null")
-            system("../../lib/bgen/build/apps/bgenix -g genotypes.bgen -clobber -index 2> /dev/null")
+            system("bgenix -g genotypes.bgen -clobber -index 2> /dev/null")
             
             # write phenotype file
             write.table(file="phenotypes.csv", sep=",", quote=F, row.names=F, data.frame(s, y))
 
             # run vGWAS using C++
-            system("../../build/bin/jlst_cpp -v phenotypes.csv -s , -o gwas.txt -b genotypes.bgen -p y -i s -t 1")
+            system("../../build/bin/jlst_cpp -v phenotypes.csv -s , -o gwas.txt -b genotypes.bgen -p y -i s -t 1 2>&1 > /dev/null")
 
             # parse output
             res <- fread("gwas.txt", select=c("BETA", "SE", "P"), col.names=c("BETA.cpp", "SE.cpp", "P.cpp"))
@@ -102,3 +102,6 @@ for (phi in seq(2,2,2)){
     }
     
 }
+
+# save results for plotting
+write.csv(results, file="results.csv")
