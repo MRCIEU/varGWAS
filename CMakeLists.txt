@@ -8,11 +8,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # TODO update boost to avoid compile warnings
 
+find_package(Threads)
+find_package(SQLite3)
+
 # include
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/genfile/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/3rd_party/boost_1_55_0)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/3rd_party/zstd-1.1.0/lib)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/3rd_party/sqlite3)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/3rd_party/sqlite3)
+include_directories(${SQLITE3_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/db/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/fast-cpp-csv-parser)
@@ -30,7 +34,6 @@ set(SQLITE_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/sqlite3
 set(DB_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db/libdb.a)
 set(SPDLOG_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build/libglog.a)
 set(LIBSCL_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp/libscl.a)
-find_package(Threads)
 
 # src
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
