@@ -20,6 +20,7 @@ target_link_libraries(
         ${DB_LIB_PATH}
         ${LIBSCL_LIB_PATH}
         ${GLOG_LIB_PATH}
+        ${CMAKE_THREAD_LIBS_INIT}
 )
 
 add_subdirectory(data)
