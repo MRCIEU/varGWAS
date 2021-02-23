@@ -40,37 +40,37 @@ int main(int argc, char **argv) {
        cxxopts::value<int>()->default_value(std::to_string(std::thread::hardware_concurrency())));
   auto result = options.parse(argc, argv);
 
-  if (no_args || result.count("help")) {
+  if (no_args || result.count("help") == 1) {
     std::cout << options.help() << std::endl;
     exit(0);
   }
 
-  if (result.count("variable_file")) {
+  if (result.count("variable_file") == 0) {
     std::cerr << "Phenotype file not provided" << std::endl;
     exit(1);
   }
 
-  if (result.count("sep")) {
+  if (result.count("sep") == 0) {
     std::cerr << "Phenotype file separator not provided" << std::endl;
     exit(1);
   }
 
-  if (result.count("output_file")) {
+  if (result.count("output_file") == 0) {
     std::cerr << "Output file not provided" << std::endl;
     exit(1);
   }
 
-  if (result.count("bgen_file")) {
+  if (result.count("bgen_file") == 0) {
     std::cerr << "BGEN file not provided" << std::endl;
     exit(1);
   }
 
-  if (result.count("phenotype")) {
+  if (result.count("phenotype") == 0) {
     std::cerr << "Column name of the phenotype not provided" << std::endl;
     exit(1);
   }
 
-  if (result.count("id")) {
+  if (result.count("id") == 0) {
     std::cerr << "Column name of the sample identifier not provided" << std::endl;
     exit(1);
   }
@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
   std::string variable_file = result["variable_file"].as<std::string>();
   char sep = result["sep"].as<char>();
   std::vector<std::string> covariates;
-  if (result.count("covariates")) {
+  if (result.count("covariates") > 0) {
     covariates = result["covariates"].as<std::vector<std::string>>();
   }
   std::string output_file = result["output_file"].as<std::string>();
