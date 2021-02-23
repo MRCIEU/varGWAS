@@ -6,6 +6,7 @@ project(jlst_cpp)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 find_package(Threads)
+find_package(SQLite3)
 
 # TODO update boost to avoid compile warnings
 

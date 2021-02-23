@@ -21,6 +21,7 @@ target_link_libraries(
         ${LIBSCL_LIB_PATH}
         ${GLOG_LIB_PATH}
         ${CMAKE_THREAD_LIBS_INIT}
+        ${SQLITE3_LIBRARIES}
 )
 
 add_subdirectory(data)
