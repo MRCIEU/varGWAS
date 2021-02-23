@@ -9,6 +9,7 @@
 #include <iostream>
 #include <utility>
 #include <fstream>
+#include <mutex>
 #include "Result.h"
 
 namespace jlst {
