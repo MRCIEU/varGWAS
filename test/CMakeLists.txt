@@ -13,15 +13,14 @@ target_link_libraries(
         ${CMAKE_PROJECT_NAME}_lib
         gtest
         z
-        ${BGEN_LIB_PATH}
         ${BOOST_LIB_PATH}
         ${ZSTD_LIB_PATH}
         ${SQLITE_LIB_PATH}
         ${DB_LIB_PATH}
+        ${BGEN_LIB_PATH}
         ${LIBSCL_LIB_PATH}
         ${GLOG_LIB_PATH}
         ${CMAKE_THREAD_LIBS_INIT}
-        ${SQLITE3_LIBRARIES}
 )
 
 add_subdirectory(data)

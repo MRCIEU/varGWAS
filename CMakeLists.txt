@@ -5,8 +5,6 @@ project(jlst_cpp)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-find_package(Threads)
-find_package(SQLite3)
 
 # TODO update boost to avoid compile warnings
 
@@ -32,6 +30,7 @@ set(SQLITE_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/sqlite3
 set(DB_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db/libdb.a)
 set(SPDLOG_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build/libglog.a)
 set(LIBSCL_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp/libscl.a)
+find_package(Threads)
 
 # src
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)

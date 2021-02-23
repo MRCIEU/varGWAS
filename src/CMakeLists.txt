@@ -8,15 +8,14 @@ add_executable(${BINARY} ${SOURCES})
 target_link_libraries(
         ${BINARY}
         z
-        ${BGEN_LIB_PATH}
         ${BOOST_LIB_PATH}
         ${ZSTD_LIB_PATH}
         ${SQLITE_LIB_PATH}
         ${DB_LIB_PATH}
+        ${BGEN_LIB_PATH}
         ${LIBSCL_LIB_PATH}
         ${GLOG_LIB_PATH}
         ${CMAKE_THREAD_LIBS_INIT}
-        ${SQLITE3_LIBRARIES}
 )
 
 add_library(${BINARY}_lib STATIC ${SOURCES})
