@@ -81,9 +81,13 @@ Note on HPC systems you may need to explicitly set the compiler path
 ```sh
 # BC4
 module load languages/gcc/9.1.0
+module load SQLite/3.13.0-GCC-5.4.0-2.26 
 CC=/mnt/storage/software/languages/gcc-9.1/bin/gcc \
 CXX=/mnt/storage/software/languages/gcc-9.1/bin/g++ \
-../lib/cmake-3.18.6/bin/cmake .. -DCMAKE_BUILD_TYPE=Release
+../lib/cmake-3.18.6/bin/cmake .. \
+-DCMAKE_BUILD_TYPE=Release \
+-DSQLITE3_INCLUDE_DIR=/mnt/storage/easybuild/software/SQLite/3.13.0-GCC-5.4.0-2.26/include \ 
+-DSQLITE3_LIBRARY=/mnt/storage/easybuild/software/SQLite/3.13.0-GCC-5.4.0-2.26/lib
 ```
 
 ### Test

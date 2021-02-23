@@ -9,9 +9,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # TODO update boost to avoid compile warnings
 
 find_package(Threads)
-#find_package(SQLite3)
-set(SQLITE3_INCLUDE_DIRS /mnt/storage/easybuild/software/SQLite/3.13.0-GCC-5.4.0-2.26/include)
-set(SQLITE3_LIBRARIES /mnt/storage/easybuild/software/SQLite/3.13.0-GCC-5.4.0-2.26/lib/libsqlite3.a)
+find_package(SQLite3)
 
 # include
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/genfile/include)
