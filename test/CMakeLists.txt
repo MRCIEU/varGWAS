@@ -16,7 +16,6 @@ target_link_libraries(
         ${BOOST_LIB_PATH}
         ${ZSTD_LIB_PATH}
         ${SQLITE_LIB_PATH}
-        sqlite3
         ${DB_LIB_PATH}
         ${BGEN_LIB_PATH}
         ${LIBSCL_LIB_PATH}
