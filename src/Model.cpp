@@ -19,6 +19,7 @@
 namespace jlst {
 
 void Model::run() {
+  spdlog::info("Running model");
   std::vector<Result> results;
   std::string chromosome;
   uint32_t position;
@@ -27,6 +28,7 @@ void Model::run() {
   std::vector<std::vector<double>> probs;
   std::vector<double> dosages;
   ThreadPool pool(_threads);
+  unsigned n = 0;
 
   // Create Eigen matrix of phenotypes wo dosage
   Eigen::MatrixXd X = Eigen::MatrixXd(_phenotype_file.GetNSamples(), _phenotype_file.GetCovariateColumn().size() + 2);
@@ -44,6 +46,10 @@ void Model::run() {
 
   // Read variant-by-variant
   while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
+
+    if (n % 1000 == 0){ // print every 1k variants
+      spdlog::info("Testing: {}", rsid);
+    }
 
     // only support bi-allelic variants
     if (alleles.size() != 2) {
@@ -75,6 +81,7 @@ void Model::run() {
 
     // write to file
     _sf->write(result.get());
+    n++;
   }
 }
 
