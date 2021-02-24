@@ -29,8 +29,8 @@ void Model::run() {
   std::vector<double> dosages;
   unsigned n = 0;
 
-  spdlog::info("Starting {} threads", n);
-  ThreadPool pool(threads);
+  spdlog::info("Starting {} threads", _threads);
+  ThreadPool pool(_threads);
 
   // Create Eigen matrix of phenotypes wo dosage
   Eigen::MatrixXd X = Eigen::MatrixXd(_phenotype_file.GetNSamples(), _phenotype_file.GetCovariateColumn().size() + 2);
