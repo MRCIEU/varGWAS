@@ -113,8 +113,11 @@ void PhenotypeFile::parse() {
 }
 /*
  * Function to subset data using provided list of sample identifiers
+ * @return vector of sample indexes with missing phenotypes to mask in the model
  * */
-void PhenotypeFile::subset_samples(const std::vector<std::string> &samples) {
+std::vector<unsigned> PhenotypeFile::subset_samples(const std::vector<std::string> &samples) {
+  std::vector<unsigned> missing_samples;
+
   // create sample identifier-to-index mapping
   std::unordered_map<std::string, unsigned> mapping;
   for (unsigned i = 0; i < sampleIdentifierColumn.size(); ++i) {
@@ -134,19 +137,27 @@ void PhenotypeFile::subset_samples(const std::vector<std::string> &samples) {
   }
 
   // subset data using new ordering
-  for (auto &sample : samples) {
+  for (unsigned i = 0; i < samples.size(); ++i) {
+
     // get index for sample
-    if (mapping.count(sample) == 0) {
-      throw std::runtime_error("Missing sample from phenotype file: " + sample);
+    if (mapping.count(samples[i]) == 0) {
+      // add missing data
+      sampleIdentifierColumnTmp.push_back(samples[i]);
+      outcomeColumnTmp.push_back(-1);
+      for (unsigned j = 0; j < covariateColumn.size(); ++j) {
+        covariateColumnTmp[j].push_back(-1);
+      }
+      missing_samples.push_back(i);
+    } else {
+      // subset data
+      unsigned idx = mapping[samples[i]];
+      sampleIdentifierColumnTmp.push_back(sampleIdentifierColumn[idx]);
+      outcomeColumnTmp.push_back(outcomeColumn[idx]);
+      for (unsigned j = 0; j < covariateColumn.size(); ++j) {
+        covariateColumnTmp[j].push_back(covariateColumn[j][idx]);
+      }
     }
 
-    // subset data
-    unsigned idx = mapping[sample];
-    sampleIdentifierColumnTmp.push_back(sampleIdentifierColumn[idx]);
-    outcomeColumnTmp.push_back(outcomeColumn[idx]);
-    for (unsigned i = 0; i < covariateColumn.size(); ++i) {
-      covariateColumnTmp[i].push_back(covariateColumn[i][idx]);
-    }
   }
 
   // check variables are the same length
@@ -161,6 +172,8 @@ void PhenotypeFile::subset_samples(const std::vector<std::string> &samples) {
   outcomeColumn = outcomeColumnTmp;
   covariateColumn = covariateColumnTmp;
   n_samples = sampleIdentifierColumn.size();
+
+  return (missing_samples);
 }
 const std::vector<std::string> &PhenotypeFile::GetSampleIdentifierColumn() const {
   return sampleIdentifierColumn;

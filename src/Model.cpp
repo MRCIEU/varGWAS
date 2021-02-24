@@ -6,7 +6,6 @@
 #include <Eigen/SVD>
 #include <utility>
 #include <vector>
-#include <iostream>
 #include <boost/math/distributions/students_t.hpp>
 #include "Model.h"
 #include "PhenotypeFile.h"
@@ -72,7 +71,7 @@ void Model::run() {
     assert(dosages.size() == _phenotype_file.GetNSamples());
 
     // enqueue and store future
-    auto result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, X, y);
+    auto result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, _missing_samples, X, y);
 
     // write to file
     _sf->write(result.get());
@@ -85,11 +84,11 @@ Result Model::fit(std::string &chromosome,
                   std::string &effect_allele,
                   std::string &other_allele,
                   std::vector<double> dosages,
+                  std::vector<unsigned> nulls,
                   Eigen::MatrixXd X,
                   Eigen::VectorXd y) {
   int n = X.rows();
   int p = X.cols();
-  std::vector<unsigned> nulls;
   Result res;
   res.chromosome = chromosome;
   res.position = position;

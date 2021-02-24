@@ -114,13 +114,13 @@ int main(int argc, char **argv) {
     // Read phenotypes and subset using sample list
     jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
     phenotype_file.parse();
-    phenotype_file.subset_samples(samples);
+    std::vector<unsigned> missing_samples = phenotype_file.subset_samples(samples);
 
     // Create the synchronized file
     auto synchronized_file = std::make_shared<jlst::SynchronizedFile>(output_file);
 
     // Perform locus association tests & write to file
-    jlst::Model model(phenotype_file, bgen_parser, synchronized_file, threads);
+    jlst::Model model(phenotype_file, bgen_parser, missing_samples, synchronized_file, threads);
     model.run();
 
     // close file

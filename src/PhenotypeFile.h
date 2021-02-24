@@ -20,7 +20,7 @@ class PhenotypeFile {
       const char &sep
   );
   void parse();
-  void subset_samples(const std::vector<std::string> &samples);
+  std::vector<unsigned> subset_samples(const std::vector<std::string> &samples);
   const std::vector<std::string> &GetSampleIdentifierColumn() const;
   const std::vector<double> &GetOutcomeColumn() const;
   const std::vector<std::vector<double>> &GetCovariateColumn() const;

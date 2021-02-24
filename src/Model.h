@@ -24,9 +24,14 @@ class Model {
  public:
   Model(jlst::PhenotypeFile &phenotype_file,
         genfile::bgen::BgenParser &bgen_parser,
+        std::vector<unsigned> &missing_samples,
         std::shared_ptr<SynchronizedFile> sf,
         int threads)
-      : _phenotype_file(phenotype_file), _bgen_parser(bgen_parser), _sf(std::move(sf)), _threads(threads) {}
+      : _phenotype_file(phenotype_file),
+        _bgen_parser(bgen_parser),
+        _missing_samples(missing_samples),
+        _sf(std::move(sf)),
+        _threads(threads) {}
   void run();
   static Result fit(std::string &chromosome,
                     uint32_t position,
@@ -34,6 +39,7 @@ class Model {
                     std::string &effect_allele,
                     std::string &other_allele,
                     std::vector<double> dosages,
+                    std::vector<unsigned> nulls,
                     Eigen::MatrixXd X,
                     Eigen::VectorXd y);
   static std::vector<double> get_p(Eigen::VectorXd &tstat, int n, int p);
@@ -42,6 +48,7 @@ class Model {
  private:
   jlst::PhenotypeFile &_phenotype_file;
   genfile::bgen::BgenParser &_bgen_parser;
+  std::vector<unsigned> &_missing_samples;
   int _threads{};
   std::shared_ptr<SynchronizedFile> _sf;
 };

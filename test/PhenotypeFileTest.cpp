@@ -73,26 +73,3 @@ TEST(PhenotypeFileTest, subset_samples_should_function) {
   ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[1][2], -0.921834963877281, 1e-10);
   ASSERT_NEAR(phenotypeFile.GetOutcomeColumn()[2], 8.25428258247076, 1e-10);
 }
-
-TEST(PhenotypeFileTest, subset_samples_missing_sample) {
-  static std::string filePath = "data.csv";
-  static std::vector<std::string> covariateColumnHeaders = {"c1", "c2"};
-  static std::string outcomeColumnHeader = "y";
-  static std::string idColumnHeader = "id";
-  static char sep = ',';
-
-  jlst::PhenotypeFile phenotypeFile(filePath,
-                                    covariateColumnHeaders,
-                                    outcomeColumnHeader,
-                                    idColumnHeader,
-                                    sep);
-  phenotypeFile.parse();
-  try {
-    phenotypeFile.subset_samples(std::vector<std::string>{"abc123"});
-    FAIL() << "Expected std::runtime_error";
-  } catch (std::runtime_error &err) {
-    EXPECT_EQ(err.what(), std::string("Missing sample from phenotype file: abc123"));
-  } catch (...) {
-    FAIL() << "Expected std::runtime_error";
-  }
-}
