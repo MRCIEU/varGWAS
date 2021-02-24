@@ -14,7 +14,7 @@
 #include "Model.h"
 #include "SynchronizedFile.h"
 
-static std::string VERSION = "0.0.1";
+static std::string VERSION = "v0.0.1";
 static std::string PROGNAME = "JLST C++";
 
 bool file_exists(const std::string &name) {

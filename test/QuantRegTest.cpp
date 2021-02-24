@@ -7,16 +7,13 @@
  * Test for performing quantile regression
  * */
 
-// TODO update
-
 TEST(QuantRegTest, slope_residual) {
-  INTEGER x_f;
-  INTEGER c1_f;
+  REAL x_f;
+  REAL c1_f;
   REAL c2_f;
   REAL y_f;
-  REAL d_f;
 
-  INTEGER n = 50000;
+  INTEGER n = 1000;
   INTEGER K = 4;
 
   scl::realmat y(n, 1);
@@ -24,11 +21,11 @@ TEST(QuantRegTest, slope_residual) {
   scl::realmat b(K, 1);
   scl::realmat d(n, 1);
 
-  // get data (see data/regression.R)
-  io::CSVReader<5> in("data/regression.csv");
-  in.read_header(io::ignore_extra_column, "x", "c1", "c2", "y", "d");
+  // get data (see data/data.R)
+  io::CSVReader<4> in("data.csv");
+  in.read_header(io::ignore_extra_column, "x", "c1", "c2", "y");
   INTEGER t = 0;
-  while (in.read_row(x_f, c1_f, c2_f, y_f, d_f)) {
+  while (in.read_row(x_f, c1_f, c2_f, y_f)) {
     t++;
     // intercept
     X(t, 1) = 1.0;
@@ -38,23 +35,14 @@ TEST(QuantRegTest, slope_residual) {
     X(t, 3) = c1_f;
     X(t, 4) = c2_f;
     y[t] = y_f;
-
-    // absolute residuals
-    d[t] = d_f;
   }
 
   // model
   REAL p = 0.5;
   b = scl::quantreg(y, X, p);
 
-  ASSERT_NEAR(b[1], 25, 0.1);
-  ASSERT_NEAR(b[2], 0.6, 0.1);
-  ASSERT_NEAR(b[3], 2, 0.1);
-  ASSERT_NEAR(b[4], 0.05, 0.002);
-
-  // absolute residual assertions
-  scl::realmat e = y - X * b;
-  for (t = 1; t <= n; ++t) {
-    ASSERT_NEAR(std::abs(e[t]), d[t], 0.005);
-  }
+  ASSERT_NEAR(b[1], 4, 4 * .2);
+  ASSERT_NEAR(b[2], 0.6, 0.6 * .2);
+  ASSERT_NEAR(b[3], 2, 2 * 0.2);
+  ASSERT_NEAR(b[4], 0.3, .3 * .2);
 }

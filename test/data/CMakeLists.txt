@@ -1,1 +1,1 @@
-#configure_file(phenotype.csv ${CMAKE_CURRENT_BINARY_DIR}/phenotype.csv COPYONLY)
+configure_file(data.csv ${CMAKE_BINARY_DIR}/bin/data.csv COPYONLY)

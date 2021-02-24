@@ -10,26 +10,23 @@
  * Test for performing linear regression model
  * */
 
-// TODO update
-
 TEST(LinRegTest, svd) {
   const double intercept = 1.0;
   double x_f;
   double c1_f;
   double c2_f;
   double y_f;
-  double d_f;
-  int n = 50000;
+  int n = 1000;
   int p = 3;
 
   Eigen::MatrixXd X = Eigen::MatrixXd(n, p + 1);
   Eigen::VectorXd y = Eigen::VectorXd(n);
 
-  // get data (see data/regression.R)
-  io::CSVReader<5> in("data/regression.csv");
-  in.read_header(io::ignore_extra_column, "x", "c1", "c2", "y", "d");
+  // get data (see data/linreg.R)
+  io::CSVReader<4> in("data.csv");
+  in.read_header(io::ignore_extra_column, "x", "c1", "c2", "y");
   int t = 0;
-  while (in.read_row(x_f, c1_f, c2_f, y_f, d_f)) {
+  while (in.read_row(x_f, c1_f, c2_f, y_f)) {
     X(t, 0) = intercept;
     X(t, 1) = x_f;
     X(t, 2) = c1_f;
@@ -45,10 +42,10 @@ TEST(LinRegTest, svd) {
   // beta
   Eigen::MatrixXd betas = solver.solve(y); // betas
   assert(betas.size() == p + 1);
-  ASSERT_NEAR(betas(0, 0), 25, 0.1);
-  ASSERT_NEAR(betas(1, 0), 0.6, 0.1);
-  ASSERT_NEAR(betas(2, 0), 2, 0.1);
-  ASSERT_NEAR(betas(3, 0), 0.05, 0.002);
+  ASSERT_NEAR(betas(0, 0), 4, 4 * .2);
+  ASSERT_NEAR(betas(1, 0), 0.6, 0.6 * .2);
+  ASSERT_NEAR(betas(2, 0), 2, 2 * 0.2);
+  ASSERT_NEAR(betas(3, 0), 0.3, .3 * .2);
 
   // predicted Y
   Eigen::VectorXd y_hat = X * betas;
@@ -72,10 +69,10 @@ TEST(LinRegTest, svd) {
   Eigen::MatrixXd varBetasSvd = e_var * ViD * ViD.transpose();
   Eigen::VectorXd se = varBetasSvd.diagonal().array().sqrt();
   assert(se.size() == p + 1);
-  ASSERT_NEAR(se(0, 0), 0.106721, 5e-5);
-  ASSERT_NEAR(se(1, 0), 0.031774, 5e-5);
-  ASSERT_NEAR(se(2, 0), 0.044778, 5e-5);
-  ASSERT_NEAR(se(3, 0), 0.001942, 5e-5);
+  ASSERT_NEAR(se(0, 0), 0.0557, 0.0557 * .2);
+  ASSERT_NEAR(se(1, 0), 0.0314, 0.0314 * .2);
+  ASSERT_NEAR(se(2, 0), 0.0451, 0.0451 * .2);
+  ASSERT_NEAR(se(3, 0), 0.0303, 0.0303 * .2);
 
   // t-stat
   Eigen::VectorXd tstat = betas.array() / se.array();
@@ -89,7 +86,7 @@ TEST(LinRegTest, svd) {
   }
   assert(pvalues.size() == p + 1);
   ASSERT_NEAR(pvalues[0], 0, 5e-5);
-  ASSERT_NEAR(pvalues[1], 1.07e-87, 5e-5);
-  ASSERT_NEAR(pvalues[2], 0, 5e-5);
-  ASSERT_NEAR(pvalues[3], 5.26e-148, 5e-5);
+  ASSERT_NEAR(pvalues[1], 7.81e-68, 5e-5);
+  ASSERT_NEAR(pvalues[2], 4.58e-233, 5e-5);
+  ASSERT_NEAR(pvalues[3], 2.39e-17, 5e-5);
 }
