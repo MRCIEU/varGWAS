@@ -32,6 +32,15 @@ cd bgen
 ./waf
 cd ..
 
+# zstd
+curl -L https://github.com/facebook/zstd/archive/v1.1.0.tar.gz > v1.1.0.tar.gz
+tar -xvf v1.1.0.tar.gz
+cd zstd-1.1.0/build/cmake
+mkdir build
+cd build
+cmake ..
+make
+
 # quantile regression
 curl -L http://www.aronaldg.org/webfiles/libscl/libscl.tar > libscl.tar
 tar -xvf libscl.tar
