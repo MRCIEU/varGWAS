@@ -20,6 +20,7 @@ namespace jlst {
 
 void Model::run() {
   spdlog::info("Running model");
+
   std::vector<Result> results;
   std::string chromosome;
   uint32_t position;

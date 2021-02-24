@@ -90,3 +90,54 @@ TEST(LinRegTest, svd) {
   ASSERT_NEAR(pvalues[2], 4.58e-233, 5e-5);
   ASSERT_NEAR(pvalues[3], 2.39e-17, 5e-5);
 }
+
+TEST(LinRegTest, normal_eq) {
+  const double intercept = 1.0;
+  double x_f;
+  double c1_f;
+  double c2_f;
+  double y_f;
+  int n = 1000;
+  int p = 3;
+
+  Eigen::MatrixXd X = Eigen::MatrixXd(n, p + 1);
+  Eigen::VectorXd y = Eigen::VectorXd(n);
+
+  // get data (see data/linreg.R)
+  io::CSVReader<4> in("data.csv");
+  in.read_header(io::ignore_extra_column, "x", "c1", "c2", "y");
+  int t = 0;
+  while (in.read_row(x_f, c1_f, c2_f, y_f)) {
+    X(t, 0) = intercept;
+    X(t, 1) = x_f;
+    X(t, 2) = c1_f;
+    X(t, 3) = c2_f;
+    y(t, 0) = y_f;
+    t++;
+  }
+
+  // linear regression using normal equations
+  Eigen::MatrixXd betas = (X.transpose() * X).ldlt().solve(X.transpose() * y);
+
+  // beta
+  assert(betas.size() == p + 1);
+  ASSERT_NEAR(betas(0, 0), 4, 4 * .2);
+  ASSERT_NEAR(betas(1, 0), 0.6, 0.6 * .2);
+  ASSERT_NEAR(betas(2, 0), 2, 2 * 0.2);
+  ASSERT_NEAR(betas(3, 0), 0.3, .3 * .2);
+
+  // predicted Y
+  Eigen::VectorXd y_hat = X * betas;
+  assert(y_hat.size() == n);
+
+  // residuals
+  Eigen::VectorXd y_delta = y - y_hat;
+  assert(y_delta.size() == n);
+
+  // unbiased variance of error term
+  double y_var = (y - X * betas).squaredNorm() / (n - p);
+
+  // https://stats.stackexchange.com/questions/236437/how-to-compute-the-standard-error-of-a-predictor-variable
+  std::cout << X.array().colwise() - X.colwise().mean() << std::endl;
+
+}
