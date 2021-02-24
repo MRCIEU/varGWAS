@@ -30,7 +30,7 @@ void Model::run() {
   unsigned n = 0;
 
   spdlog::info("Starting {} threads", n);
-  ThreadPool pool(_threads);
+  ThreadPool pool(threads);
 
   // Create Eigen matrix of phenotypes wo dosage
   Eigen::MatrixXd X = Eigen::MatrixXd(_phenotype_file.GetNSamples(), _phenotype_file.GetCovariateColumn().size() + 2);
@@ -48,10 +48,8 @@ void Model::run() {
 
   // Read variant-by-variant
   while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
-
-    if (n % 1 == 0){ // print every nth variants
-      spdlog::info("Testing {}th variant: {}", n, rsid);
-    }
+    n++;
+    spdlog::info("Testing {}th variant: {}", n, rsid);
 
     // only support bi-allelic variants
     if (alleles.size() != 2) {
@@ -83,7 +81,6 @@ void Model::run() {
 
     // write to file
     _sf->write(result.get());
-    n++;
   }
 }
 

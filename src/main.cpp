@@ -101,6 +101,10 @@ int main(int argc, char **argv) {
     spdlog::error("File does not exist or is not readable: {}", bgen_file);
     return -1;
   }
+  if (threads < 1) {
+    spdlog::error("Invalid value for threads: {}", threads);
+    return -1;
+  }
 
   try {
     // Open BGEN and read sample list

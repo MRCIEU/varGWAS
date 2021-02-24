@@ -31,7 +31,7 @@ class Model {
         _bgen_parser(bgen_parser),
         _missing_samples(missing_samples),
         _sf(std::move(sf)),
-        _threads(threads) {}
+        threads(threads) {}
   void run();
   static Result fit(std::string &chromosome,
                     uint32_t position,
@@ -49,7 +49,7 @@ class Model {
   jlst::PhenotypeFile &_phenotype_file;
   genfile::bgen::BgenParser &_bgen_parser;
   std::vector<unsigned> &_missing_samples;
-  int _threads{};
+  int threads;
   std::shared_ptr<SynchronizedFile> _sf;
 };
 }
