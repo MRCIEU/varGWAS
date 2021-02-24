@@ -14,6 +14,9 @@
 #include "Model.h"
 #include "SynchronizedFile.h"
 
+static std::string VERSION = "0.0.1";
+static std::string PROGNAME = "JLST C++";
+
 bool file_exists(const std::string &name) {
   std::ifstream f(name.c_str());
   return f.good();
@@ -23,7 +26,7 @@ int main(int argc, char **argv) {
   bool no_args = (argc == 1);
 
   // Configure arguments
-  cxxopts::Options options("JLST C++", "Program to perform vGWAS of trait against variants in the BGEN format");
+  cxxopts::Options options(PROGNAME + " " + VERSION, "Program to perform vGWAS of trait against variants in the BGEN format");
   options.add_options()
       ("v,variable_file", "Path to phenotype file", cxxopts::value<std::string>())
       ("s,sep", "File separator", cxxopts::value<char>())
@@ -46,36 +49,37 @@ int main(int argc, char **argv) {
   }
 
   if (result.count("variable_file") == 0) {
-    std::cerr << "Phenotype file not provided" << std::endl;
+    spdlog::error("Phenotype file not provided");
     exit(1);
   }
 
   if (result.count("sep") == 0) {
-    std::cerr << "Phenotype file separator not provided" << std::endl;
+    spdlog::error("Phenotype file separator not provided");
     exit(1);
   }
 
   if (result.count("output_file") == 0) {
-    std::cerr << "Output file not provided" << std::endl;
+    spdlog::error("Output file not provided");
     exit(1);
   }
 
   if (result.count("bgen_file") == 0) {
-    std::cerr << "BGEN file not provided" << std::endl;
+    spdlog::error("BGEN file not provided");
     exit(1);
   }
 
   if (result.count("phenotype") == 0) {
-    std::cerr << "Column name of the phenotype not provided" << std::endl;
+    spdlog::error("Column name of the phenotype not provided");
     exit(1);
   }
 
   if (result.count("id") == 0) {
-    std::cerr << "Column name of the sample identifier not provided" << std::endl;
+    spdlog::error("Column name of the sample identifier not provided");
     exit(1);
   }
 
   // Parse arguments
+  spdlog::info(PROGNAME, " v", VERSION);
   std::string variable_file = result["variable_file"].as<std::string>();
   char sep = result["sep"].as<char>();
   std::vector<std::string> covariates;
@@ -100,7 +104,7 @@ int main(int argc, char **argv) {
 
   try {
     // Open BGEN and read sample list
-    spdlog::info("Reading samples from BGEN");
+    spdlog::info("Reading samples from BGEN: {}", bgen_file);
     genfile::bgen::BgenParser bgen_parser(bgen_file);
     static std::vector<std::string> samples;
     bgen_parser.get_sample_ids(
