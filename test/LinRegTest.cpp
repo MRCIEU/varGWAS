@@ -103,7 +103,7 @@ TEST(LinRegTest, normal_eq) {
   Eigen::MatrixXd X = Eigen::MatrixXd(n, p + 1);
   Eigen::VectorXd y = Eigen::VectorXd(n);
 
-  // get data (see data/linreg.R)
+  // get data (see data/data.R)
   io::CSVReader<4> in("data.csv");
   in.read_header(io::ignore_extra_column, "x", "c1", "c2", "y");
   int t = 0;
@@ -138,6 +138,16 @@ TEST(LinRegTest, normal_eq) {
   double y_var = (y - X * betas).squaredNorm() / (n - p);
 
   // https://stats.stackexchange.com/questions/236437/how-to-compute-the-standard-error-of-a-predictor-variable
-  std::cout << X.array().colwise() - X.colwise().mean() << std::endl;
+  Eigen::VectorXd ssq = (X.rowwise() - (X.colwise().sum() / X.rows()).eval()).colwise().squaredNorm();
+  std::vector<double> se;
+  for (int i = 0; i < p + 1; i++) {
+    double std_error = sqrt(y_var / ssq[i]);
+    se.push_back(std_error);
+    //std::cout << std_error << std::endl;
+  }
 
+  assert(se.size() == p + 1);
+  ASSERT_NEAR(se[1], 0.03136, 0.03136 * .2);
+  ASSERT_NEAR(se[2], 0.04509, 0.04509 * 0.2);
+  ASSERT_NEAR(se[3], 0.03030, 0.03030 * .2);
 }
