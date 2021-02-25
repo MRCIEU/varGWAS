@@ -3,12 +3,15 @@
 #include "iostream"
 #include <Eigen/Core>
 #include <Eigen/SVD>
+#include <Eigen/QR>
 #include <boost/math/distributions/students_t.hpp>
-
 
 /*
  * Test for performing linear regression model
  * */
+
+// Helpful notes https://web.stanford.edu/~mrosenfe/soc_meth_proj3/matrix_OLS_NYU_notes.pdf
+// TODO random effect for pop strat https://cran.r-project.org/web/packages/lme4/vignettes/lmer.pdf
 
 TEST(LinRegTest, svd) {
   const double intercept = 1.0;
@@ -147,6 +150,70 @@ TEST(LinRegTest, normal_eq) {
   }
 
   assert(se.size() == p + 1);
+  ASSERT_NEAR(se[1], 0.03136, 0.03136 * .2);
+  ASSERT_NEAR(se[2], 0.04509, 0.04509 * 0.2);
+  ASSERT_NEAR(se[3], 0.03030, 0.03030 * .2);
+}
+
+TEST(LinRegTest, ColPivHouseholderQR) {
+  const double intercept = 1.0;
+  double x_f;
+  double c1_f;
+  double c2_f;
+  double y_f;
+  int n = 1000;
+  int p = 4;
+
+  Eigen::MatrixXd X = Eigen::MatrixXd(n, p);
+  Eigen::VectorXd y = Eigen::VectorXd(n);
+
+  // get data (see data/data.R)
+  io::CSVReader<4> in("data.csv");
+  in.read_header(io::ignore_extra_column, "x", "c1", "c2", "y");
+  int t = 0;
+  while (in.read_row(x_f, c1_f, c2_f, y_f)) {
+    X(t, 0) = intercept;
+    X(t, 1) = x_f;
+    X(t, 2) = c1_f;
+    X(t, 3) = c2_f;
+    y(t, 0) = y_f;
+    t++;
+  }
+
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X);
+  Eigen::MatrixXd betahat = qr.solve(y);
+  std::cout << betahat << std::endl;
+
+  if (qr.rank() < X.cols()) {
+    throw std::runtime_error("rank-deficient matrix");
+  }
+
+  Eigen::VectorXd fitted = X * betahat;
+  Eigen::VectorXd resid = y - fitted;
+
+  // unbiased variance of error term
+  double e = resid.squaredNorm() / (n - p);
+
+  // TODO check this is robust to multi-colinearity
+  // TODO se for intercept
+  // https://stats.stackexchange.com/questions/236437/how-to-compute-the-standard-error-of-a-predictor-variable
+  Eigen::VectorXd ssq = (X.rowwise() - (X.colwise().sum() / X.rows()).eval()).colwise().squaredNorm();
+  std::vector<double> se;
+  for (int i = 0; i < p; i++) {
+    double std_error = sqrt(e / ssq[i]);
+    se.push_back(std_error);
+    std::cout << std_error << std::endl;
+  }
+
+  // beta
+  assert(betahat.size() == p);
+  ASSERT_NEAR(betahat(0, 0), 4, 4 * .2);
+  ASSERT_NEAR(betahat(1, 0), 0.6, 0.6 * .2);
+  ASSERT_NEAR(betahat(2, 0), 2, 2 * 0.2);
+  ASSERT_NEAR(betahat(3, 0), 0.3, .3 * .2);
+
+  // se
+  assert(se.size() == p);
   ASSERT_NEAR(se[1], 0.03136, 0.03136 * .2);
   ASSERT_NEAR(se[2], 0.04509, 0.04509 * 0.2);
   ASSERT_NEAR(se[3], 0.03030, 0.03030 * .2);

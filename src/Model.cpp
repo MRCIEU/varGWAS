@@ -78,7 +78,8 @@ void Model::run() {
     assert(dosages.size() == _phenotype_file.GetNSamples());
 
     // enqueue and store future
-    auto result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, _missing_samples, X, y);
+    auto
+        result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, _missing_samples, X, y);
 
     // write to file
     _sf->write(result.get());
@@ -185,5 +186,4 @@ void Model::remove_row_vec(Eigen::VectorXd &vec, unsigned int rowToRemove) {
 
   vec.conservativeResize(numRows, numCols);
 }
-
 }
