@@ -183,7 +183,6 @@ TEST(LinRegTest, ColPivHouseholderQR) {
 
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X);
   Eigen::MatrixXd betahat = qr.solve(y);
-  std::cout << betahat << std::endl;
 
   if (qr.rank() < X.cols()) {
     throw std::runtime_error("rank-deficient matrix");
@@ -203,7 +202,6 @@ TEST(LinRegTest, ColPivHouseholderQR) {
   for (int i = 0; i < p; i++) {
     double std_error = sqrt(e / ssq[i]);
     se.push_back(std_error);
-    std::cout << std_error << std::endl;
   }
 
   // beta
