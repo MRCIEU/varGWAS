@@ -124,6 +124,7 @@ Result Model::fit(std::string &chromosome,
   }
 
   // model
+  spdlog::info("Checking for rank deficiency");
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X);
   if (qr.rank() < X.cols()) {
     throw std::runtime_error("rank-deficient matrix");
