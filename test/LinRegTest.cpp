@@ -309,7 +309,7 @@ TEST(LinRegTest, check_se_with_r) {
   betahat(1, 0) = 0.59024;
   betahat(2, 0) = 1.96525;
   betahat(3, 0) = 0.26150;
-  
+
   Eigen::VectorXd fitted = X * betahat;
   Eigen::VectorXd resid = y - fitted;
 
@@ -322,8 +322,8 @@ TEST(LinRegTest, check_se_with_r) {
 
   // se
   assert(se.size() == p);
-  ASSERT_NEAR(se(0, 0), 0.05570, 0.05570 * .0001);
-  ASSERT_NEAR(se(1, 0), 0.03136, 0.03136 * .0001);
-  ASSERT_NEAR(se(2, 0), 0.04509, 0.04509 * .0001);
-  ASSERT_NEAR(se(3, 0), 0.03030, 0.03030 * .0001);
+  ASSERT_NEAR(se(0, 0), 0.05570, 0.05570 * .001);
+  ASSERT_NEAR(se(1, 0), 0.03136, 0.03136 * .001);
+  ASSERT_NEAR(se(2, 0), 0.04509, 0.04509 * .001);
+  ASSERT_NEAR(se(3, 0), 0.03030, 0.03030 * .001);
 }
