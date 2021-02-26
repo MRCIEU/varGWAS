@@ -139,6 +139,7 @@ Usage:
 ```
 
 Unordered categorical variables should be one-hot encoded.
+Do not provide null values in the phenotype file - these should be filtered out.
 
 ## Contributing
 
