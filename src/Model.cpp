@@ -95,8 +95,6 @@ Result Model::fit(std::string &chromosome,
                   std::vector<unsigned> nulls,
                   Eigen::MatrixXd X,
                   Eigen::VectorXd y) {
-  int n = X.rows();
-  int p = X.cols();
   Result res;
   res.chromosome = chromosome;
   res.position = position;
@@ -106,7 +104,7 @@ Result Model::fit(std::string &chromosome,
 
   // set dosage values
   // X is passed without reference to allow for modification on each thread
-  assert(dosages.size() == n);
+  assert(dosages.size() == X.rows());
   for (unsigned i = 0; i < dosages.size(); i++) {
     if (dosages[i] == -1) {
       nulls.push_back(i);
@@ -121,29 +119,35 @@ Result Model::fit(std::string &chromosome,
     remove_row_vec(y, i);
   }
 
+  // model
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X);
+  if (qr.rank() < X.cols()) {
+    throw std::runtime_error("rank-deficient matrix");
+  }
+
   // first stage model
-  Eigen::BDCSVD<Eigen::MatrixXd> solver(X, Eigen::ComputeThinU | Eigen::ComputeThinV);
-  Eigen::MatrixXd fit1 = solver.solve(y);
-  Eigen::VectorXd y_hat = X * fit1;
-  Eigen::VectorXd y_delta = y - y_hat;
-  Eigen::VectorXd y_deltasq = y_delta.array().square();
+  Eigen::MatrixXd fs_fit = qr.solve(y);
+  Eigen::VectorXd fs_fitted = X * fs_fit;
+  Eigen::VectorXd fs_resid = y - fs_fitted;
+  Eigen::VectorXd fs_resid2 = fs_resid.array().square();
 
   // second stage model
-  Eigen::MatrixXd fit2 = solver.solve(y_deltasq);
+  Eigen::MatrixXd fit2 = qr.solve(fs_resid2);
+  Eigen::VectorXd ss_fitted = X * fit2;
+  Eigen::VectorXd ss_resid = fs_resid2 - ss_fitted;
 
-  // epsilon variance
-  double e_var = (y_deltasq - X * fit2).squaredNorm() / (n - p);
-
-  // coeff se
-  Eigen::MatrixXd ViD = solver.matrixV() * solver.singularValues().asDiagonal().inverse();
-  Eigen::MatrixXd varBetasSvd = e_var * ViD * ViD.transpose();
-  Eigen::VectorXd se = varBetasSvd.diagonal().array().sqrt();
+  // se
+  // TODO check df is correct as using multiple models - do we include the second-stage intercept and slope
+  double sig2 = ss_resid.squaredNorm();
+  long df = X.rows() - X.cols();
+  Eigen::MatrixXd vcov = (X.transpose() * X).inverse();
+  Eigen::VectorXd se = (vcov * (sig2 / df)).diagonal().cwiseSqrt();
 
   // t-stat
   Eigen::VectorXd tstat = fit2.array() / se.array();
 
   // P
-  std::vector<double> pvalues = get_p(tstat, n, p);
+  std::vector<double> pvalues = get_p(tstat, X.rows(), X.cols());
 
   // set results
   res.beta = fit2(1, 0);

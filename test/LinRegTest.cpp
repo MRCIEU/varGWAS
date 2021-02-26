@@ -194,8 +194,7 @@ TEST(LinRegTest, ColPivHouseholderQR) {
   // unbiased variance of error term
   double e = resid.squaredNorm() / (n - p);
 
-  // TODO check this is robust to multi-colinearity
-  // TODO se for intercept
+  // TODO ask why cov of intercept is not 0
   // https://stats.stackexchange.com/questions/236437/how-to-compute-the-standard-error-of-a-predictor-variable
   Eigen::VectorXd ssq = (X.rowwise() - (X.colwise().sum() / X.rows()).eval()).colwise().squaredNorm();
   std::vector<double> se;
