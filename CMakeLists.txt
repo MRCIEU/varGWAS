@@ -47,9 +47,32 @@ find_library(LIBSCL_LIB_PATH NAMES libscl.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/li
 # src
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-# build tests if in debug mode
+# build tests & configure for performance profiling if in debug mode
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+    message("Building in DEBUG mode")
+
+    # adding test libs
     message("Building tests")
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/googletest-release-1.10.0)
+
+    # To make sure none of the frames are missing due to inlining
+    message("Setting flags for performance profiling")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+
+    # compilers can use the frame pointer register as a general-purpose register for optimization purposes
+    # which may lead to broken stack traces
+    if (APPLE)
+        if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
+            message("Adding flags for Clang")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer")
+            set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer")
+        elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+            message("Adding flags for GNU")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
+            set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fno-omit-frame-pointer")
+        endif ()
+    endif ()
+
 endif ()
