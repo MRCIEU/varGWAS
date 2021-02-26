@@ -23,6 +23,10 @@ cd jlst_cpp
 mkdir -p lib
 cd lib
 
+# boost
+curl -L https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.bz2 > boost_1_75_0.tar.bz2
+tar --bzip2 -xf boost_1_75_0.tar.bz2
+
 # bgen
 curl -L http://code.enkre.net/bgen/tarball/release/bgen.tgz > bgen.tar.gz
 tar -xvf bgen.tar.gz

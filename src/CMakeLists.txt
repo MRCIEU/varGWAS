@@ -6,10 +6,10 @@ set(SOURCES ${SOURCES})
 
 add_executable(${BINARY} ${SOURCES})
 
+#${BOOST_LIB_PATH}
 target_link_libraries(
         ${BINARY}
         z
-        ${BOOST_LIB_PATH}
         ${ZSTD_LIB_PATH}
         ${SQLITE_LIB_PATH}
         ${DB_LIB_PATH}
