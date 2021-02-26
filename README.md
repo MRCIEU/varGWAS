@@ -12,14 +12,14 @@ Requires UNIX environment
 
 ### SRC
 
-```sh
+```shell
 git clone git@ieugit-scmv-d0.epi.bris.ac.uk:ml18692/jlst_cpp.git
 cd jlst_cpp
 ```
 
 ### Libraries
 
-```sh
+```shell
 mkdir -p lib
 cd lib
 
@@ -82,7 +82,7 @@ mv ThreadPool-master ThreadPool
 
 ### Build
 
-```sh
+```shell
 mkdir -p build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -91,7 +91,7 @@ make
 
 Note on HPC systems you may need to explicitly set the compiler path
 
-```sh
+```shell
 # BC4
 module load build/gcc-5.5.0
 CC=/mnt/storage/software/languages/gcc-5.5.0/bin/gcc \
@@ -102,29 +102,40 @@ CXX=/mnt/storage/software/languages/gcc-5.5.0/bin/g++ \
 
 ### Test
 
-TODO - create test bgen file & phenotypes file from a single simulated dataset
+Run unit tests
 
-Create some test data
-
-```sh
-cd test/data
-Rscript regression.R
-```
-
-Run application tests
-
-```sh
+```shell
 mkdir -p build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" 
-make all
-./test/jlst_cpp_test
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+make
 ```
+
+Run end-to-end test
+
+```shell
+cd test
+Rscript sim.R
+```
+
+Inspect output [results.csv](./test/data/results.csv)
 
 ## Usage
 
-```sh
-./jlst_cpp
+```shell
+Program to perform vGWAS of trait against variants in the BGEN format
+Usage:
+  JLST C++ v0.0.1 [OPTION...]
+
+  -v, --variable_file arg  Path to phenotype file
+  -s, --sep arg            File separator
+  -c, --covariates arg     List of covariates column names separated by a comma (whitespace and quotes are not permitted).
+  -o, --output_file arg    Path to output file
+  -b, --bgen_file arg      Path to BGEN file
+  -p, --phenotype arg      Column name for phenotype
+  -i, --id arg             Column name for genotype identifier
+  -h, --help               Print usage
+  -t, --threads arg        Number of threads (default: 8)
 ```
 
 Unordered categorical variables should be one-hot encoded.

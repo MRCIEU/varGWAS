@@ -3,3 +3,7 @@ build/
 cmake-build-debug/
 cmake-build-release/
 lib/
+test/data/*gen
+test/data/*csv
+test/data/*bgi
+test/data/gwas.txt
