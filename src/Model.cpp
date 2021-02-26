@@ -20,8 +20,6 @@
 namespace jlst {
 
 void Model::run() {
-  spdlog::info("Running model");
-
   std::vector<Result> results;
   std::string chromosome;
   uint32_t position;
@@ -31,7 +29,7 @@ void Model::run() {
   std::vector<double> dosages;
   unsigned n = 0;
 
-  spdlog::info("Starting {} threads", _threads);
+  spdlog::info("Starting {} thread(s)", _threads);
   ThreadPool pool(_threads);
 
   // Create Eigen matrix of phenotypes wo dosage
@@ -48,6 +46,8 @@ void Model::run() {
     y(i, 0) = _phenotype_file.GetOutcomeColumn()[i]; // outcome
   }
 
+  spdlog::info("Estimating model with {} samples and {} parameters", X.rows(), X.cols());
+
   // Read variant-by-variant
   while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
     n++;
@@ -62,6 +62,7 @@ void Model::run() {
     // convert probabilities to dosage values
     _bgen_parser.read_probs(&probs);
 
+    spdlog::info("Converting probabilities to dosage values");
     dosages.clear();
     for (auto &prob : probs) {
       // only support bi-allelic variants [0, 1, 2 copies of alt]
@@ -79,8 +80,8 @@ void Model::run() {
     assert(dosages.size() == _phenotype_file.GetNSamples());
 
     // enqueue and store future
-    auto
-        result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, _missing_samples, X, y);
+    spdlog::info("Submitting job to queue");
+    auto result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, _missing_samples, X, y);
 
     // write to file
     _sf->write(result.get());
@@ -105,6 +106,7 @@ Result Model::fit(std::string &chromosome,
 
   // set dosage values
   // X is passed without reference to allow for modification on each thread
+  spdlog::info("Checking for null dosage values");
   assert(dosages.size() == X.rows());
   for (unsigned i = 0; i < dosages.size(); i++) {
     if (dosages[i] == -1) {
@@ -115,6 +117,7 @@ Result Model::fit(std::string &chromosome,
   }
 
   // subset data with missing values
+  spdlog::info("Subsetting null values");
   for (unsigned i = 0; i < nulls.size(); ++i) {
     remove_row_mat(X, i);
     remove_row_vec(y, i);
@@ -127,17 +130,20 @@ Result Model::fit(std::string &chromosome,
   }
 
   // first stage model
+  spdlog::info("Estimating first stage model");
   Eigen::MatrixXd fs_fit = qr.solve(y);
   Eigen::VectorXd fs_fitted = X * fs_fit;
   Eigen::VectorXd fs_resid = y - fs_fitted;
   Eigen::VectorXd fs_resid2 = fs_resid.array().square();
 
   // second stage model
+  spdlog::info("Estimating second stage model");
   Eigen::MatrixXd fit2 = qr.solve(fs_resid2);
   Eigen::VectorXd ss_fitted = X * fit2;
   Eigen::VectorXd ss_resid = fs_resid2 - ss_fitted;
 
   // se
+  spdlog::info("Estimating SE and P value");
   // TODO check df is correct as using multiple models - do we include the second-stage intercept and slope
   double sig2 = ss_resid.squaredNorm();
   long df = X.rows() - X.cols();

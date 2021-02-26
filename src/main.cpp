@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
   }
 
   // Parse arguments
-  spdlog::info(PROGNAME, " v", VERSION);
+  spdlog::info(PROGNAME + " " + VERSION);
   std::string variable_file = result["variable_file"].as<std::string>();
   char sep = result["sep"].as<char>();
   std::vector<std::string> covariates;

@@ -4,7 +4,7 @@ library("genpwr")
 set.seed(12345)
 
 n_obs <- 200
-n_sim <- 1
+n_sim <- 200
 af <- 0.4
 
 #' Function to perform Breusch-Pagan test using t-test
