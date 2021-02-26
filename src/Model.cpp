@@ -3,7 +3,8 @@
 //
 
 #include <Eigen/Core>
-#include <Eigen/SVD>
+#include <Eigen/QR>
+#include <Eigen/Dense>
 #include <utility>
 #include <vector>
 #include <boost/math/distributions/students_t.hpp>
@@ -140,7 +141,8 @@ Result Model::fit(std::string &chromosome,
   // TODO check df is correct as using multiple models - do we include the second-stage intercept and slope
   double sig2 = ss_resid.squaredNorm();
   long df = X.rows() - X.cols();
-  Eigen::MatrixXd vcov = (X.transpose() * X).inverse();
+  Eigen::MatrixXd XtX = (X.transpose() * X);
+  Eigen::MatrixXd vcov = XtX.inverse();
   Eigen::VectorXd se = (vcov * (sig2 / df)).diagonal().cwiseSqrt();
 
   // t-stat
