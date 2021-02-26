@@ -6,7 +6,6 @@ set(SOURCES ${SOURCES})
 
 add_executable(${BINARY} ${SOURCES})
 
-#${BOOST_LIB_PATH}
 target_link_libraries(
         ${BINARY}
         z

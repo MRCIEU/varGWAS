@@ -10,7 +10,6 @@ find_package(Threads)
 
 # include
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/genfile/include)
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/3rd_party/boost_1_55_0)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/boost_1_75_0)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd-1.1.0/lib)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/3rd_party/sqlite3)
@@ -25,24 +24,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # libraries
 find_library(BGEN_LIB_PATH NAMES libbgen.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build)
-#find_library(BOOST_LIB_PATH NAMES libboost.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/boost_1_55_0)
 find_library(ZSTD_LIB_PATH NAMES libzstd.so libzstd.dylib HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd-1.1.0/build/cmake/build/lib)
 find_library(SQLITE_LIB_PATH NAMES libsqlite3.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/sqlite3)
 find_library(DB_LIB_PATH NAMES libdb.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db)
 find_library(SPDLOG_LIB_PATH NAMES libglog.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build)
 find_library(LIBSCL_LIB_PATH NAMES libscl.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp)
-
-#set(BGEN_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/libbgen.a)
-#set(BOOST_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/boost_1_55_0/libboost.a)
-#set(ZSTD_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd-1.1.0/build/cmake/build/lib/libzstd.so)
-#set(SQLITE_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/sqlite3/libsqlite3.a)
-#set(DB_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db/libdb.a)
-#set(SPDLOG_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build/libglog.a)
-#set(LIBSCL_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp/libscl.a)
-
-# copy dynamic libs to lib folder
-#file(COPY ${ZSTD_LIB_PATH} DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-#get_filename_component(zstdlib ${ZSTD_LIB_PATH} NAME)
 
 # src
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
