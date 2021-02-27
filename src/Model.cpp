@@ -34,7 +34,7 @@ void Model::run() {
   ThreadPool pool(_threads);
 
   // Create Eigen matrix of phenotypes wo dosage
-  // add 2 parameters for dosage and intercept
+  // +2 parameters for dosage and intercept
   Eigen::MatrixXd X = Eigen::MatrixXd(_phenotype_file.GetNSamples(), _phenotype_file.GetCovariateColumn().size() + 2);
   Eigen::VectorXd y = Eigen::VectorXd(_phenotype_file.GetNSamples());
 
@@ -48,7 +48,7 @@ void Model::run() {
     y(i, 0) = _phenotype_file.GetOutcomeColumn()[i]; // outcome
   }
 
-  spdlog::info("Estimating model with {} samples and {} parameters", _non_null.size(), X.cols());
+  spdlog::info("Estimating model with {} samples and {} parameters", _non_null_idx.size(), X.cols());
 
   // Read variant-by-variant
   while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
@@ -83,7 +83,7 @@ void Model::run() {
 
     // enqueue and store future
     spdlog::info("Submitting job to queue");
-    auto result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null, X, y);
+    auto result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
 
     // write to file
     _sf->write(result.get());

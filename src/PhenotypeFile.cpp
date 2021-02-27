@@ -118,7 +118,7 @@ void PhenotypeFile::parse() {
  * @return vector of sample indexes with missing phenotypes to mask in the model
  * */
 std::set<unsigned> PhenotypeFile::join(const std::vector<std::string> &samples) {
-  std::set<unsigned> non_null;
+  std::set<unsigned> non_null_idx;
   spdlog::info("Subsetting phenotypes with {} samples", samples.size());
 
   // create sample identifier-to-index mapping
@@ -159,7 +159,7 @@ std::set<unsigned> PhenotypeFile::join(const std::vector<std::string> &samples) 
       for (unsigned j = 0; j < covariateColumn.size(); ++j) {
         covariateColumnTmp[j].push_back(covariateColumn[j][idx]);
       }
-      non_null.insert(i);
+      non_null_idx.insert(i);
     }
 
   }
@@ -178,9 +178,9 @@ std::set<unsigned> PhenotypeFile::join(const std::vector<std::string> &samples) 
   n_samples = sampleIdentifierColumn.size();
 
   spdlog::info("Remaining samples after subset: {}", n_samples);
-  spdlog::info("Samples with non-null phenotypes: {}", non_null.size());
+  spdlog::info("Samples with non-null phenotypes: {}", non_null_idx.size());
 
-  return (non_null);
+  return (non_null_idx);
 }
 const std::vector<std::string> &PhenotypeFile::GetSampleIdentifierColumn() const {
   return sampleIdentifierColumn;

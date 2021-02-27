@@ -70,8 +70,8 @@ TEST(ModelTest, fit) {
   std::string chr = "01";
   std::string rsid = "rs1";
   std::string allele = "A";
-  std::set<unsigned> non_nulls;
-  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls, X, y);
+  std::set<unsigned> non_nulls_idx;
+  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X, y);
 
   // check estimate and SE are similar to R
   ASSERT_NEAR(result.beta, 12.79318, 0.01);

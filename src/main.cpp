@@ -15,19 +15,19 @@
 #include "Model.h"
 #include "SynchronizedFile.h"
 
-static std::string VERSION = "v0.0.1";
-static std::string PROGNAME = "JLST C++";
-
 bool file_exists(const std::string &name) {
   std::ifstream f(name.c_str());
   return f.good();
 }
 
 int main(int argc, char **argv) {
-  bool no_args = (argc == 1);
+  static std::string VERSION = "v0.0.1";
+  static std::string PROGRAM_NAME = "JLST C++";
+  static bool no_args = (argc == 1);
 
   // Configure arguments
-  cxxopts::Options options(PROGNAME + " " + VERSION, "Program to perform vGWAS of trait against variants in the BGEN format");
+  cxxopts::Options
+      options(PROGRAM_NAME + " " + VERSION, "Program to perform vGWAS of trait against variants in the BGEN format");
   options.add_options()
       ("v,variable_file", "Path to phenotype file", cxxopts::value<std::string>())
       ("s,sep", "File separator", cxxopts::value<char>())
@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
   }
 
   // Parse arguments
-  spdlog::info(PROGNAME + " " + VERSION);
+  spdlog::info(PROGRAM_NAME + " " + VERSION);
   std::string variable_file = result["variable_file"].as<std::string>();
   char sep = result["sep"].as<char>();
   std::vector<std::string> covariates;
@@ -119,13 +119,13 @@ int main(int argc, char **argv) {
     // Read phenotypes and subset using sample list
     jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
     phenotype_file.parse();
-    std::set<unsigned> non_null = phenotype_file.join(samples);
+    std::set<unsigned> non_null_idx = phenotype_file.join(samples);
 
     // Create the synchronized file
     auto synchronized_file = std::make_shared<jlst::SynchronizedFile>(output_file);
 
     // Perform locus association tests & write to file
-    jlst::Model model(phenotype_file, bgen_parser, non_null, synchronized_file, threads);
+    jlst::Model model(phenotype_file, bgen_parser, non_null_idx, synchronized_file, threads);
     model.run();
 
     // close file

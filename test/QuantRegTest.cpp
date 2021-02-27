@@ -1,7 +1,6 @@
 #include "csv.h"
 #include "libscl.h"
 #include "gtest/gtest.h"
-#include <cmath>
 
 /*
  * Test for performing quantile regression

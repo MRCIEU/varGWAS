@@ -66,11 +66,11 @@ TEST(PhenotypeFileTest, subset_samples_should_function) {
                                     sep);
   phenotypeFile.parse();
   ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn().size(), 1000);
-  std::set<unsigned> non_null = phenotypeFile.join(std::vector<std::string>{"S1", "S100", "S4"});
-  ASSERT_EQ(non_null.size(), 3);
-  ASSERT_EQ(non_null.count(0), 1);
-  ASSERT_EQ(non_null.count(1), 1);
-  ASSERT_EQ(non_null.count(2), 1);
+  std::set<unsigned> non_null_idx = phenotypeFile.join(std::vector<std::string>{"S1", "S100", "S4"});
+  ASSERT_EQ(non_null_idx.size(), 3);
+  ASSERT_EQ(non_null_idx.count(0), 1);
+  ASSERT_EQ(non_null_idx.count(1), 1);
+  ASSERT_EQ(non_null_idx.count(2), 1);
   ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn().size(), 3);
   ASSERT_EQ(phenotypeFile.GetCovariateColumn()[0].size(), 3);
   ASSERT_EQ(phenotypeFile.GetCovariateColumn()[1].size(), 3);
