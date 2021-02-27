@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <set>
 #include <exception>
 
 #ifndef JLST_CPP_PHENOTYPEFILE_H
@@ -20,7 +21,7 @@ class PhenotypeFile {
       const char &sep
   );
   void parse();
-  std::vector<unsigned> subset_samples(const std::vector<std::string> &samples);
+  std::set<unsigned> join(const std::vector<std::string> &samples);
   const std::vector<std::string> &GetSampleIdentifierColumn() const;
   const std::vector<double> &GetOutcomeColumn() const;
   const std::vector<std::vector<double>> &GetCovariateColumn() const;

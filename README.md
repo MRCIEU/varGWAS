@@ -57,9 +57,9 @@ curl -L https://github.com/ben-strasser/fast-cpp-csv-parser/archive/master.zip >
 unzip fast-cpp-csv-parser.zip
 mv fast-cpp-csv-parser-master fast-cpp-csv-parser
 
-# eigen
-curl https://gitlab.com/libeigen/eigen/-/archive/3.3.9/eigen-3.3.9.tar.gz > eigen-3.3.9.tar.gz
-tar -xvf eigen-3.3.9.tar.gz
+# eigen >=3.4
+curl -L https://gitlab.com/libeigen/eigen/-/archive/master/eigen-master.tar.gz > eigen-master.tar.gz
+tar -xvf eigen-master.tar.gz
 
 # cxxopts
 curl -L https://github.com/jarro2783/cxxopts/archive/v2.2.0.tar.gz > cxxopts-2.2.0.tar.gz

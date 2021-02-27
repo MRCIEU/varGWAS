@@ -21,6 +21,7 @@ TEST(PhenotypeFileTest, parse_should_function) {
   phenotypeFile.parse();
 
   ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn()[0], "S1");
+  ASSERT_EQ(phenotypeFile.GetCovariateColumn().size(), 2);
   ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[0][0], 0, 1e-10);
   ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[1][0], 1.79407452864789, 1e-10);
   ASSERT_NEAR(phenotypeFile.GetOutcomeColumn()[0], 2.44774533568743, 1e-10);
@@ -65,11 +66,18 @@ TEST(PhenotypeFileTest, subset_samples_should_function) {
                                     sep);
   phenotypeFile.parse();
   ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn().size(), 1000);
-  phenotypeFile.subset_samples(std::vector<std::string>{"S1", "S4", "S100"});
+  std::set<unsigned> non_null = phenotypeFile.join(std::vector<std::string>{"S1", "S100", "S4"});
+  ASSERT_EQ(non_null.size(), 3);
+  ASSERT_EQ(non_null.count(0), 1);
+  ASSERT_EQ(non_null.count(1), 1);
+  ASSERT_EQ(non_null.count(2), 1);
   ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn().size(), 3);
+  ASSERT_EQ(phenotypeFile.GetCovariateColumn()[0].size(), 3);
+  ASSERT_EQ(phenotypeFile.GetCovariateColumn()[1].size(), 3);
+  ASSERT_EQ(phenotypeFile.GetNSamples(), 3);
 
-  ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn()[2], "S100");
-  ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[0][2], 1, 1e-10);
-  ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[1][2], -0.921834963877281, 1e-10);
-  ASSERT_NEAR(phenotypeFile.GetOutcomeColumn()[2], 8.25428258247076, 1e-10);
+  ASSERT_EQ(phenotypeFile.GetSampleIdentifierColumn()[1], "S100");
+  ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[0][1], 1, 1e-10);
+  ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[1][1], -0.921834963877281, 1e-10);
+  ASSERT_NEAR(phenotypeFile.GetOutcomeColumn()[1], 8.25428258247076, 1e-10);
 }

@@ -8,8 +8,11 @@
 #include <fstream>
 #include <sstream>
 #include <exception>
+#include <set>
 #include <Eigen/Core>
-#include <Eigen/SVD>
+#include <Eigen/QR>
+#include <Eigen/Dense>
+#include <Eigen/Eigen>
 #include <ThreadPool.h>
 #include "PhenotypeFile.h"
 #include "BgenParser.h"
@@ -24,12 +27,12 @@ class Model {
  public:
   Model(jlst::PhenotypeFile &phenotype_file,
         genfile::bgen::BgenParser &bgen_parser,
-        std::vector<unsigned> &missing_samples,
+        std::set<unsigned> &non_null,
         std::shared_ptr<SynchronizedFile> sf,
         int threads)
       : _phenotype_file(phenotype_file),
         _bgen_parser(bgen_parser),
-        _missing_samples(missing_samples),
+        _non_null(non_null),
         _sf(std::move(sf)),
         _threads(threads) {}
   void run();
@@ -39,16 +42,14 @@ class Model {
                     std::string &effect_allele,
                     std::string &other_allele,
                     std::vector<double> dosages,
-                    std::vector<unsigned> nulls,
+                    std::set<unsigned> non_null,
                     Eigen::MatrixXd X,
                     Eigen::VectorXd y);
   static std::vector<double> get_p(Eigen::VectorXd &tstat, int n, int p);
-  static void remove_row_mat(Eigen::MatrixXd &matrix, unsigned int rowToRemove);
-  static void remove_row_vec(Eigen::VectorXd &vec, unsigned int rowToRemove);
  private:
   jlst::PhenotypeFile &_phenotype_file;
   genfile::bgen::BgenParser &_bgen_parser;
-  std::vector<unsigned> &_missing_samples;
+  std::set<unsigned> &_non_null;
   int _threads;
   std::shared_ptr<SynchronizedFile> _sf;
 };

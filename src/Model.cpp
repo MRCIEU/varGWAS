@@ -5,6 +5,7 @@
 #include <Eigen/Core>
 #include <Eigen/QR>
 #include <Eigen/Dense>
+#include <Eigen/Eigen>
 #include <utility>
 #include <vector>
 #include <boost/math/distributions/students_t.hpp>
@@ -33,6 +34,7 @@ void Model::run() {
   ThreadPool pool(_threads);
 
   // Create Eigen matrix of phenotypes wo dosage
+  // add 2 parameters for dosage and intercept
   Eigen::MatrixXd X = Eigen::MatrixXd(_phenotype_file.GetNSamples(), _phenotype_file.GetCovariateColumn().size() + 2);
   Eigen::VectorXd y = Eigen::VectorXd(_phenotype_file.GetNSamples());
 
@@ -46,7 +48,7 @@ void Model::run() {
     y(i, 0) = _phenotype_file.GetOutcomeColumn()[i]; // outcome
   }
 
-  spdlog::info("Estimating model with {} samples and {} parameters", X.rows(), X.cols());
+  spdlog::info("Estimating model with {} samples and {} parameters", _non_null.size(), X.cols());
 
   // Read variant-by-variant
   while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
@@ -81,7 +83,7 @@ void Model::run() {
 
     // enqueue and store future
     spdlog::info("Submitting job to queue");
-    auto result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, _missing_samples, X, y);
+    auto result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null, X, y);
 
     // write to file
     _sf->write(result.get());
@@ -94,7 +96,7 @@ Result Model::fit(std::string &chromosome,
                   std::string &effect_allele,
                   std::string &other_allele,
                   std::vector<double> dosages,
-                  std::vector<unsigned> nulls,
+                  std::set<unsigned> non_null,
                   Eigen::MatrixXd X,
                   Eigen::VectorXd y) {
   Result res;
@@ -110,18 +112,19 @@ Result Model::fit(std::string &chromosome,
   assert(dosages.size() == X.rows());
   for (unsigned i = 0; i < dosages.size(); i++) {
     if (dosages[i] == -1) {
-      nulls.push_back(i);
+      non_null.erase(i);
     } else {
       X(i, 1) = dosages[i];
     }
   }
 
+  std::vector<bool> yesno;
   // subset data with missing values
-  spdlog::info("Subsetting null values");
-  for (unsigned i = 0; i < nulls.size(); ++i) {
-    remove_row_mat(X, i);
-    remove_row_vec(y, i);
-  }
+  spdlog::info("Selecting non-null values for model");
+  // select rows you want to keep(indicesToKeep), discard others
+  X(yesno, Eigen::all);
+  //X = X(non_null, Eigen::placeholders::all);
+  //y = y(non_null, Eigen::all);
 
   // model
   spdlog::info("Checking for rank deficiency");
@@ -176,27 +179,5 @@ std::vector<double> Model::get_p(Eigen::VectorXd &tstat, int n, int p) {
     pvalues.push_back(pval);
   }
   return pvalues;
-}
-
-void Model::remove_row_mat(Eigen::MatrixXd &matrix, unsigned int rowToRemove) {
-  unsigned int numRows = matrix.rows() - 1;
-  unsigned int numCols = matrix.cols();
-
-  if (rowToRemove < numRows)
-    matrix.block(rowToRemove, 0, numRows - rowToRemove, numCols) =
-        matrix.block(rowToRemove + 1, 0, numRows - rowToRemove, numCols);
-
-  matrix.conservativeResize(numRows, numCols);
-}
-
-void Model::remove_row_vec(Eigen::VectorXd &vec, unsigned int rowToRemove) {
-  unsigned int numRows = vec.rows() - 1;
-  unsigned int numCols = vec.cols();
-
-  if (rowToRemove < numRows)
-    vec.block(rowToRemove, 0, numRows - rowToRemove, numCols) =
-        vec.block(rowToRemove + 1, 0, numRows - rowToRemove, numCols);
-
-  vec.conservativeResize(numRows, numCols);
 }
 }

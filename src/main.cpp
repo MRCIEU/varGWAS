@@ -4,6 +4,7 @@
 
 #include <stdexcept>
 #include <thread>
+#include <set>
 #include <cxxopts.hpp>
 #include "genfile/bgen/bgen.hpp"
 #include "spdlog/spdlog.h"
@@ -118,13 +119,13 @@ int main(int argc, char **argv) {
     // Read phenotypes and subset using sample list
     jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
     phenotype_file.parse();
-    std::vector<unsigned> missing_samples = phenotype_file.subset_samples(samples);
+    std::set<unsigned> non_null = phenotype_file.join(samples);
 
     // Create the synchronized file
     auto synchronized_file = std::make_shared<jlst::SynchronizedFile>(output_file);
 
     // Perform locus association tests & write to file
-    jlst::Model model(phenotype_file, bgen_parser, missing_samples, synchronized_file, threads);
+    jlst::Model model(phenotype_file, bgen_parser, non_null, synchronized_file, threads);
     model.run();
 
     // close file
