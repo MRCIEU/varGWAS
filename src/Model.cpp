@@ -156,14 +156,14 @@ Result Model::fit(std::string &chromosome,
   Eigen::VectorXd tstat = fit2.array() / se.array();
 
   // P
-  std::vector<double> pvalues = get_p(tstat, X.rows(), X.cols());
+  std::vector<double> pvalues = get_p(tstat, X_complete.rows(), X_complete.cols());
 
   // set results
   res.beta = fit2(1, 0);
   res.se = se(1, 0);
   res.pval = pvalues[1];
-  res.n = X.rows();
-  res.eaf = X.col(1).mean() * 0.5;
+  res.n = X_complete.rows();
+  res.eaf = X_complete.col(1).mean() * 0.5;
 
   return res;
 }
