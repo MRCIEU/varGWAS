@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     spdlog::error("Error parsing phenotype file: {}", e.what());
     return -1;
   } catch (genfile::bgen::BGenError const &e) {
-    spdlog::error("Error parsing BGEN file: ", e.what());
+    spdlog::error("Error parsing BGEN file: {}", e.what());
     return -1;
   }
 

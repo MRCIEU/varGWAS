@@ -5,7 +5,6 @@
 #include <Eigen/Core>
 #include <Eigen/QR>
 #include <Eigen/Dense>
-#include <Eigen/Eigen>
 #include <utility>
 #include <vector>
 #include <boost/math/distributions/students_t.hpp>
@@ -34,7 +33,7 @@ void Model::run() {
   ThreadPool pool(_threads);
 
   // Create Eigen matrix of phenotypes wo dosage
-  // +2 parameters for dosage and intercept
+  // p+2 for dosage and intercept
   Eigen::MatrixXd X = Eigen::MatrixXd(_phenotype_file.GetNSamples(), _phenotype_file.GetCovariateColumn().size() + 2);
   Eigen::VectorXd y = Eigen::VectorXd(_phenotype_file.GetNSamples());
 
@@ -96,7 +95,7 @@ Result Model::fit(std::string &chromosome,
                   std::string &effect_allele,
                   std::string &other_allele,
                   std::vector<double> dosages,
-                  std::set<unsigned> non_null,
+                  std::set<unsigned> non_null_idx,
                   Eigen::MatrixXd X,
                   Eigen::VectorXd y) {
   Result res;
@@ -112,46 +111,43 @@ Result Model::fit(std::string &chromosome,
   assert(dosages.size() == X.rows());
   for (unsigned i = 0; i < dosages.size(); i++) {
     if (dosages[i] == -1) {
-      non_null.erase(i);
+      non_null_idx.erase(i);
     } else {
       X(i, 1) = dosages[i];
     }
   }
 
-  std::vector<bool> yesno;
-  // subset data with missing values
+  // subset data with non-null values
   spdlog::info("Selecting non-null values for model");
-  // select rows you want to keep(indicesToKeep), discard others
-  X(yesno, Eigen::all);
-  //X = X(non_null, Eigen::placeholders::all);
-  //y = y(non_null, Eigen::all);
+  Eigen::MatrixXd X_complete = X(non_null_idx, Eigen::all).eval();
+  Eigen::VectorXd y_complete = y(non_null_idx, Eigen::all).eval();
 
   // model
   spdlog::info("Checking for rank deficiency");
-  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X);
-  if (qr.rank() < X.cols()) {
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X_complete);
+  if (qr.rank() < X_complete.cols()) {
     throw std::runtime_error("rank-deficient matrix");
   }
 
   // first stage model
   spdlog::info("Estimating first stage model");
-  Eigen::MatrixXd fs_fit = qr.solve(y);
-  Eigen::VectorXd fs_fitted = X * fs_fit;
-  Eigen::VectorXd fs_resid = y - fs_fitted;
+  Eigen::MatrixXd fs_fit = qr.solve(y_complete);
+  Eigen::VectorXd fs_fitted = X_complete * fs_fit;
+  Eigen::VectorXd fs_resid = y_complete - fs_fitted;
   Eigen::VectorXd fs_resid2 = fs_resid.array().square();
 
   // second stage model
   spdlog::info("Estimating second stage model");
   Eigen::MatrixXd fit2 = qr.solve(fs_resid2);
-  Eigen::VectorXd ss_fitted = X * fit2;
+  Eigen::VectorXd ss_fitted = X_complete * fit2;
   Eigen::VectorXd ss_resid = fs_resid2 - ss_fitted;
 
   // se
   spdlog::info("Estimating SE and P value");
-  // TODO check df is correct as using multiple models - do we include the second-stage intercept and slope
+  // TODO check df is correct as using multiple models - do we include the second-stage intercept and slope?
   double sig2 = ss_resid.squaredNorm();
-  long df = X.rows() - X.cols();
-  Eigen::MatrixXd XtX = (X.transpose() * X);
+  long df = X_complete.rows() - X_complete.cols();
+  Eigen::MatrixXd XtX = (X_complete.transpose() * X_complete);
   Eigen::MatrixXd vcov = XtX.inverse();
   Eigen::VectorXd se = (vcov * (sig2 / df)).diagonal().cwiseSqrt();
 

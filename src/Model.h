@@ -27,7 +27,7 @@ class Model {
  public:
   Model(jlst::PhenotypeFile &phenotype_file,
         genfile::bgen::BgenParser &bgen_parser,
-        std::set<unsigned> &non_null,
+        std::set<unsigned> &non_null_idx,
         std::shared_ptr<SynchronizedFile> sf,
         int threads)
       : _phenotype_file(phenotype_file),
