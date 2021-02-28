@@ -119,7 +119,7 @@ void PhenotypeFile::parse() {
  * */
 std::set<unsigned> PhenotypeFile::join(const std::vector<std::string> &samples) {
   std::set<unsigned> non_null_idx;
-  spdlog::info("Subsetting phenotypes with {} samples", samples.size());
+  spdlog::info("Joining phenotypes with {} samples", samples.size());
 
   // create sample identifier-to-index mapping
   std::unordered_map<std::string, unsigned> mapping;

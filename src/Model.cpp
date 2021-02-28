@@ -119,8 +119,9 @@ Result Model::fit(std::string &chromosome,
 
   // subset data with non-null values
   spdlog::info("Selecting non-null values for model");
-  Eigen::MatrixXd X_complete = X(non_null_idx, Eigen::all).eval();
-  Eigen::VectorXd y_complete = y(non_null_idx, Eigen::all).eval();
+  std::vector<unsigned> non_null_idx_vec(non_null_idx.begin(), non_null_idx.end());
+  Eigen::MatrixXd X_complete = X(non_null_idx_vec, Eigen::all).eval();
+  Eigen::VectorXd y_complete = y(non_null_idx_vec, Eigen::all).eval();
 
   // model
   spdlog::info("Checking for rank deficiency");

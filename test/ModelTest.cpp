@@ -71,6 +71,9 @@ TEST(ModelTest, fit) {
   std::string rsid = "rs1";
   std::string allele = "A";
   std::set<unsigned> non_nulls_idx;
+  for (unsigned i = 0; i < dosages.size(); i++) {
+    non_nulls_idx.insert(i);
+  }
   jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X, y);
 
   // check estimate and SE are similar to R
