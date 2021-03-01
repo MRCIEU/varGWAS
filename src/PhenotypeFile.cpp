@@ -181,7 +181,7 @@ std::set<unsigned> PhenotypeFile::join(const std::vector<std::string> &samples) 
   covariateColumn = covariateColumnTmp;
   n_samples = sampleIdentifierColumn.size();
 
-  spdlog::info("Remaining samples after subset: {}", n_samples);
+  spdlog::info("Remaining samples after join: {}", n_samples);
   spdlog::info("Samples with non-null phenotypes: {}", non_null_idx.size());
 
   return (non_null_idx);
