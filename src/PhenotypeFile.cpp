@@ -61,6 +61,7 @@ void PhenotypeFile::parse() {
 
         // TODO implement using boost to allow for quotes in the file
         while (std::getline(tokenStream, token, sep)) {
+          spdlog::trace("Token n={}: {}", token, i);
           if (i == outIdx) {
             try {
               outcomeColumn.push_back(std::stod(token));
