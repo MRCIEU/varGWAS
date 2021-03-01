@@ -54,6 +54,7 @@ void PhenotypeFile::parse() {
     // read file line-by-line
     while (getline(file, line)) {
       std::istringstream tokenStream(line);
+      spdlog::trace(line);
 
       if (passedFirstLine) { // read file body
         i = 0;
