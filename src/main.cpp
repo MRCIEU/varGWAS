@@ -21,6 +21,7 @@ bool file_exists(const std::string &name) {
   return f.good();
 }
 
+// TODO check variable name conventions
 int main(int argc, char **argv) {
   static std::string VERSION = "v0.0.1";
   static std::string PROGRAM_NAME = "JLST C++";

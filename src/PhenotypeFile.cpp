@@ -17,6 +17,7 @@ namespace jlst {
 /*
  * Class for working with phenotype files
  * */
+// TODO place constructor in header
 PhenotypeFile::PhenotypeFile(const std::string &pheno_file_path,
                              const std::vector<std::string> &covariate_column_headers,
                              const std::string &outcome_column_header,
@@ -113,6 +114,11 @@ void PhenotypeFile::parse() {
         }
         if (sid_idx == -1) {
           throw jlst::PhenotypeFileException("Field missing from phenotype file: " + id_column_header);
+        }
+        if (covariate_column.size() != covariate_column_headers.size()) {
+          throw jlst::PhenotypeFileException(
+              "Expected n=" + std::to_string(covariate_column_headers.size()) + " covariate(s) but n="
+                  + std::to_string(covariate_column.size()) + " were found in the file");
         }
         passed_first_line = true;
 
