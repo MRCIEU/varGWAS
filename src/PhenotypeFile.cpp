@@ -64,16 +64,19 @@ void PhenotypeFile::parse() {
           spdlog::trace("token={}, value={}:", i, token);
           if (i == outIdx) {
             try {
+              spdlog::trace("outcome value={}", token);
               outcomeColumn.push_back(std::stod(token));
             } catch (...) {
               throw std::runtime_error("Could not cast outcome value to numeric: " + token);
             }
           }
           if (i == sidIdx) {
+            spdlog::trace("sample ID value={}", token);
             sampleIdentifierColumn.push_back(token);
           }
           if (std::find(covIdx.begin(), covIdx.end(), i) != covIdx.end()) {
             try {
+              spdlog::trace("covariate n={}, value={}", i - minCovIdx, token);
               covariateColumn[i - minCovIdx].push_back(std::stod(token));
             } catch (...) {
               throw std::runtime_error("Could not cast covariate value to numeric: " + token);
