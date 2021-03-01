@@ -35,7 +35,7 @@ PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
  * */
 void PhenotypeFile::parse() {
   spdlog::info("Parsing phenotype from: {}", phenoFilePath);
-  for (auto &c: covariateColumnHeaders){
+  for (auto &c: covariateColumnHeaders) {
     spdlog::info("Including covariate: {}", c);
   }
   spdlog::info("Outcome variable: {}", outcomeColumnHeader);
@@ -61,13 +61,21 @@ void PhenotypeFile::parse() {
         // TODO implement using boost to allow for quotes in the file
         while (std::getline(tokenStream, token, sep)) {
           if (i == outIdx) {
-            outcomeColumn.push_back(std::stod(token));
+            try {
+              outcomeColumn.push_back(std::stod(token));
+            } catch (...) {
+              throw std::runtime_error("Could not cast outcome value to numeric: " + token);
+            }
           }
           if (i == sidIdx) {
             sampleIdentifierColumn.push_back(token);
           }
           if (std::find(covIdx.begin(), covIdx.end(), i) != covIdx.end()) {
-            covariateColumn[i - minCovIdx].push_back(std::stod(token));
+            try {
+              covariateColumn[i - minCovIdx].push_back(std::stod(token));
+            } catch (...) {
+              throw std::runtime_error("Could not cast covariate value to numeric: " + token);
+            }
           }
           i++;
         }
@@ -76,16 +84,20 @@ void PhenotypeFile::parse() {
         i = 0;
 
         while (std::getline(tokenStream, token, sep)) {
+          spdlog::debug("Phenotype file header n={}: {}", i, token);
 
           // record file column numbers of model variables
           if (std::find(covariateColumnHeaders.begin(), covariateColumnHeaders.end(), token)
               != covariateColumnHeaders.end()) {
             covIdx.push_back(i);
             covariateColumn.emplace_back(); // instantiate v of v
+            spdlog::debug("Found sample covariate index: {}", i);
           } else if (token == outcomeColumnHeader) {
             outIdx = i;
+            spdlog::debug("Found outcome index: {}", outIdx);
           } else if (token == idColumnHeader) {
             sidIdx = i;
+            spdlog::debug("Found sample id index: {}", sidIdx);
           }
 
           i++;
@@ -100,7 +112,7 @@ void PhenotypeFile::parse() {
         passedFirstLine = true;
 
         // get minimum covariate index in vector
-        for (auto &idx : covIdx) {
+        for (int idx : covIdx) {
           if (idx < minCovIdx) {
             minCovIdx = idx;
           }
