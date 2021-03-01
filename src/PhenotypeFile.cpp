@@ -30,7 +30,7 @@ void PhenotypeFile::parse() {
   int sid_idx = -1;
   std::vector<int> cov_idx;
   int i = -1;
-  int min_cov_idx = -1;
+  int cov_offset = -1;
 
   if (file.is_open()) {
     bool passed_first_line = false;
@@ -48,6 +48,8 @@ void PhenotypeFile::parse() {
         // TODO implement using boost to allow for quotes in the file
         while (std::getline(token_stream, token, _sep)) {
           spdlog::trace("token={}, value={}", i, token);
+
+          // is the current token from the outcome column
           if (i == out_idx) {
             try {
               spdlog::trace("outcome value={}", token);
@@ -57,12 +59,16 @@ void PhenotypeFile::parse() {
               throw std::runtime_error("Could not cast outcome value to numeric: " + token);
             }
           }
+
+          // is the current token from the sample column
           if (i == sid_idx) {
             spdlog::trace("sample ID value={}", token);
             _sample_identifier_column.push_back(token);
           }
-          if (min_cov_idx > -1 && std::find(cov_idx.begin(), cov_idx.end(), i) != cov_idx.end()) {
-            int idx = i - min_cov_idx;
+
+          // is the current token from a covariate column
+          if (cov_offset > -1 && std::find(cov_idx.begin(), cov_idx.end(), i) != cov_idx.end()) {
+            int idx = i - cov_offset;
             assert(_covariate_column.size() > idx);
             try {
               spdlog::trace("covariate n={}, value={}", idx, token);
@@ -72,6 +78,7 @@ void PhenotypeFile::parse() {
               throw std::runtime_error("Could not cast covariate value to numeric: " + token);
             }
           }
+
           i++;
         }
 
@@ -86,7 +93,7 @@ void PhenotypeFile::parse() {
               != _covariate_column_headers.end()) {
             cov_idx.push_back(i);
             _covariate_column.emplace_back(); // instantiate v of v
-            spdlog::debug("Found sample covariate index: {}", i);
+            spdlog::debug("Found covariate index: {}", i);
           } else if (token == _outcome_column_header) {
             out_idx = i;
             spdlog::debug("Found outcome index: {}", out_idx);
@@ -104,7 +111,8 @@ void PhenotypeFile::parse() {
         if (sid_idx == -1) {
           throw jlst::PhenotypeFileException("Field missing from phenotype file: " + _id_column_header);
         }
-        if (_covariate_column.size() != _covariate_column_headers.size()) {
+        if (_covariate_column.size() != _covariate_column_headers.size()
+            || cov_idx.size() != _covariate_column.size()) {
           throw jlst::PhenotypeFileException(
               "Expected n=" + std::to_string(_covariate_column_headers.size()) + " covariate(s) but n="
                   + std::to_string(_covariate_column.size()) + " were found in the file");
@@ -113,11 +121,13 @@ void PhenotypeFile::parse() {
 
         // get minimum covariate index in vector
         for (int idx : cov_idx) {
-          if (min_cov_idx == -1 || idx < min_cov_idx) {
-            min_cov_idx = idx;
+          if (cov_offset == -1 || idx < cov_offset) {
+            cov_offset = idx;
           }
         }
-
+        if (!_covariate_column_headers.empty()) {
+          assert(cov_offset != -1);
+        }
       }
 
     }
