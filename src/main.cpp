@@ -86,16 +86,26 @@ int main(int argc, char **argv) {
   spdlog::info(PROGRAM_NAME + " " + VERSION);
   spdlog::debug("Log level: {}", spdlog::get_level());
   std::string variable_file = result["variable_file"].as<std::string>();
+  spdlog::debug("Variable file: {}", variable_file);
   char sep = result["sep"].as<char>();
+  spdlog::debug("Variable file sep: {}", sep);
   std::vector<std::string> covariates;
   if (result.count("covariates") > 0) {
     covariates = result["covariates"].as<std::vector<std::string>>();
   }
+  for (auto &c:covariates) {
+    spdlog::debug("Covariate(s): {}", c);
+  }
   std::string output_file = result["output_file"].as<std::string>();
+  spdlog::debug("Output file: {}", output_file);
   std::string bgen_file = result["bgen_file"].as<std::string>();
+  spdlog::debug("BGEN file: {}", bgen_file);
   std::string phenotype = result["phenotype"].as<std::string>();
+  spdlog::debug("Phenotype column: {}", phenotype);
   std::string id = result["id"].as<std::string>();
+  spdlog::debug("ID column: {}", id);
   int threads = result["threads"].as<int>();
+  spdlog::debug("Threads n={}", threads);
 
   // check files exist
   if (!file_exists(variable_file)) {
