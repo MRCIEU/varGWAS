@@ -52,7 +52,7 @@ void Model::run() {
   // Read variant-by-variant
   while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
     n++;
-    spdlog::info("Testing {}th variant: {}", n, rsid);
+    spdlog::debug("Testing {}th variant: {}", n, rsid);
 
     // only support bi-allelic variants
     if (alleles.size() != 2) {
@@ -63,7 +63,7 @@ void Model::run() {
     // convert probabilities to dosage values
     _bgen_parser.read_probs(&probs);
 
-    spdlog::info("Converting probabilities to dosage values");
+    spdlog::debug("Converting probabilities to dosage values");
     dosages.clear();
     for (auto &prob : probs) {
       // only support bi-allelic variants [0, 1, 2 copies of alt]
@@ -81,7 +81,7 @@ void Model::run() {
     assert(dosages.size() == _phenotype_file.GetNSamples());
 
     // enqueue and store future
-    spdlog::info("Submitting job to queue");
+    spdlog::debug("Submitting job to queue");
     auto result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
 
     // write to file
@@ -107,7 +107,7 @@ Result Model::fit(std::string &chromosome,
 
   // set dosage values
   // X is passed without reference to allow for modification on each thread
-  spdlog::info("Checking for null dosage values");
+  spdlog::debug("Checking for null dosage values");
   assert(dosages.size() == X.rows());
   for (unsigned i = 0; i < dosages.size(); i++) {
     if (dosages[i] == -1) {
@@ -118,33 +118,33 @@ Result Model::fit(std::string &chromosome,
   }
 
   // subset data with non-null values
-  spdlog::info("Selecting non-null values for model");
+  spdlog::debug("Selecting non-null values for model");
   std::vector<unsigned> non_null_idx_vec(non_null_idx.begin(), non_null_idx.end());
   Eigen::MatrixXd X_complete = X(non_null_idx_vec, Eigen::all).eval();
   Eigen::VectorXd y_complete = y(non_null_idx_vec, Eigen::all).eval();
 
   // model
-  spdlog::info("Checking for rank deficiency");
+  spdlog::debug("Checking for rank deficiency");
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X_complete);
   if (qr.rank() < X_complete.cols()) {
     throw std::runtime_error("rank-deficient matrix");
   }
 
   // first stage model
-  spdlog::info("Estimating first stage model");
+  spdlog::debug("Estimating first stage model");
   Eigen::MatrixXd fs_fit = qr.solve(y_complete);
   Eigen::VectorXd fs_fitted = X_complete * fs_fit;
   Eigen::VectorXd fs_resid = y_complete - fs_fitted;
   Eigen::VectorXd fs_resid2 = fs_resid.array().square();
 
   // second stage model
-  spdlog::info("Estimating second stage model");
+  spdlog::debug("Estimating second stage model");
   Eigen::MatrixXd fit2 = qr.solve(fs_resid2);
   Eigen::VectorXd ss_fitted = X_complete * fit2;
   Eigen::VectorXd ss_resid = fs_resid2 - ss_fitted;
 
   // se
-  spdlog::info("Estimating SE and P value");
+  spdlog::debug("Estimating SE and P value");
   // TODO check df is correct as using multiple models - do we include the second-stage intercept and slope?
   double sig2 = ss_resid.squaredNorm();
   long df = X_complete.rows() - X_complete.cols();

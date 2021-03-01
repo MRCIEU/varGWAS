@@ -6,6 +6,7 @@
 #include <thread>
 #include <set>
 #include <cxxopts.hpp>
+#include "spdlog/cfg/env.h"
 #include "genfile/bgen/bgen.hpp"
 #include "spdlog/spdlog.h"
 #include "ThreadPool.h"
@@ -23,6 +24,7 @@ bool file_exists(const std::string &name) {
 int main(int argc, char **argv) {
   static std::string VERSION = "v0.0.1";
   static std::string PROGRAM_NAME = "JLST C++";
+  spdlog::cfg::load_env_levels();
   static bool no_args = (argc == 1);
 
   // Configure arguments
@@ -81,6 +83,7 @@ int main(int argc, char **argv) {
 
   // Parse arguments
   spdlog::info(PROGRAM_NAME + " " + VERSION);
+  spdlog::debug("Log level: {}", spdlog::get_level());
   std::string variable_file = result["variable_file"].as<std::string>();
   char sep = result["sep"].as<char>();
   std::vector<std::string> covariates;

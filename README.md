@@ -123,6 +123,8 @@ Inspect output [results.csv](./test/data/results.csv)
 ## Usage
 
 ```shell
+./bin/jlst_cpp
+
 Program to perform vGWAS of trait against variants in the BGEN format
 Usage:
   JLST C++ v0.0.1 [OPTION...]
@@ -141,11 +143,21 @@ Usage:
 - Unordered categorical variables should be one-hot encoded.
 - Do not provide null values in the phenotype file - these should be filtered out.
 
+## Logging
+
+By default logging level is set to INFO. This can be overidden using environmental variables. See details on
+the [spdlog](https://github.com/gabime/spdlog#load-log-levels-from-env-variable-or-from-argv) page.
+
+```shell
+export SPDLOG_LEVEL=debug
+./bin/jlst_cpp
+```
+
 ## Contributing
 
 This project follows the [Google style guide](https://google.github.io/styleguide/cppguide.html)
 
 ## Performance
 
-OpenCL/CUDA, OpenMP and MPI?
-code optimization and performance tuning, parallelization using both shared memory (OpenMP) and message passing (MPI) paradigms
+OpenCL/CUDA, OpenMP and MPI? code optimization and performance tuning, parallelization using both shared memory (OpenMP)
+and message passing (MPI) paradigms

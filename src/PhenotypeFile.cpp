@@ -35,6 +35,10 @@ PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
  * */
 void PhenotypeFile::parse() {
   spdlog::info("Parsing phenotype from: {}", phenoFilePath);
+  for (auto &c: covariateColumnHeaders){
+    spdlog::info("Including covariate: {}", c);
+  }
+  spdlog::info("Outcome variable: {}", outcomeColumnHeader);
   std::ifstream file(phenoFilePath.c_str());
   int outIdx = -1;
   int sidIdx = -1;
