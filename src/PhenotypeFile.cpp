@@ -17,15 +17,15 @@ namespace jlst {
 /*
  * Class for working with phenotype files
  * */
-PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
-                             const std::vector<std::string> &covariateColumnHeaders,
-                             const std::string &outcomeColumnHeader,
-                             const std::string &idColumnHeader,
+PhenotypeFile::PhenotypeFile(const std::string &pheno_file_path,
+                             const std::vector<std::string> &covariate_column_headers,
+                             const std::string &outcome_column_header,
+                             const std::string &id_column_header,
                              const char &sep) {
-  this->phenoFilePath = phenoFilePath;
-  this->covariateColumnHeaders = covariateColumnHeaders;
-  this->outcomeColumnHeader = outcomeColumnHeader;
-  this->idColumnHeader = idColumnHeader;
+  this->pheno_file_path = pheno_file_path;
+  this->covariate_column_headers = covariate_column_headers;
+  this->outcome_column_header = outcome_column_header;
+  this->id_column_header = id_column_header;
   this->sep = sep;
   this->n_samples = -1;
 };
@@ -34,50 +34,50 @@ PhenotypeFile::PhenotypeFile(const std::string &phenoFilePath,
  * Function to parse file
  * */
 void PhenotypeFile::parse() {
-  spdlog::info("Parsing phenotype from: {}", phenoFilePath);
-  for (auto &c: covariateColumnHeaders) {
+  spdlog::info("Parsing phenotype from: {}", pheno_file_path);
+  for (auto &c: covariate_column_headers) {
     spdlog::info("Including covariate: {}", c);
   }
-  spdlog::info("Outcome variable: {}", outcomeColumnHeader);
-  std::ifstream file(phenoFilePath.c_str());
-  int outIdx = -1;
-  int sidIdx = -1;
-  std::vector<int> covIdx;
+  spdlog::info("Outcome variable: {}", outcome_column_header);
+  std::ifstream file(pheno_file_path.c_str());
+  int out_idx = -1;
+  int sid_idx = -1;
+  std::vector<int> cov_idx;
   int i;
-  unsigned minCovIdx = UINT_MAX;
+  unsigned min_cov_idx = UINT_MAX;
 
   if (file.is_open()) {
-    bool passedFirstLine = false;
+    bool passed_first_line = false;
     std::string line;
     std::string token;
 
     // read file line-by-line
     while (getline(file, line)) {
-      std::istringstream tokenStream(line);
       spdlog::trace(line);
+      std::istringstream token_stream(line);
 
-      if (passedFirstLine) { // read file body
+      if (passed_first_line) { // read file body
         i = 0;
 
         // TODO implement using boost to allow for quotes in the file
-        while (std::getline(tokenStream, token, sep)) {
-          spdlog::trace("token={}, value={}:", i, token);
-          if (i == outIdx) {
+        while (std::getline(token_stream, token, sep)) {
+          spdlog::trace("token={}, value={}", i, token);
+          if (i == out_idx) {
             try {
               spdlog::trace("outcome value={}", token);
-              outcomeColumn.push_back(std::stod(token));
+              outcome_column.push_back(std::stod(token));
             } catch (...) {
               throw std::runtime_error("Could not cast outcome value to numeric: " + token);
             }
           }
-          if (i == sidIdx) {
+          if (i == sid_idx) {
             spdlog::trace("sample ID value={}", token);
-            sampleIdentifierColumn.push_back(token);
+            sample_identifier_column.push_back(token);
           }
-          if (std::find(covIdx.begin(), covIdx.end(), i) != covIdx.end()) {
+          if (std::find(cov_idx.begin(), cov_idx.end(), i) != cov_idx.end()) {
             try {
-              spdlog::trace("covariate n={}, value={}", i - minCovIdx, token);
-              covariateColumn[i - minCovIdx].push_back(std::stod(token));
+              spdlog::trace("covariate n={}, value={}", i - min_cov_idx, token);
+              covariate_column[i - min_cov_idx].push_back(std::stod(token));
             } catch (...) {
               throw std::runtime_error("Could not cast covariate value to numeric: " + token);
             }
@@ -88,38 +88,38 @@ void PhenotypeFile::parse() {
       } else { // read file header
         i = 0;
 
-        while (std::getline(tokenStream, token, sep)) {
+        while (std::getline(token_stream, token, sep)) {
           spdlog::debug("Phenotype file header n={}: {}", i, token);
 
           // record file column numbers of model variables
-          if (std::find(covariateColumnHeaders.begin(), covariateColumnHeaders.end(), token)
-              != covariateColumnHeaders.end()) {
-            covIdx.push_back(i);
-            covariateColumn.emplace_back(); // instantiate v of v
+          if (std::find(covariate_column_headers.begin(), covariate_column_headers.end(), token)
+              != covariate_column_headers.end()) {
+            cov_idx.push_back(i);
+            covariate_column.emplace_back(); // instantiate v of v
             spdlog::debug("Found sample covariate index: {}", i);
-          } else if (token == outcomeColumnHeader) {
-            outIdx = i;
-            spdlog::debug("Found outcome index: {}", outIdx);
-          } else if (token == idColumnHeader) {
-            sidIdx = i;
-            spdlog::debug("Found sample id index: {}", sidIdx);
+          } else if (token == outcome_column_header) {
+            out_idx = i;
+            spdlog::debug("Found outcome index: {}", out_idx);
+          } else if (token == id_column_header) {
+            sid_idx = i;
+            spdlog::debug("Found sample id index: {}", sid_idx);
           }
 
           i++;
         }
 
-        if (outIdx == -1) {
-          throw jlst::PhenotypeFileException("Field missing from phenotype file: " + outcomeColumnHeader);
+        if (out_idx == -1) {
+          throw jlst::PhenotypeFileException("Field missing from phenotype file: " + outcome_column_header);
         }
-        if (sidIdx == -1) {
-          throw jlst::PhenotypeFileException("Field missing from phenotype file: " + idColumnHeader);
+        if (sid_idx == -1) {
+          throw jlst::PhenotypeFileException("Field missing from phenotype file: " + id_column_header);
         }
-        passedFirstLine = true;
+        passed_first_line = true;
 
         // get minimum covariate index in vector
-        for (int idx : covIdx) {
-          if (idx < minCovIdx) {
-            minCovIdx = idx;
+        for (int idx : cov_idx) {
+          if (idx < min_cov_idx) {
+            min_cov_idx = idx;
           }
         }
 
@@ -129,9 +129,9 @@ void PhenotypeFile::parse() {
 
     file.close();
   } else {
-    throw std::runtime_error("Could not open file: " + phenoFilePath);
+    throw std::runtime_error("Could not open file: " + pheno_file_path);
   }
-  n_samples = sampleIdentifierColumn.size();
+  n_samples = sample_identifier_column.size();
   spdlog::info("Found {} samples in phenotype file", n_samples);
 }
 /*
@@ -144,20 +144,20 @@ std::set<unsigned> PhenotypeFile::join(const std::vector<std::string> &samples) 
 
   // create sample identifier-to-index mapping
   std::unordered_map<std::string, unsigned> mapping;
-  for (unsigned i = 0; i < sampleIdentifierColumn.size(); ++i) {
-    if (mapping.count(sampleIdentifierColumn[i])) {
-      throw std::runtime_error("Duplicate identifiers were detected for: " + sampleIdentifierColumn[i]);
+  for (unsigned i = 0; i < sample_identifier_column.size(); ++i) {
+    if (mapping.count(sample_identifier_column[i])) {
+      throw std::runtime_error("Duplicate identifiers were detected for: " + sample_identifier_column[i]);
     }
     // store array index against column identifier
-    mapping[sampleIdentifierColumn[i]] = i;
+    mapping[sample_identifier_column[i]] = i;
   }
 
   // create tmp data stores
-  std::vector<std::string> sampleIdentifierColumnTmp;
-  std::vector<double> outcomeColumnTmp;
-  std::vector<std::vector<double>> covariateColumnTmp;
-  for (unsigned i = 0; i < covariateColumn.size(); ++i) {
-    covariateColumnTmp.emplace_back();
+  std::vector<std::string> sample_identifier_column_tmp;
+  std::vector<double> outcome_column_tmp;
+  std::vector<std::vector<double>> covariate_column_tmp;
+  for (unsigned i = 0; i < covariate_column.size(); ++i) {
+    covariate_column_tmp.emplace_back();
   }
 
   // subset data using new ordering
@@ -167,18 +167,18 @@ std::set<unsigned> PhenotypeFile::join(const std::vector<std::string> &samples) 
     if (mapping.count(samples[i]) == 0) {
       spdlog::info("Sample missing from phenotype file: {}", samples[i]);
       // add missing data with null values
-      sampleIdentifierColumnTmp.push_back(samples[i]);
-      outcomeColumnTmp.push_back(-1);
-      for (unsigned j = 0; j < covariateColumn.size(); ++j) {
-        covariateColumnTmp[j].push_back(-1);
+      sample_identifier_column_tmp.push_back(samples[i]);
+      outcome_column_tmp.push_back(-1);
+      for (unsigned j = 0; j < covariate_column.size(); ++j) {
+        covariate_column_tmp[j].push_back(-1);
       }
     } else {
       // subset data
       unsigned idx = mapping[samples[i]];
-      sampleIdentifierColumnTmp.push_back(sampleIdentifierColumn[idx]);
-      outcomeColumnTmp.push_back(outcomeColumn[idx]);
-      for (unsigned j = 0; j < covariateColumn.size(); ++j) {
-        covariateColumnTmp[j].push_back(covariateColumn[j][idx]);
+      sample_identifier_column_tmp.push_back(sample_identifier_column[idx]);
+      outcome_column_tmp.push_back(outcome_column[idx]);
+      for (unsigned j = 0; j < covariate_column.size(); ++j) {
+        covariate_column_tmp[j].push_back(covariate_column[j][idx]);
       }
       non_null_idx.insert(i);
     }
@@ -186,17 +186,17 @@ std::set<unsigned> PhenotypeFile::join(const std::vector<std::string> &samples) 
   }
 
   // check variables are the same length
-  assert(sampleIdentifierColumnTmp.size() == samples.size());
-  assert(outcomeColumnTmp.size() == samples.size());
-  for (unsigned i = 0; i < covariateColumn.size(); ++i) {
-    assert(covariateColumnTmp[i].size() == samples.size());
+  assert(sample_identifier_column_tmp.size() == samples.size());
+  assert(outcome_column_tmp.size() == samples.size());
+  for (unsigned i = 0; i < covariate_column.size(); ++i) {
+    assert(covariate_column_tmp[i].size() == samples.size());
   }
 
   // set variables
-  sampleIdentifierColumn = sampleIdentifierColumnTmp;
-  outcomeColumn = outcomeColumnTmp;
-  covariateColumn = covariateColumnTmp;
-  n_samples = sampleIdentifierColumn.size();
+  sample_identifier_column = sample_identifier_column_tmp;
+  outcome_column = outcome_column_tmp;
+  covariate_column = covariate_column_tmp;
+  n_samples = sample_identifier_column.size();
 
   spdlog::info("Remaining samples after join: {}", n_samples);
   spdlog::info("Samples with non-null phenotypes: {}", non_null_idx.size());
@@ -204,13 +204,13 @@ std::set<unsigned> PhenotypeFile::join(const std::vector<std::string> &samples) 
   return (non_null_idx);
 }
 const std::vector<std::string> &PhenotypeFile::GetSampleIdentifierColumn() const {
-  return sampleIdentifierColumn;
+  return sample_identifier_column;
 }
 const std::vector<double> &PhenotypeFile::GetOutcomeColumn() const {
-  return outcomeColumn;
+  return outcome_column;
 }
 const std::vector<std::vector<double>> &PhenotypeFile::GetCovariateColumn() const {
-  return covariateColumn;
+  return covariate_column;
 }
 int PhenotypeFile::GetNSamples() const {
   if (n_samples == -1) {

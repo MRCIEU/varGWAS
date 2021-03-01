@@ -14,10 +14,10 @@ class PhenotypeFile {
 
  public:
   PhenotypeFile(
-      const std::string &phenoFilePath,
-      const std::vector<std::string> &covariateColumnHeaders,
-      const std::string &outcomeColumnHeader,
-      const std::string &idColumnHeader,
+      const std::string &pheno_file_path,
+      const std::vector<std::string> &covariate_column_headers,
+      const std::string &outcome_column_header,
+      const std::string &id_column_header,
       const char &sep
   );
   void parse();
@@ -28,13 +28,13 @@ class PhenotypeFile {
   int GetNSamples() const;
 
  private:
-  std::string phenoFilePath;
-  std::vector<std::string> covariateColumnHeaders;
-  std::string outcomeColumnHeader;
-  std::string idColumnHeader;
-  std::vector<std::string> sampleIdentifierColumn;
-  std::vector<double> outcomeColumn;
-  std::vector<std::vector<double>> covariateColumn;
+  std::string pheno_file_path;
+  std::vector<std::string> covariate_column_headers;
+  std::string outcome_column_header;
+  std::string id_column_header;
+  std::vector<std::string> sample_identifier_column;
+  std::vector<double> outcome_column;
+  std::vector<std::vector<double>> covariate_column;
   char sep;
   int n_samples;
 };
