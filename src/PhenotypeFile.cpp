@@ -50,7 +50,7 @@ void PhenotypeFile::parse() {
           if (i == out_idx) {
             try {
               spdlog::trace("outcome value={}", token);
-              double val = std::stod(token);
+              long double val = std::stod(token);
               _outcome_column.push_back(val);
             } catch (...) {
               throw std::runtime_error("Could not cast outcome value to numeric: " + token);
@@ -63,7 +63,7 @@ void PhenotypeFile::parse() {
           if (std::find(cov_idx.begin(), cov_idx.end(), i) != cov_idx.end()) {
             try {
               spdlog::trace("covariate n={}, value={}", i - min_cov_idx, token);
-              double val = std::stod(token);
+              long double val = std::stod(token);
               _covariate_column[i - min_cov_idx].push_back(val);
             } catch (...) {
               throw std::runtime_error("Could not cast covariate value to numeric: " + token);
@@ -146,8 +146,8 @@ std::set<unsigned> PhenotypeFile::join(const std::vector<std::string> &samples) 
 
   // create tmp data stores
   std::vector<std::string> sample_identifier_column_tmp;
-  std::vector<double> outcome_column_tmp;
-  std::vector<std::vector<double>> covariate_column_tmp;
+  std::vector<long double> outcome_column_tmp;
+  std::vector<std::vector<long double>> covariate_column_tmp;
   for (unsigned i = 0; i < _covariate_column.size(); ++i) {
     covariate_column_tmp.emplace_back();
   }
@@ -198,10 +198,10 @@ std::set<unsigned> PhenotypeFile::join(const std::vector<std::string> &samples) 
 const std::vector<std::string> &PhenotypeFile::GetSampleIdentifierColumn() const {
   return _sample_identifier_column;
 }
-const std::vector<double> &PhenotypeFile::GetOutcomeColumn() const {
+const std::vector<long double> &PhenotypeFile::GetOutcomeColumn() const {
   return _outcome_column;
 }
-const std::vector<std::vector<double>> &PhenotypeFile::GetCovariateColumn() const {
+const std::vector<std::vector<long double>> &PhenotypeFile::GetCovariateColumn() const {
   return _covariate_column;
 }
 int PhenotypeFile::GetNSamples() const {

@@ -24,8 +24,8 @@ class PhenotypeFile {
   void parse();
   std::set<unsigned> join(const std::vector<std::string> &samples);
   const std::vector<std::string> &GetSampleIdentifierColumn() const;
-  const std::vector<double> &GetOutcomeColumn() const;
-  const std::vector<std::vector<double>> &GetCovariateColumn() const;
+  const std::vector<long double> &GetOutcomeColumn() const;
+  const std::vector<std::vector<long double>> &GetCovariateColumn() const;
   int GetNSamples() const;
 
  private:
@@ -34,8 +34,8 @@ class PhenotypeFile {
   std::string &_outcome_column_header;
   std::string &_id_column_header;
   std::vector<std::string> _sample_identifier_column;
-  std::vector<double> _outcome_column;
-  std::vector<std::vector<double>> _covariate_column;
+  std::vector<long double> _outcome_column;
+  std::vector<std::vector<long double>> _covariate_column;
   char _sep;
   int _n_samples;
 };
