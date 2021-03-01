@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <set>
 #include <unordered_map>
+#include <algorithm>
 #include "spdlog/spdlog.h"
 #include "PhenotypeFileException.h"
 #include "PhenotypeFile.h"
@@ -28,8 +29,8 @@ void PhenotypeFile::parse() {
   int out_idx = -1;
   int sid_idx = -1;
   std::vector<int> cov_idx;
-  int i;
-  unsigned min_cov_idx = UINT_MAX;
+  int i = -1;
+  int min_cov_idx = -1;
 
   if (file.is_open()) {
     bool passed_first_line = false;
@@ -60,11 +61,13 @@ void PhenotypeFile::parse() {
             spdlog::trace("sample ID value={}", token);
             _sample_identifier_column.push_back(token);
           }
-          if (std::find(cov_idx.begin(), cov_idx.end(), i) != cov_idx.end()) {
+          if (min_cov_idx > -1 && std::find(cov_idx.begin(), cov_idx.end(), i) != cov_idx.end()) {
+            int idx = i - min_cov_idx;
+            assert(_covariate_column.size() > idx);
             try {
-              spdlog::trace("covariate n={}, value={}", i - min_cov_idx, token);
+              spdlog::trace("covariate n={}, value={}", idx, token);
               long double val = std::stold(token);
-              _covariate_column[i - min_cov_idx].push_back(val);
+              _covariate_column[idx].push_back(val);
             } catch (...) {
               throw std::runtime_error("Could not cast covariate value to numeric: " + token);
             }
@@ -110,7 +113,7 @@ void PhenotypeFile::parse() {
 
         // get minimum covariate index in vector
         for (int idx : cov_idx) {
-          if (idx < min_cov_idx) {
+          if (min_cov_idx == -1 || idx < min_cov_idx) {
             min_cov_idx = idx;
           }
         }
