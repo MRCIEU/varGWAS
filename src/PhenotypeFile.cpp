@@ -50,7 +50,7 @@ void PhenotypeFile::parse() {
           if (i == out_idx) {
             try {
               spdlog::trace("outcome value={}", token);
-              long double val = std::stod(token);
+              long double val = std::stold(token);
               _outcome_column.push_back(val);
             } catch (...) {
               throw std::runtime_error("Could not cast outcome value to numeric: " + token);
@@ -63,7 +63,7 @@ void PhenotypeFile::parse() {
           if (std::find(cov_idx.begin(), cov_idx.end(), i) != cov_idx.end()) {
             try {
               spdlog::trace("covariate n={}, value={}", i - min_cov_idx, token);
-              long double val = std::stod(token);
+              long double val = std::stold(token);
               _covariate_column[i - min_cov_idx].push_back(val);
             } catch (...) {
               throw std::runtime_error("Could not cast covariate value to numeric: " + token);
