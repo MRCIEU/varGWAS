@@ -2,19 +2,19 @@
 // Created by Matthew Lyon on 19/03/2020.
 //
 
-#include <stdexcept>
-#include <thread>
+
+
+#include <vector>
+#include <string>
 #include <set>
+#include <memory>
 #include <cxxopts.hpp>
-#include "spdlog/cfg/env.h"
-#include "genfile/bgen/bgen.hpp"
 #include "spdlog/spdlog.h"
-#include "ThreadPool.h"
-#include "BgenParser.h"
+#include "spdlog/cfg/env.h"
 #include "PhenotypeFile.h"
-#include "PhenotypeFileException.h"
 #include "Model.h"
 #include "SynchronizedFile.h"
+#include "PhenotypeFileException.h"
 
 bool file_exists(const std::string &name) {
   std::ifstream f(name.c_str());

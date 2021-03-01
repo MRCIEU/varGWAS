@@ -1,13 +1,14 @@
-#include <stdexcept>
+#include <fstream>
 #include <vector>
 #include <iostream>
-#include <algorithm>
+#include <string>
+#include <sstream>
+#include <stdexcept>
 #include <set>
 #include <unordered_map>
-#include "PhenotypeFile.h"
-#include "PhenotypeFileException.h"
 #include "spdlog/spdlog.h"
-
+#include "PhenotypeFileException.h"
+#include "PhenotypeFile.h"
 
 /*
  * Class to read in outcome, covariate(s) and sample identifier into memory

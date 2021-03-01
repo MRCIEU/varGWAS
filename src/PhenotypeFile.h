@@ -1,10 +1,6 @@
-#include <stdexcept>
+#include <string>
 #include <vector>
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <set>
-#include <exception>
 
 #ifndef JLST_CPP_PHENOTYPEFILE_H
 #define JLST_CPP_PHENOTYPEFILE_H
