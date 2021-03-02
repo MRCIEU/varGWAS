@@ -1,16 +1,21 @@
-FROM python:3.8
+FROM gcc:5.5
 
-MAINTAINER "Matt Lyon" matt.lyon@bristol.ac.uk
+# install cmake
+RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
-# copy flask app to container
+# copy repo to container
 COPY . /app
 WORKDIR /app
 
-# install python dependencies
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
-RUN pip install git+git://github.com/bioinformed/vgraph@v1.4.0#egg=vgraph
+# install libs
+RUN bash lib.sh
+
+# build executable
+RUN mkdir -p /app/build
+WORKDIR /app/build
+RUN cmake .. -DCMAKE_BUILD_TYPE=Release
+RUN make
 
 # launch app
-CMD ["python", "main.py"]
-
+WORKDIR /app/build/bin/
+CMD ["jlst_cpp"]

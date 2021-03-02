@@ -43,6 +43,12 @@ CXX=/mnt/storage/software/languages/gcc-5.5.0/bin/g++ \
 -DCMAKE_BUILD_TYPE=Release
 ```
 
+### Docker
+
+```shell
+docker build -t jlst_cpp .
+```
+
 ### Test
 
 Run unit tests
