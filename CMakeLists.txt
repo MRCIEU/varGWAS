@@ -11,7 +11,7 @@ find_package(Threads)
 # include
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/genfile/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/boost_1_75_0)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd-1.1.0/lib)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd-1.4.8/lib)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/3rd_party/sqlite3)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/db/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp)
@@ -24,9 +24,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # libraries
 find_library(BGEN_LIB_PATH NAMES libbgen.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build)
-# TODO upgrade
-find_library(ZSTD_LIB_PATH NAMES libzstd.so libzstd.dylib HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd-1.1.0/build/cmake/build/lib)
-# TODO upgrade
+find_library(ZSTD_LIB_PATH NAMES libzstd.so libzstd.dylib HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd-1.4.8/build/cmake/build/lib)
 find_library(SQLITE_LIB_PATH NAMES libsqlite3.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/sqlite3)
 find_library(DB_LIB_PATH NAMES libdb.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db)
 find_library(SPDLOG_LIB_PATH NAMES libglog.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build)
