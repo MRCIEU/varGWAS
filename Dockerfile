@@ -1,4 +1,4 @@
-FROM gcc:5.5
+FROM gcc:10.2
 
 # install cmake
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
