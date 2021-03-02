@@ -19,9 +19,9 @@ cd bgen
 
 # zstd
 cd "$LIB_DIR"
-curl -L https://github.com/facebook/zstd/releases/download/v1.4.8/zstd-1.4.8.tar.gz > zstd-1.4.8.tar.gz
-tar -xvf zstd-1.4.8.tar.gz
-cd zstd-1.4.8/build/cmake
+curl -L https://github.com/facebook/zstd/archive/v1.1.0.tar.gz > zstd-1.1.0.tar.gz
+tar -xvf zstd-1.1.0.tar.gz
+cd zstd-1.1.0/build/cmake
 mkdir build
 cd build
 cmake ..
