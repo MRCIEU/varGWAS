@@ -28,9 +28,8 @@ void PhenotypeFile::parse() {
   std::ifstream file(_pheno_file_path.c_str());
   int out_idx = -1;
   int sid_idx = -1;
-  std::set<int> cov_idx;
+  std::unordered_map<unsigned, unsigned> cov_idx; // column index mapping between file & vector of vectors
   int i = -1;
-  int cov_offset = -1;
 
   if (file.is_open()) {
     bool passed_first_line = false;
@@ -67,13 +66,12 @@ void PhenotypeFile::parse() {
           }
 
           // is the current token from a covariate column
-          if (cov_offset != -1 && cov_idx.count(i)) {
-            int idx = i - cov_offset;
-            assert(_covariate_column.size() > idx);
+          if (cov_idx.count(i)) {
+            assert(_covariate_column.size() > cov_idx[i]);
             try {
-              spdlog::trace("covariate n={}, value={}", idx, token);
+              spdlog::trace("covariate n={}, value={}", cov_idx[i], token);
               long double val = std::stold(token);
-              _covariate_column[idx].push_back(val);
+              _covariate_column[cov_idx[i]].push_back(val);
             } catch (...) {
               throw std::runtime_error("Could not cast covariate value to numeric: " + token);
             }
@@ -90,7 +88,7 @@ void PhenotypeFile::parse() {
 
           // record file column numbers of model variables
           if (_covariate_column_headers.count(token)) {
-            cov_idx.insert(i);
+            cov_idx[i] = cov_idx.size(); // file column index = covariate vector index
             _covariate_column.emplace_back(); // instantiate v of v
             spdlog::debug("Found covariate index: {}", i);
           } else if (token == _outcome_column_header) {
@@ -118,16 +116,6 @@ void PhenotypeFile::parse() {
         }
         passed_first_line = true;
 
-        // get minimum covariate index in vector
-        for (int idx : cov_idx) {
-          if (cov_offset == -1 || idx < cov_offset) {
-            cov_offset = idx;
-          }
-        }
-        spdlog::trace("cov_offset={}", cov_offset);
-        if (!_covariate_column_headers.empty()) {
-          assert(cov_offset != -1);
-        }
       }
 
     }
@@ -139,6 +127,7 @@ void PhenotypeFile::parse() {
   _n_samples = _sample_identifier_column.size();
   spdlog::info("Found {} samples in phenotype file", _n_samples);
 }
+
 /*
  * Function to subset data using provided list of sample identifiers
  * @return vector of sample indexes with missing phenotypes to mask in the model
