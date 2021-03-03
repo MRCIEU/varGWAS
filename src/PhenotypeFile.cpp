@@ -26,23 +26,21 @@ void PhenotypeFile::parse() {
   }
   spdlog::info("Outcome variable: {}", _outcome_column_header);
   std::ifstream file(_pheno_file_path.c_str());
-  int out_idx = -1;
-  int sid_idx = -1;
+  int out_idx = -1; // outcome field index
+  int sid_idx = -1; // sample ID field index
   std::unordered_map<unsigned, unsigned> cov_idx; // column index mapping between file & vector of vectors
-  int i = -1;
+  bool passed_first_line = false;
+  std::string line;
+  std::string token;
 
   if (file.is_open()) {
-    bool passed_first_line = false;
-    std::string line;
-    std::string token;
-
     // read file line-by-line
     while (getline(file, line)) {
       spdlog::trace(line);
       std::istringstream token_stream(line);
+      int i = 0; // token index
 
       if (passed_first_line) { // read file body
-        i = 0;
 
         // TODO implement using boost to allow for quotes in the file
         while (std::getline(token_stream, token, _sep)) {
@@ -50,8 +48,8 @@ void PhenotypeFile::parse() {
 
           // is the current token from the outcome column
           if (i == out_idx) {
+            spdlog::trace("outcome value={}", token);
             try {
-              spdlog::trace("outcome value={}", token);
               long double val = std::stold(token);
               _outcome_column.push_back(val);
             } catch (...) {
@@ -67,9 +65,9 @@ void PhenotypeFile::parse() {
 
           // is the current token from a covariate column
           if (cov_idx.count(i)) {
+            spdlog::trace("covariate n={}, value={}", cov_idx[i], token);
             assert(_covariate_column.size() > cov_idx[i]);
             try {
-              spdlog::trace("covariate n={}, value={}", cov_idx[i], token);
               long double val = std::stold(token);
               _covariate_column[cov_idx[i]].push_back(val);
             } catch (...) {
@@ -81,7 +79,6 @@ void PhenotypeFile::parse() {
         }
 
       } else { // read file header
-        i = 0;
 
         while (std::getline(token_stream, token, _sep)) {
           spdlog::debug("Phenotype file header n={}: {}", i, token);
@@ -89,7 +86,7 @@ void PhenotypeFile::parse() {
           // record file column numbers of model variables
           if (_covariate_column_headers.count(token)) {
             cov_idx[i] = cov_idx.size(); // file column index = covariate vector index
-            _covariate_column.emplace_back(); // instantiate v of v
+            _covariate_column.push_back(std::vector<long double>()); // instantiate v of v
             spdlog::debug("Found covariate index: {}", i);
           } else if (token == _outcome_column_header) {
             out_idx = i;
