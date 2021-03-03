@@ -89,9 +89,12 @@ int main(int argc, char **argv) {
   spdlog::debug("Variable file: {}", variable_file);
   char sep = result["sep"].as<char>();
   spdlog::debug("Variable file sep: {}", sep);
-  std::vector<std::string> covariates;
+  std::set<std::string> covariates;
   if (result.count("covariates") > 0) {
-    covariates = result["covariates"].as<std::vector<std::string>>();
+    std::vector<std::string> tmp = result["covariates"].as<std::vector<std::string>>();
+    for (auto &e : tmp) {
+      covariates.insert(e);
+    }
   }
   for (auto &c:covariates) {
     spdlog::debug("Covariate(s): {}", c);

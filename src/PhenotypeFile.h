@@ -11,7 +11,7 @@ class PhenotypeFile {
  public:
   PhenotypeFile(
       std::string &pheno_file_path,
-      std::vector<std::string> &covariate_column_headers,
+      std::set<std::string> &covariate_column_headers,
       std::string &outcome_column_header,
       std::string &id_column_header,
       char sep)
@@ -30,7 +30,7 @@ class PhenotypeFile {
 
  private:
   std::string &_pheno_file_path;
-  std::vector<std::string> &_covariate_column_headers;
+  std::set<std::string> &_covariate_column_headers;
   std::string &_outcome_column_header;
   std::string &_id_column_header;
   std::vector<std::string> _sample_identifier_column;

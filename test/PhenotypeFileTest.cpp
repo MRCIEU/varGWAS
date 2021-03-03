@@ -1,3 +1,12 @@
+#include <fstream>
+#include <vector>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <stdexcept>
+#include <set>
+#include <unordered_map>
+#include <algorithm>
 #include "PhenotypeFile.h"
 #include "PhenotypeFileException.h"
 #include "gtest/gtest.h"
@@ -80,4 +89,8 @@ TEST(PhenotypeFileTest, subset_samples_should_function) {
   ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[0][1], 1, 1e-10);
   ASSERT_NEAR(phenotypeFile.GetCovariateColumn()[1][1], -0.921834963877281, 1e-10);
   ASSERT_NEAR(phenotypeFile.GetOutcomeColumn()[1], 8.25428258247076, 1e-10);
+}
+
+TEST(PhenotypeFileTest, idx) {
+
 }

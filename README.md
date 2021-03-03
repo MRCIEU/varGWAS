@@ -56,6 +56,7 @@ Perform vGWAS
 ```shell
 docker run \
 -v /Users/ml18692/projects/jlst_cpp/test/data:/data \
+-e SPDLOG_LEVEL=debug \
 -it jlst_cpp \
 -v /data/phenotypes.csv \
 -s , \

@@ -28,7 +28,7 @@ void PhenotypeFile::parse() {
   std::ifstream file(_pheno_file_path.c_str());
   int out_idx = -1;
   int sid_idx = -1;
-  std::vector<int> cov_idx;
+  std::set<int> cov_idx;
   int i = -1;
   int cov_offset = -1;
 
@@ -67,7 +67,7 @@ void PhenotypeFile::parse() {
           }
 
           // is the current token from a covariate column
-          if (cov_offset > -1 && std::find(cov_idx.begin(), cov_idx.end(), i) != cov_idx.end()) {
+          if (cov_offset != -1 && cov_idx.count(i)) {
             int idx = i - cov_offset;
             assert(_covariate_column.size() > idx);
             try {
@@ -89,9 +89,8 @@ void PhenotypeFile::parse() {
           spdlog::debug("Phenotype file header n={}: {}", i, token);
 
           // record file column numbers of model variables
-          if (std::find(_covariate_column_headers.begin(), _covariate_column_headers.end(), token)
-              != _covariate_column_headers.end()) {
-            cov_idx.push_back(i);
+          if (_covariate_column_headers.count(token)) {
+            cov_idx.insert(i);
             _covariate_column.emplace_back(); // instantiate v of v
             spdlog::debug("Found covariate index: {}", i);
           } else if (token == _outcome_column_header) {
@@ -125,6 +124,7 @@ void PhenotypeFile::parse() {
             cov_offset = idx;
           }
         }
+        spdlog::trace("cov_offset={}", cov_offset);
         if (!_covariate_column_headers.empty()) {
           assert(cov_offset != -1);
         }
