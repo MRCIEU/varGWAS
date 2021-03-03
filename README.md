@@ -45,8 +45,27 @@ CXX=/mnt/storage/software/languages/gcc-5.5.0/bin/g++ \
 
 ### Docker
 
+Build image
+
 ```shell
 docker build -t jlst_cpp .
+```
+
+Perform GWAS
+
+```shell
+docker run \
+-v /Users/ml18692/projects/jlst_cpp/test/data:/data \ 
+-it jlst_cpp \
+/app/build/bin/jlst_cpp \
+-v /data/phenotypes.csv \
+-s , \
+-c sex,age,PC.1,PC.2,PC.3,PC.4,PC.5,PC.6,PC.7,PC.8,PC.9,PC.10 \
+-o /data/output.txt \
+-b /data/genotypes.bgen \
+-p Y \
+-i S \
+-t 1
 ```
 
 ### Test
