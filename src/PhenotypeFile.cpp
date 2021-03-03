@@ -120,7 +120,6 @@ void PhenotypeFile::parse() {
         }
 
         passed_first_line = true;
-
       }
 
     }
