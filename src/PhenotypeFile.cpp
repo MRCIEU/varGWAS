@@ -85,7 +85,8 @@ void PhenotypeFile::parse() {
 
           // record file column numbers of model variables
           if (_covariate_column_headers.count(token)) {
-            cov_idx[i] = cov_idx.size(); // file column index = covariate vector index
+            int last_n = cov_idx.size();
+            cov_idx[i] = last_n; // file column index = covariate vector index
             _covariate_column.push_back(std::vector<long double>()); // instantiate v of v
             spdlog::debug("Found covariate index: {}", i);
           } else if (token == _outcome_column_header) {
@@ -113,6 +114,7 @@ void PhenotypeFile::parse() {
         }
 
         // print out covariate column mapping
+        spdlog::debug("Number of covariates: {}", _covariate_column.size());
         for (auto const &x : cov_idx) {
           spdlog::debug("Mapping covariate column i={} to c={}", x.first, x.second);
         }
