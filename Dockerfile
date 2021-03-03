@@ -1,4 +1,4 @@
-FROM gcc:5.5
+FROM gcc:6.5
 
 # install cmake
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.19.6/cmake-3.19.6-Linux-x86_64.tar.gz && \

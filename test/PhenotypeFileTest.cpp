@@ -1,11 +1,7 @@
 #include <fstream>
 #include <vector>
-#include <iostream>
-#include <string>
-#include <sstream>
 #include <stdexcept>
 #include <set>
-#include <unordered_map>
 #include <algorithm>
 #include "PhenotypeFile.h"
 #include "PhenotypeFileException.h"
@@ -17,7 +13,7 @@
 
 TEST(PhenotypeFileTest, parse_should_function) {
   static std::string filePath = "data.csv";
-  static std::vector<std::string> covariateColumnHeaders = {"c1", "c2"};
+  static std::set<std::string> covariateColumnHeaders = {"c1", "c2"};
   static std::string outcomeColumnHeader = "y";
   static std::string idColumnHeader = "id";
   static char sep = ',';
@@ -42,7 +38,7 @@ TEST(PhenotypeFileTest, parse_should_function) {
 
 TEST(PhenotypeFileTest, parse_missing_exposure_field) {
   static std::string filePath = "data.csv";
-  static std::vector<std::string> covariateColumnHeaders = {"c1", "c2"};
+  static std::set<std::string> covariateColumnHeaders = {"c1", "c2"};
   static std::string outcomeColumnHeader = "NA";
   static std::string idColumnHeader = "id";
   static char sep = ',';
@@ -63,7 +59,7 @@ TEST(PhenotypeFileTest, parse_missing_exposure_field) {
 
 TEST(PhenotypeFileTest, subset_samples_should_function) {
   static std::string filePath = "data.csv";
-  static std::vector<std::string> covariateColumnHeaders = {"c1", "c2"};
+  static std::set<std::string> covariateColumnHeaders = {"c1", "c2"};
   static std::string outcomeColumnHeader = "y";
   static std::string idColumnHeader = "id";
   static char sep = ',';
@@ -93,4 +89,41 @@ TEST(PhenotypeFileTest, subset_samples_should_function) {
 
 TEST(PhenotypeFileTest, idx) {
 
+  /*
+   * FILE
+   * a,b,c,d,e
+   * 0,1,2,3,4
+   *
+   * COVAR
+   * b, c
+   * */
+
+  std::set<int> cov_idx = {1, 2};
+  int num_covar = 2;
+  int i = -1;
+  int cov_offset = -1;
+  std::vector<std::vector<long double>> covariate_column;
+
+  // make space for two covariates
+  covariate_column.emplace_back();
+  covariate_column.emplace_back();
+
+  ASSERT_EQ(covariate_column.size(), num_covar);
+  ASSERT_EQ(cov_idx.size(), num_covar);
+
+  // get minimum covariate index in vector
+  for (int idx : cov_idx) {
+    if (cov_offset == -1 || idx < cov_offset) {
+      cov_offset = idx;
+    }
+  }
+  if (num_covar > 0) {
+    ASSERT_NE(cov_offset, -1);
+  }
+
+  // check offset
+  ASSERT_EQ(cov_offset, 1);
+  ASSERT_EQ(1 - cov_offset, 0);
+  ASSERT_EQ(2 - cov_offset, 1);
+  ASSERT_EQ(2 - cov_offset, 1);
 }

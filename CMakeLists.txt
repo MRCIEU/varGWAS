@@ -14,7 +14,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/boost_1_75_0)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd-1.1.0/lib)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/3rd_party/sqlite3)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/db/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp) # fails to compile with >= gcc-7
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/fast-cpp-csv-parser)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen-master)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/cxxopts-2.2.0/include)
