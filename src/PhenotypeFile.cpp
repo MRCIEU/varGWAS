@@ -111,6 +111,12 @@ void PhenotypeFile::parse() {
               "Expected n=" + std::to_string(_covariate_column_headers.size()) + " covariate(s) but n="
                   + std::to_string(_covariate_column.size()) + " were found in the file");
         }
+
+        // print out covariate column mapping
+        for (auto const &x : cov_idx) {
+          spdlog::debug("Mapping covariate column i={} to c={}", x.first, x.second);
+        }
+
         passed_first_line = true;
 
       }
