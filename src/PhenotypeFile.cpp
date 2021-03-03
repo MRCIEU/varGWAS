@@ -163,7 +163,7 @@ std::set<unsigned> PhenotypeFile::join(const std::vector<std::string> &samples) 
 
     // get index for sample
     if (mapping.count(samples[i]) == 0) {
-      spdlog::info("Sample missing from phenotype file: {}", samples[i]);
+      spdlog::debug("Sample missing from phenotype file: {}", samples[i]);
       // add missing data with null values
       sample_identifier_column_tmp.push_back(samples[i]);
       outcome_column_tmp.push_back(-1);
