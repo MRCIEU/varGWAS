@@ -2,6 +2,7 @@
 // Created by Matt Lyon on 10/02/2021.
 //
 
+#include <omp.h>
 #include <Eigen/Core>
 #include <Eigen/QR>
 #include <Eigen/Dense>
@@ -12,7 +13,6 @@
 #include "PhenotypeFile.h"
 #include "Result.h"
 #include "spdlog/spdlog.h"
-#include <omp.h>
 
 /*
  * Class to perform association testing
@@ -20,7 +20,6 @@
 namespace jlst {
 
 void Model::run() {
-  std::vector<Result> results;
   std::string chromosome;
   uint32_t position;
   std::string rsid;
@@ -28,6 +27,9 @@ void Model::run() {
   std::vector<std::vector<double>> probs;
   std::vector<double> dosages;
   unsigned n = 0;
+
+  spdlog::info("Using {} thread(s)", _threads);
+  omp_set_num_threads(_threads);
 
   // Create Eigen matrix of phenotypes wo dosage
   // p+2 for dosage and intercept
@@ -49,12 +51,12 @@ void Model::run() {
   // open output file
   std::ofstream file(_output_file);
   if (file.is_open()) {
-    spdlog::info("Starting {} thread(s)", _threads);
-    omp_set_num_threads(_threads);
-    // Read variant-by-variant
-#pragma omp parallel
+    file << "CHR\tPOS\tRSID\tOA\tEA\tBETA\tSE\tP\tN\tEAF" << std::endl;
+    file.flush();
+#pragma omp parallel default(none) shared(n, file) private(chromosome, position, rsid, alleles, probs, dosages)
     {
 #pragma omp master
+      // Read variant-by-variant
       while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
         n++;
         spdlog::debug("Testing {}th variant: {}", n, rsid);
@@ -101,6 +103,7 @@ void Model::run() {
       }
 #pragma omp taskwait
     }
+
     file.close();
   } else {
     throw std::runtime_error("Could not open file: " + _output_file);

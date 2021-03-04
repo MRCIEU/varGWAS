@@ -6,7 +6,7 @@ project(jlst_cpp)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# OpenMP (tested with v4.5)
+# OpenMP
 find_package(OpenMP REQUIRED)
 
 # include
