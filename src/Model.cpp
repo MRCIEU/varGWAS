@@ -85,7 +85,7 @@ void Model::run() {
         assert(dosages.size() == _phenotype_file.GetNSamples());
 
         // run test and write to file
-#pragma omp task default(none) shared(file, X, y) private(chromosome, position, rsid, alleles, dosages)
+#pragma omp task
         {
           spdlog::debug("rsid = {}, thread = {}", rsid, omp_get_thread_num());
           Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
