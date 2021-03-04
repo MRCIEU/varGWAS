@@ -53,7 +53,7 @@ void Model::run() {
   if (file.is_open()) {
     file << "CHR\tPOS\tRSID\tOA\tEA\tBETA\tSE\tP\tN\tEAF" << std::endl;
     file.flush();
-#pragma omp parallel default(none) shared(n, file) private(chromosome, position, rsid, alleles, probs, dosages)
+#pragma omp parallel default(none) shared(n, file) private(chromosome, position, rsid, alleles, probs, dosages, X, y)
     {
 #pragma omp master
       // Read variant-by-variant
