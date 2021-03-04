@@ -52,7 +52,7 @@ void Model::run() {
   if (file.is_open()) {
     file << "CHR\tPOS\tRSID\tOA\tEA\tBETA\tSE\tP\tN\tEAF" << std::endl;
     file.flush();
-#pragma omp parallel default(none) shared(file, X, y, _non_null_idx, _phenotype_file) private(chromosome, position, rsid, alleles, probs, dosages)
+#pragma omp parallel default(none) shared(file, X, y) private(chromosome, position, rsid, alleles, probs, dosages)
     {
 #pragma omp master
       // Read variant-by-variant
@@ -85,7 +85,7 @@ void Model::run() {
         assert(dosages.size() == _phenotype_file.GetNSamples());
 
         // run test and write to file
-#pragma omp task
+#pragma omp task default(none) shared(file, X, y) private(chromosome, position, rsid, alleles, dosages)
         {
           spdlog::debug("rsid = {}, thread = {}", rsid, omp_get_thread_num());
           Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
