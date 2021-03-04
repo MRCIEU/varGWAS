@@ -14,7 +14,6 @@
 #include "spdlog/spdlog.h"
 #include <omp.h>
 
-
 /*
  * Class to perform association testing
  * */
@@ -51,6 +50,7 @@ void Model::run() {
   std::ofstream file(_output_file);
   if (file.is_open()) {
     spdlog::info("Starting {} thread(s)", _threads);
+    omp_set_num_threads(_threads);
     // Read variant-by-variant
 #pragma omp parallel
     {
@@ -88,6 +88,7 @@ void Model::run() {
         // run test and write to file
 #pragma omp task
         {
+          spdlog::debug("rsid = {}, thread = {}", rsid, omp_get_thread_num());
           Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
 #pragma omp critical
           {
