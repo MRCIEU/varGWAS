@@ -30,7 +30,6 @@ void Model::run() {
   unsigned n = 0;
 
   spdlog::info("Starting {} thread(s)", _threads);
-  ThreadPool pool(_threads);
 
   // Create Eigen matrix of phenotypes wo dosage
   // p+2 for dosage and intercept
@@ -82,10 +81,10 @@ void Model::run() {
 
     // enqueue and store future
     spdlog::debug("Submitting job to queue");
-    auto result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
+    Result result = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
 
     // write to file
-    _sf->write(result.get());
+    _sf->write(result);
   }
 }
 

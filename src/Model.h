@@ -13,7 +13,6 @@
 #include <Eigen/QR>
 #include <Eigen/Dense>
 #include <Eigen/Eigen>
-#include <ThreadPool.h>
 #include "PhenotypeFile.h"
 #include "BgenParser.h"
 #include "Result.h"
