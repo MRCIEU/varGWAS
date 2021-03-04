@@ -150,7 +150,14 @@ Result Model::fit(std::string &chromosome,
   spdlog::debug("Checking for rank deficiency");
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X_complete);
   if (qr.rank() < X_complete.cols()) {
-    throw std::runtime_error("rank-deficient matrix");
+    // skip result
+    res.beta = -1;
+    res.se = -1;
+    res.pval = -1;
+    res.n = -1;
+    res.eaf = -1;
+
+    return res;
   }
 
   // first stage model
