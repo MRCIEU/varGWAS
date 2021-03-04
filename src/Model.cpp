@@ -2,6 +2,7 @@
 // Created by Matt Lyon on 10/02/2021.
 //
 
+#include <omp.h>
 #include <Eigen/Core>
 #include <Eigen/QR>
 #include <Eigen/Dense>
@@ -13,24 +14,21 @@
 #include "Result.h"
 #include "spdlog/spdlog.h"
 
-
 /*
  * Class to perform association testing
  * */
 namespace jlst {
 
 void Model::run() {
-  std::vector<Result> results;
   std::string chromosome;
   uint32_t position;
   std::string rsid;
   std::vector<std::string> alleles;
   std::vector<std::vector<double>> probs;
   std::vector<double> dosages;
-  unsigned n = 0;
 
-  spdlog::info("Starting {} thread(s)", _threads);
-  ThreadPool pool(_threads);
+  spdlog::info("Using {} thread(s)", _threads);
+  omp_set_num_threads(_threads);
 
   // Create Eigen matrix of phenotypes wo dosage
   // p+2 for dosage and intercept
@@ -49,44 +47,69 @@ void Model::run() {
 
   spdlog::info("Estimating model with {} samples and {} parameters", _non_null_idx.size(), X.cols());
 
-  // Read variant-by-variant
-  while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
-    n++;
-    spdlog::debug("Testing {}th variant: {}", n, rsid);
+  // open output file
+  std::ofstream file(_output_file);
+  if (file.is_open()) {
+    file << "CHR\tPOS\tRSID\tOA\tEA\tBETA\tSE\tP\tN\tEAF" << std::endl;
+    file.flush();
+#pragma omp parallel default(none) shared(file, X, y) private(chromosome, position, rsid, alleles, probs, dosages)
+    {
+#pragma omp master
+      // Read variant-by-variant
+      while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
 
-    // only support bi-allelic variants
-    if (alleles.size() != 2) {
-      spdlog::warn("Skipping multi-allelic variant: {}", rsid);
-      continue;
-    }
+        // only support bi-allelic variants
+        if (alleles.size() != 2) {
+          spdlog::warn("Skipping multi-allelic variant: {}", rsid);
+          continue;
+        }
 
-    // convert probabilities to dosage values
-    _bgen_parser.read_probs(&probs);
+        // convert probabilities to dosage values
+        _bgen_parser.read_probs(&probs);
 
-    spdlog::debug("Converting probabilities to dosage values");
-    dosages.clear();
-    for (auto &prob : probs) {
-      // only support bi-allelic variants [0, 1, 2 copies of alt]
-      assert(prob.size() == 3);
+        spdlog::debug("Converting probabilities to dosage values");
+        dosages.clear();
+        for (auto &prob : probs) {
+          // only support bi-allelic variants [0, 1, 2 copies of alt]
+          if (prob.size() != 3) {
+            throw std::runtime_error("Found " + std::to_string(prob.size()) + " genotypes but we expect three");
+          }
 
-      // convert genotype probabilities to copies of alt
-      if (prob[0] == -1 && prob[1] == -1 && prob[2] == -1) {
-        dosages.push_back(-1);
-      } else {
-        dosages.push_back(prob[1] + (2 * prob[2]));
+          // convert genotype probabilities to copies of alt
+          if (prob[0] == -1 && prob[1] == -1 && prob[2] == -1) {
+            dosages.push_back(-1);
+          } else {
+            dosages.push_back(prob[1] + (2 * prob[2]));
+          }
+        }
+
+        // check no missing values between sample list and dosage
+        if (dosages.size() != _phenotype_file.GetNSamples()){
+          throw std::runtime_error("Number of dosage values does not match number of participants");
+        }
+
+        // run test and write to file
+#pragma omp task
+        {
+          spdlog::debug("rsid = {}, thread = {}", rsid, omp_get_thread_num());
+          Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
+#pragma omp critical
+          {
+            file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
+                 << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.pval << "\t" << res.n << "\t"
+                 << res.eaf << "\n";
+            file.flush();
+          }
+        }
       }
+#pragma omp taskwait
     }
 
-    // check no missing values between sample list and dosage
-    assert(dosages.size() == _phenotype_file.GetNSamples());
-
-    // enqueue and store future
-    spdlog::debug("Submitting job to queue");
-    auto result = pool.enqueue(fit, chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
-
-    // write to file
-    _sf->write(result.get());
+    file.close();
+  } else {
+    throw std::runtime_error("Could not open file: " + _output_file);
   }
+
 }
 
 Result Model::fit(std::string &chromosome,
@@ -127,7 +150,14 @@ Result Model::fit(std::string &chromosome,
   spdlog::debug("Checking for rank deficiency");
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X_complete);
   if (qr.rank() < X_complete.cols()) {
-    throw std::runtime_error("rank-deficient matrix");
+    // skip result
+    res.beta = -1;
+    res.se = -1;
+    res.pval = -1;
+    res.n = -1;
+    res.eaf = -1;
+
+    return res;
   }
 
   // first stage model

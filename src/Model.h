@@ -13,11 +13,9 @@
 #include <Eigen/QR>
 #include <Eigen/Dense>
 #include <Eigen/Eigen>
-#include <ThreadPool.h>
 #include "PhenotypeFile.h"
 #include "BgenParser.h"
 #include "Result.h"
-#include "SynchronizedFile.h"
 
 #ifndef JLST_CPP_SRC_MODEL_H_
 #define JLST_CPP_SRC_MODEL_H_
@@ -28,12 +26,12 @@ class Model {
   Model(jlst::PhenotypeFile &phenotype_file,
         genfile::bgen::BgenParser &bgen_parser,
         std::set<unsigned> &non_null_idx,
-        std::shared_ptr<SynchronizedFile> sf,
+        std::string &output_file,
         int threads)
       : _phenotype_file(phenotype_file),
         _bgen_parser(bgen_parser),
         _non_null_idx(non_null_idx),
-        _sf(std::move(sf)),
+        _output_file(output_file),
         _threads(threads) {}
   void run();
   static Result fit(std::string &chromosome,
@@ -51,7 +49,7 @@ class Model {
   genfile::bgen::BgenParser &_bgen_parser;
   std::set<unsigned> &_non_null_idx;
   int _threads;
-  std::shared_ptr<SynchronizedFile> _sf;
+  std::string &_output_file;
 };
 }
 

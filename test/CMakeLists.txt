@@ -19,6 +19,7 @@ target_link_libraries(
         ${BGEN_LIB_PATH}
         ${LIBSCL_LIB_PATH}
         ${GLOG_LIB_PATH}
+        OpenMP::OpenMP_CXX
         ${CMAKE_THREAD_LIBS_INIT}
 )
 

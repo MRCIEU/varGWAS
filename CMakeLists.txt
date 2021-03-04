@@ -6,7 +6,8 @@ project(jlst_cpp)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-find_package(Threads)
+# OpenMP
+find_package(OpenMP REQUIRED)
 
 # include
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/genfile/include)
@@ -18,7 +19,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp) # fails to compi
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/fast-cpp-csv-parser)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen-master)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/cxxopts-2.2.0/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/ThreadPool)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 

@@ -6,3 +6,5 @@ lib/
 test/data/*
 !test/data/data.R
 !test/data/CMakeLists.txt
+!test/data/test.bgen
+!test/data/test.bgen.bgi
