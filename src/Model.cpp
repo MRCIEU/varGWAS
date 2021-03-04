@@ -26,7 +26,6 @@ void Model::run() {
   std::vector<std::string> alleles;
   std::vector<std::vector<double>> probs;
   std::vector<double> dosages;
-  unsigned n = 0;
 
   spdlog::info("Using {} thread(s)", _threads);
   omp_set_num_threads(_threads);
@@ -53,13 +52,11 @@ void Model::run() {
   if (file.is_open()) {
     file << "CHR\tPOS\tRSID\tOA\tEA\tBETA\tSE\tP\tN\tEAF" << std::endl;
     file.flush();
-#pragma omp parallel default(none) shared(n, file) private(chromosome, position, rsid, alleles, probs, dosages, X, y)
+#pragma omp parallel default(none) shared(file, X, y, _non_null_idx, _phenotype_file) private(chromosome, position, rsid, alleles, probs, dosages)
     {
 #pragma omp master
       // Read variant-by-variant
       while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
-        n++;
-        spdlog::debug("Testing {}th variant: {}", n, rsid);
 
         // only support bi-allelic variants
         if (alleles.size() != 2) {
