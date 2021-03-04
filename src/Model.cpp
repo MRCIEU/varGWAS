@@ -72,7 +72,7 @@ void Model::run() {
         for (auto &prob : probs) {
           // only support bi-allelic variants [0, 1, 2 copies of alt]
           if (prob.size() != 3) {
-            throw std::runtime_error("Found " + prob.size() + " genotypes but we expect three");
+            throw std::runtime_error("Found " + std::to_string(prob.size()) + " genotypes but we expect three");
           }
 
           // convert genotype probabilities to copies of alt
