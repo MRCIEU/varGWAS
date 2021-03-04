@@ -12,6 +12,7 @@
 #include "PhenotypeFile.h"
 #include "Result.h"
 #include "spdlog/spdlog.h"
+#include <omp.h>
 
 
 /*
@@ -51,44 +52,54 @@ void Model::run() {
   if (file.is_open()) {
     spdlog::info("Starting {} thread(s)", _threads);
     // Read variant-by-variant
-    // TODO openmp
-    while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
-      n++;
-      spdlog::debug("Testing {}th variant: {}", n, rsid);
+#pragma omp parallel
+    {
+#pragma omp master
+      while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
+        n++;
+        spdlog::debug("Testing {}th variant: {}", n, rsid);
 
-      // only support bi-allelic variants
-      if (alleles.size() != 2) {
-        spdlog::warn("Skipping multi-allelic variant: {}", rsid);
-        continue;
-      }
+        // only support bi-allelic variants
+        if (alleles.size() != 2) {
+          spdlog::warn("Skipping multi-allelic variant: {}", rsid);
+          continue;
+        }
 
-      // convert probabilities to dosage values
-      _bgen_parser.read_probs(&probs);
+        // convert probabilities to dosage values
+        _bgen_parser.read_probs(&probs);
 
-      spdlog::debug("Converting probabilities to dosage values");
-      dosages.clear();
-      for (auto &prob : probs) {
-        // only support bi-allelic variants [0, 1, 2 copies of alt]
-        assert(prob.size() == 3);
+        spdlog::debug("Converting probabilities to dosage values");
+        dosages.clear();
+        for (auto &prob : probs) {
+          // only support bi-allelic variants [0, 1, 2 copies of alt]
+          assert(prob.size() == 3);
 
-        // convert genotype probabilities to copies of alt
-        if (prob[0] == -1 && prob[1] == -1 && prob[2] == -1) {
-          dosages.push_back(-1);
-        } else {
-          dosages.push_back(prob[1] + (2 * prob[2]));
+          // convert genotype probabilities to copies of alt
+          if (prob[0] == -1 && prob[1] == -1 && prob[2] == -1) {
+            dosages.push_back(-1);
+          } else {
+            dosages.push_back(prob[1] + (2 * prob[2]));
+          }
+        }
+
+        // check no missing values between sample list and dosage
+        assert(dosages.size() == _phenotype_file.GetNSamples());
+
+        // run test and write to file
+#pragma omp task
+        {
+          Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
+#pragma omp critical
+          {
+            file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
+                 << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.pval << "\t" << res.n << "\t"
+                 << res.eaf << "\n";
+            file.flush();
+          }
         }
       }
-
-      // check no missing values between sample list and dosage
-      assert(dosages.size() == _phenotype_file.GetNSamples());
-
-      // run test and write to file
-      Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
-      file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
-           << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.pval << "\t" << res.n << "\t"
-           << res.eaf << "\n";
+#pragma omp taskwait
     }
-
     file.close();
   } else {
     throw std::runtime_error("Could not open file: " + _output_file);
