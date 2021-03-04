@@ -44,7 +44,7 @@ CMAKE_ROOT=/mnt/storage/home/ml18692/projects/jlst_cpp/lib/cmake-3.20.0-rc2-linu
 CC=/mnt/storage/software/languages/gcc-5.5.0/bin/gcc \
 CXX=/mnt/storage/software/languages/gcc-5.5.0/bin/g++ \
 cmake .. \
--DCMAKE_BUILD_TYPE=Release
+-DCMAKE_BUILD_TYPE=Debug
 ```
 
 ### Docker

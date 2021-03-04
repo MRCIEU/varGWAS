@@ -71,7 +71,9 @@ void Model::run() {
         dosages.clear();
         for (auto &prob : probs) {
           // only support bi-allelic variants [0, 1, 2 copies of alt]
-          assert(prob.size() == 3);
+          if (prob.size() != 3) {
+            throw std::runtime_error("Found " + prob.size() + " genotypes but we expect three");
+          }
 
           // convert genotype probabilities to copies of alt
           if (prob[0] == -1 && prob[1] == -1 && prob[2] == -1) {
@@ -82,7 +84,9 @@ void Model::run() {
         }
 
         // check no missing values between sample list and dosage
-        assert(dosages.size() == _phenotype_file.GetNSamples());
+        if (dosages.size() != _phenotype_file.GetNSamples()){
+          throw std::runtime_error("Number of dosage values does not match number of participants");
+        }
 
         // run test and write to file
 #pragma omp task
