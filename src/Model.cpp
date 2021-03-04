@@ -29,8 +29,6 @@ void Model::run() {
   std::vector<double> dosages;
   unsigned n = 0;
 
-  spdlog::info("Starting {} thread(s)", _threads);
-
   // Create Eigen matrix of phenotypes wo dosage
   // p+2 for dosage and intercept
   Eigen::MatrixXd X = Eigen::MatrixXd(_phenotype_file.GetNSamples(), _phenotype_file.GetCovariateColumn().size() + 2);
@@ -48,44 +46,54 @@ void Model::run() {
 
   spdlog::info("Estimating model with {} samples and {} parameters", _non_null_idx.size(), X.cols());
 
-  // Read variant-by-variant
-  while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
-    n++;
-    spdlog::debug("Testing {}th variant: {}", n, rsid);
+  // open output file
+  std::ofstream file(_output_file);
+  if (file.is_open()) {
+    spdlog::info("Starting {} thread(s)", _threads);
+    // Read variant-by-variant
+    // TODO openmp
+    while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
+      n++;
+      spdlog::debug("Testing {}th variant: {}", n, rsid);
 
-    // only support bi-allelic variants
-    if (alleles.size() != 2) {
-      spdlog::warn("Skipping multi-allelic variant: {}", rsid);
-      continue;
-    }
-
-    // convert probabilities to dosage values
-    _bgen_parser.read_probs(&probs);
-
-    spdlog::debug("Converting probabilities to dosage values");
-    dosages.clear();
-    for (auto &prob : probs) {
-      // only support bi-allelic variants [0, 1, 2 copies of alt]
-      assert(prob.size() == 3);
-
-      // convert genotype probabilities to copies of alt
-      if (prob[0] == -1 && prob[1] == -1 && prob[2] == -1) {
-        dosages.push_back(-1);
-      } else {
-        dosages.push_back(prob[1] + (2 * prob[2]));
+      // only support bi-allelic variants
+      if (alleles.size() != 2) {
+        spdlog::warn("Skipping multi-allelic variant: {}", rsid);
+        continue;
       }
+
+      // convert probabilities to dosage values
+      _bgen_parser.read_probs(&probs);
+
+      spdlog::debug("Converting probabilities to dosage values");
+      dosages.clear();
+      for (auto &prob : probs) {
+        // only support bi-allelic variants [0, 1, 2 copies of alt]
+        assert(prob.size() == 3);
+
+        // convert genotype probabilities to copies of alt
+        if (prob[0] == -1 && prob[1] == -1 && prob[2] == -1) {
+          dosages.push_back(-1);
+        } else {
+          dosages.push_back(prob[1] + (2 * prob[2]));
+        }
+      }
+
+      // check no missing values between sample list and dosage
+      assert(dosages.size() == _phenotype_file.GetNSamples());
+
+      // run test and write to file
+      Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
+      file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
+           << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.pval << "\t" << res.n << "\t"
+           << res.eaf << "\n";
     }
 
-    // check no missing values between sample list and dosage
-    assert(dosages.size() == _phenotype_file.GetNSamples());
-
-    // enqueue and store future
-    spdlog::debug("Submitting job to queue");
-    Result result = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
-
-    // write to file
-    _sf->write(result);
+    file.close();
+  } else {
+    throw std::runtime_error("Could not open file: " + _output_file);
   }
+
 }
 
 Result Model::fit(std::string &chromosome,

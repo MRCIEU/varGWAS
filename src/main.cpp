@@ -11,7 +11,6 @@
 #include "spdlog/cfg/env.h"
 #include "PhenotypeFile.h"
 #include "Model.h"
-#include "SynchronizedFile.h"
 #include "PhenotypeFileException.h"
 
 bool file_exists(const std::string &name) {
@@ -136,15 +135,9 @@ int main(int argc, char **argv) {
     phenotype_file.parse();
     std::set<unsigned> non_null_idx = phenotype_file.join(samples);
 
-    // Create the synchronized file
-    auto synchronized_file = std::make_shared<jlst::SynchronizedFile>(output_file);
-
     // Perform locus association tests & write to file
-    jlst::Model model(phenotype_file, bgen_parser, non_null_idx, synchronized_file, threads);
+    jlst::Model model(phenotype_file, bgen_parser, non_null_idx, output_file, threads);
     model.run();
-
-    // close file
-    synchronized_file->close();
 
   } catch (jlst::PhenotypeFileException const &e) {
     spdlog::error("Error parsing phenotype file: {}", e.what());
