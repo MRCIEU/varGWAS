@@ -60,9 +60,3 @@ cmake .. && make -j
 cd "$LIB_DIR"
 curl -L https://github.com/google/googletest/archive/release-1.10.0.tar.gz >release-1.10.0.tar.gz
 tar -xvf release-1.10.0.tar.gz
-
-# ThreadPool
-cd "$LIB_DIR"
-curl -L https://github.com/progschj/ThreadPool/archive/master.zip >ThreadPool.zip
-unzip ThreadPool.zip
-mv ThreadPool-master ThreadPool
