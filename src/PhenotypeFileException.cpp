@@ -4,7 +4,6 @@
 
 #include "PhenotypeFileException.h"
 
-// TODO convert to parent class and subclass
 namespace jlst {
 PhenotypeFileException::PhenotypeFileException(const std::string &msg) {
   this->msg = msg;
