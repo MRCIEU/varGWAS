@@ -1,9 +1,9 @@
 # JLSP C++
 
-Implementation of the JLSP method (Staley et al) using C++
+Implementation of the Breusch-Pagan heteroscedasticity test for genome-wide association studies
 
 ```
-Staley, J. R., Windmeijer, F., Suderman, M., Smith, G. D., & Tilling, K. (n.d.). A robust mean and variance test with application to epigenome-wide association studies. https://doi.org/10.1101/2020.02.06.926584
+T. S. Breusch and A. R. Pagan, “A Simple Test for Heteroscedasticity and Random Coefficient Variation,” Econometrica, vol. 47, no. 5, p. 1287, Sep. 1979, doi: 10.2307/1911963.
 ```
 
 ## Install
@@ -128,8 +128,3 @@ export SPDLOG_LEVEL=debug
 ## Contributing
 
 This project follows the [Google style guide](https://google.github.io/styleguide/cppguide.html)
-
-## Performance
-
-OpenCL/CUDA, OpenMP and MPI? code optimization and performance tuning, parallelization using both shared memory (OpenMP)
-and message passing (MPI) paradigms
