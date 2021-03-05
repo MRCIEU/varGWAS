@@ -70,7 +70,7 @@ Usage:
 - Unordered categorical variables should be one-hot encoded.
 - Do not provide null values in the phenotype file - these should be filtered out.
 
-### Docker
+## Docker
 
 Build image
 
@@ -95,7 +95,7 @@ docker run \
 -t 1
 ```
 
-### Unit tests
+## Unit tests
 
 Run unit tests
 
