@@ -10,20 +10,20 @@ T. S. Breusch and A. R. Pagan, “A Simple Test for Heteroscedasticity and Rando
 
 Requires UNIX environment
 
-### SRC
+SRC
 
 ```shell
 git clone git@ieugit-scmv-d0.epi.bris.ac.uk:ml18692/jlst_cpp.git
 cd jlst_cpp
 ```
 
-### Libraries
+Libraries
 
 ```shell
 bash lib.sh
 ```
 
-### Build
+Build
 
 Tested with GCC v5 & v6 and with Apple Clang v12. Quantile regression library does not build with GCC >=v7.
 
@@ -46,6 +46,29 @@ CXX=/mnt/storage/software/languages/gcc-5.5.0/bin/g++ \
 cmake .. \
 -DCMAKE_BUILD_TYPE=Release
 ```
+
+## Usage
+
+```shell
+./bin/jlst_cpp
+
+Program to perform vGWAS of trait against variants in the BGEN format
+Usage:
+  JLST C++ v0.0.1 [OPTION...]
+
+  -v, --variable_file arg  Path to phenotype file
+  -s, --sep arg            File separator
+  -c, --covariates arg     List of covariates column names separated by a comma (whitespace and quotes are not permitted).
+  -o, --output_file arg    Path to output file
+  -b, --bgen_file arg      Path to BGEN file
+  -p, --phenotype arg      Column name for phenotype
+  -i, --id arg             Column name for genotype identifier
+  -h, --help               Print usage
+  -t, --threads arg        Number of threads (default: 8)
+```
+
+- Unordered categorical variables should be one-hot encoded.
+- Do not provide null values in the phenotype file - these should be filtered out.
 
 ### Docker
 
@@ -72,7 +95,7 @@ docker run \
 -t 1
 ```
 
-### Test
+### Unit tests
 
 Run unit tests
 
@@ -91,29 +114,6 @@ Rscript sim.R
 ```
 
 Inspect output [results.csv](./test/data/results.csv)
-
-## Usage
-
-```shell
-./bin/jlst_cpp
-
-Program to perform vGWAS of trait against variants in the BGEN format
-Usage:
-  JLST C++ v0.0.1 [OPTION...]
-
-  -v, --variable_file arg  Path to phenotype file
-  -s, --sep arg            File separator
-  -c, --covariates arg     List of covariates column names separated by a comma (whitespace and quotes are not permitted).
-  -o, --output_file arg    Path to output file
-  -b, --bgen_file arg      Path to BGEN file
-  -p, --phenotype arg      Column name for phenotype
-  -i, --id arg             Column name for genotype identifier
-  -h, --help               Print usage
-  -t, --threads arg        Number of threads (default: 8)
-```
-
-- Unordered categorical variables should be one-hot encoded.
-- Do not provide null values in the phenotype file - these should be filtered out.
 
 ## Logging
 
