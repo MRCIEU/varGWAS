@@ -1,29 +1,29 @@
 # JLSP C++
 
-Implementation of the JLSP method (Staley et al) using C++
+Implementation of the Breusch-Pagan heteroscedasticity test for genome-wide association studies
 
 ```
-Staley, J. R., Windmeijer, F., Suderman, M., Smith, G. D., & Tilling, K. (n.d.). A robust mean and variance test with application to epigenome-wide association studies. https://doi.org/10.1101/2020.02.06.926584
+T. S. Breusch and A. R. Pagan, “A Simple Test for Heteroscedasticity and Random Coefficient Variation,” Econometrica, vol. 47, no. 5, p. 1287, Sep. 1979, doi: 10.2307/1911963.
 ```
 
 ## Install
 
 Requires UNIX environment
 
-### SRC
+SRC
 
 ```shell
 git clone git@ieugit-scmv-d0.epi.bris.ac.uk:ml18692/jlst_cpp.git
 cd jlst_cpp
 ```
 
-### Libraries
+Libraries
 
 ```shell
 bash lib.sh
 ```
 
-### Build
+Build
 
 Tested with GCC v5 & v6 and with Apple Clang v12. Quantile regression library does not build with GCC >=v7.
 
@@ -46,51 +46,6 @@ CXX=/mnt/storage/software/languages/gcc-5.5.0/bin/g++ \
 cmake .. \
 -DCMAKE_BUILD_TYPE=Release
 ```
-
-### Docker
-
-Build image
-
-```shell
-docker build -t jlst_cpp .
-```
-
-Perform vGWAS
-
-```shell
-docker run \
--v /Users/ml18692/projects/jlst_cpp/test/data:/data \
--e SPDLOG_LEVEL=debug \
--it jlst_cpp \
--v /data/phenotypes.csv \
--s , \
--c sex,age,PC.1,PC.2,PC.3,PC.4,PC.5,PC.6,PC.7,PC.8,PC.9,PC.10 \
--o /data/output.txt \
--b /data/genotypes.bgen \
--p Y \
--i S \
--t 1
-```
-
-### Test
-
-Run unit tests
-
-```shell
-mkdir -p build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug
-make
-```
-
-Run end-to-end test
-
-```shell
-cd test
-Rscript sim.R
-```
-
-Inspect output [results.csv](./test/data/results.csv)
 
 ## Usage
 
@@ -115,6 +70,51 @@ Usage:
 - Unordered categorical variables should be one-hot encoded.
 - Do not provide null values in the phenotype file - these should be filtered out.
 
+## Docker
+
+Build image
+
+```shell
+docker build -t jlst_cpp .
+```
+
+Perform vGWAS
+
+```shell
+docker run \
+-v /Users/ml18692/projects/jlst_cpp/test/data:/data \
+-e SPDLOG_LEVEL=debug \
+-it jlst_cpp \
+-v /data/phenotypes.csv \
+-s , \
+-c sex,age,PC.1,PC.2,PC.3,PC.4,PC.5,PC.6,PC.7,PC.8,PC.9,PC.10 \
+-o /data/output.txt \
+-b /data/genotypes.bgen \
+-p Y \
+-i S \
+-t 1
+```
+
+## Unit tests
+
+Run unit tests
+
+```shell
+mkdir -p build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+make
+```
+
+Run end-to-end test
+
+```shell
+cd test
+Rscript sim.R
+```
+
+Inspect output [results.csv](./test/data/results.csv)
+
 ## Logging
 
 By default logging level is set to INFO. This can be overidden using environmental variables. See details on
@@ -128,8 +128,3 @@ export SPDLOG_LEVEL=debug
 ## Contributing
 
 This project follows the [Google style guide](https://google.github.io/styleguide/cppguide.html)
-
-## Performance
-
-OpenCL/CUDA, OpenMP and MPI? code optimization and performance tuning, parallelization using both shared memory (OpenMP)
-and message passing (MPI) paradigms
