@@ -138,6 +138,8 @@ int main(int argc, char **argv) {
     jlst::Model model(phenotype_file, bgen_parser, non_null_idx, output_file, threads);
     model.run();
 
+    spdlog::info("Analysis complete!");
+
   } catch (jlst::PhenotypeFileException const &e) {
     spdlog::error("Error parsing phenotype file: {}", e.what());
     return -1;
