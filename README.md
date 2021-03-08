@@ -109,6 +109,9 @@ make
 Run end-to-end test
 
 ```shell
+module load languages/r/3.6.0
+module load apps/qctool/2.0rc4
+module load apps/bgen/1.1.6
 cd test
 Rscript sim.R
 ```
