@@ -54,7 +54,7 @@ cmake .. \
 
 Program to perform vGWAS of trait against variants in the BGEN format
 Usage:
-  JLST C++ v0.0.1 [OPTION...]
+  JLST C++ v1.0.0 [OPTION...]
 
   -v, --variable_file arg  Path to phenotype file
   -s, --sep arg            File separator
