@@ -3,6 +3,7 @@ library("dplyr")
 library("tidyr")
 library("broom")
 library("data.table")
+set.seed(123)
 
 #' Function to plot the power analysis
 #' @param h1 dataframe from power_funs.R:calc_power
@@ -25,6 +26,10 @@ plot_power <- function(h1, title, x_title, x_name, y_name, ymin_name, ymax_name,
         xlab(x_title) + 
         ylab(paste0("Power (alpha=", alpha, ")")) +
         scale_y_continuous(limits = c(0, 1), breaks = scales::pretty_breaks(n = 10))
+
+    p <- p +
+        geom_hline(yintercept = 0.05, linetype = "dashed", color = "grey") +
+        geom_hline(yintercept = 0.8, linetype = "dashed", color = "grey")
     
     if (xh){
         p <- p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
@@ -60,7 +65,6 @@ calc_power <- function(results, field, n_sim, grp_name, alpha=0.05){
 
     return(h1)
 }
-
 
 # load data
 d <- fread("results.csv")
