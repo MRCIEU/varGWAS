@@ -116,7 +116,7 @@ cd test
 Rscript sim.R
 ```
 
-Inspect output [results.csv](./test/data/results.csv)
+Inspect output ```results.csv```
 
 ## Logging
 
