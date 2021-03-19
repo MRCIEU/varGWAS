@@ -9,3 +9,4 @@ test/data/*
 !test/data/test.bgen
 !test/data/test.bgen.bgi
 !test/data/vgwas-power.pdf
+.DS_Store
