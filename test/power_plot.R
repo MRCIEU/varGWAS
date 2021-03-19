@@ -20,7 +20,7 @@ plot_power <- function(h1, title, x_title, x_name, y_name, ymin_name, ymax_name,
     p <- ggplot(data=h1, aes_string(x=x_name, y=y_name, ymin=ymin_name, ymax=ymax_name, group=group, color=color)) +
         geom_line() + 
         geom_point() + 
-        geom_errorbar(width=.1, position=position_dodge(0.2)) +
+        geom_errorbar(width=.05) +
         theme_classic() + 
         ggtitle(title) +
         xlab(x_title) + 
