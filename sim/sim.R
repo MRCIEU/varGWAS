@@ -67,19 +67,26 @@ for (phi in seq(0, 6, 0.5)) {
       writeLines(c(paste("01", "SNPID_1", "RSID_1", "1", "A", "G", paste(sapply(data$X, function(g) if (g == 0) { "1 0 0" } else if (g == 1) { "0 1 0" } else if (g == 2) { "0 0 1" }), collapse = " "), collapse = " ")), fileConn)
       close(fileConn)
 
-      # convert to BGEN file
-      system("qctool -g data/genotypes.gen -og data/genotypes.bgen")
-      system("bgenix -g data/genotypes.bgen -clobber -index")
-
-      # write phenotype file
+      # write phenotype & sample file
       write.table(file = "data/phenotypes.csv", sep = ",", quote = F, row.names = F, data)
       write.table(file = "data/phenotypes.txt", sep = "\t", quote = F, row.names = F, col.names = F, data[,c("S", "S", "Y")])
+      fileConn <- file("data/samples.txt")
+      writeLines(c("ID_1 ID_2 missing sex\n0 0 0 D", paste0(data$S, " ", data$S, " ", 0, " ", 1)), fileConn)
+      close(fileConn)
 
-      # run vGWAS using C++
+      # convert to BGEN file & plink
+      system("qctool -g data/genotypes.gen -og data/genotypes.bgen")
+      system("bgenix -g data/genotypes.bgen -clobber -index")
+      system("qctool -g data/genotypes.gen -s data/samples.txt -og data/genotypes -ofiletype binary_ped")
+      system("sed 's/^/S/g' -i data/genotypes.fam")
+      
+      # run vGWAS
       system("../build/bin/jlst_cpp -v data/phenotypes.csv -s , -o data/gwas.txt -b data/genotypes.bgen -p Y -i S -t 1")
+      system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca.txt")
 
       # parse output
       res <- fread("data/gwas.txt", select = c("BETA", "SE", "P"), col.names = c("BETA.cpp", "SE.cpp", "P.cpp"))
+      res <- cbind(res, fread("data/osca.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA.osca", "SE.osca", "P.osca")))
 
       # run B-P using R
       res <- cbind(res, bp_t(data$X, data$Y))
