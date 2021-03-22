@@ -3,6 +3,7 @@ library("dplyr")
 library("tidyr")
 library("broom")
 library("data.table")
+library("gridExtra")
 set.seed(123)
 
 #' Function to plot the power analysis
@@ -70,9 +71,12 @@ calc_power <- function(results, field, n_sim, grp_name, alpha=0.05){
 d <- fread("results.csv")
 
 # process data
-p <- calc_power(d, "P.cpp", 200, c("phi", "lambda"))
+cpp <- calc_power(d, "P.cpp", 200, c("phi", "lambda"))
+osca <- calc_power(d, "P.osca", 200, c("phi", "lambda"))
 
 # plot
 pdf("plot.pdf")
-plot_power(p, "vGWAS power to detect GxE effect", "Sample size inflation factor", "lambda", "est_power", "est_power_low", "est_power_high", group="phi", color="phi")
+cpp_p <- plot_power(cpp, "vGWAS power to detect GxE effect using B-P", "Sample size inflation factor", "lambda", "est_power", "est_power_low", "est_power_high", group="phi", color="phi")
+osca_p <- plot_power(osca, "vGWAS power to detect GxE effect using OSCA", "Sample size inflation factor", "lambda", "est_power", "est_power_low", "est_power_high", group="phi", color="phi")
+grid.arrange(cpp_p, osca_p, ncol = 2, nrow = 1)
 dev.off()

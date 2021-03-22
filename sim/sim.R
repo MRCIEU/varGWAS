@@ -82,7 +82,7 @@ for (phi in seq(0, 6, 0.5)) {
       
       # run vGWAS
       system("../build/bin/jlst_cpp -v data/phenotypes.csv -s , -o data/gwas.txt -b data/genotypes.bgen -p Y -i S -t 1")
-      system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca.txt")
+      system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca.txt --vqtl-mtd 1")
 
       # parse output
       res <- fread("data/gwas.txt", select = c("BETA", "SE", "P"), col.names = c("BETA.cpp", "SE.cpp", "P.cpp"))
