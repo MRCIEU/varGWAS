@@ -73,6 +73,7 @@ for (phi in seq(0, 6, 0.5)) {
 
       # write phenotype file
       write.table(file = "data/phenotypes.csv", sep = ",", quote = F, row.names = F, data)
+      write.table(file = "data/phenotypes.txt", sep = "\t", quote = F, row.names = F, col.names = F, data[,c("S", "S", "Y")])
 
       # run vGWAS using C++
       system("../build/bin/jlst_cpp -v data/phenotypes.csv -s , -o data/gwas.txt -b data/genotypes.bgen -p Y -i S -t 1")
