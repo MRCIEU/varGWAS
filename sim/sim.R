@@ -4,7 +4,7 @@ library("genpwr")
 set.seed(12345)
 
 n_obs <- 200
-n_sim <- 200
+n_sim <- 1
 af <- 0.4
 
 #' Function to perform Breusch-Pagan test using t-test
@@ -12,7 +12,8 @@ af <- 0.4
 #' @param y vector of response
 bp_t <- function(x, y) {
   fit1 <- lm(y ~ x)
-  d <- resid(fit1)^2
+  #d <- resid(fit1)^2
+  d <- abs(resid(fit1))
   fit2 <- lm(d ~ x)
   fit2 <- tidy(fit2)
   return(data.frame(BETA.r = fit2$estimate[2], SE.r = fit2$std.error[2], P.r = fit2$p.value[2]))
