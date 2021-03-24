@@ -24,7 +24,8 @@ bp_t <- function(x, y) {
 bp_f <- function(x, y) {
   xsq <- x^2
   fit1 <- lm(y ~ x)
-  d <- resid(fit1)^2
+  #d <- resid(fit1)^2
+  d <- abs(resid(fit1))
   fit2 <- lm(d ~ x + xsq)
   fit0 <- lm(d ~ 1)
   f <- anova(fit0, fit2)
