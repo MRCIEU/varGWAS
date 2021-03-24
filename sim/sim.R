@@ -90,7 +90,7 @@ for (phi in seq(0, 6, 0.5)) {
       res <- cbind(res, fread("data/osca.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA.osca", "SE.osca", "P.osca")))
 
       # run B-P using R
-      res <- cbind(res, bp_f(data$X, data$Y))
+      res <- cbind(res, bp_t(data$X, data$Y))
 
       # run LM
       fit <- tidy(lm(Y ~ X * U, data=data))
