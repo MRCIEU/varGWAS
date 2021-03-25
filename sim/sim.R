@@ -4,34 +4,22 @@ library("genpwr")
 set.seed(12345)
 
 n_obs <- 200
-n_sim <- 1
+n_sim <- 200
 af <- 0.4
-
-#' Function to perform Breusch-Pagan test using t-test
-#' @param x vector of genotype
-#' @param y vector of response
-bp_t <- function(x, y) {
-  fit1 <- lm(y ~ x)
-  d <- resid(fit1)^2
-  fit2 <- lm(d ~ x)
-  fit2 <- tidy(fit2)
-  return(data.frame(BETA.r = fit2$estimate[2], SE.r = fit2$std.error[2], P.r = fit2$p.value[2]))
-}
 
 #' Function to perform Breusch-Pagan test using f-test
 #' @param x vector of genotype
 #' @param y vector of response
-bp_f <- function(x, y) {
+bp <- function(x, y) {
   xsq <- x^2
   fit1 <- lm(y ~ x)
-  #d <- resid(fit1)^2
-  d <- abs(resid(fit1))
+  d <- resid(fit1)^2
   fit2 <- lm(d ~ x + xsq)
   fit0 <- lm(d ~ 1)
   f <- anova(fit0, fit2)
   fit2 <- tidy(fit2)
   f <- tidy(f)
-  return(data.frame(BETA.r = fit2$estimate[2], SE.r = fit2$std.error[2], P.r = f$p.value[2]))
+  return(data.frame(BETA_x.r = fit2$estimate[2], SE_x.r = fit2$std.error[2], BETA_xsq.r = fit2$estimate[3], SE_xsq.r = fit2$std.error[3], P.r = f$p.value[2]))
 }
 
 #' Function to simulate genotypes in HWE
@@ -62,7 +50,7 @@ for (phi in seq(0, 6, 0.5)) {
         age = sample(30:70, n_obs * lambda, replace = T),
         PC = sapply(1:10, function(x) rnorm(n_obs * lambda))
       )
-      data$Y <- data$X * delta + data$X * data$U * theta + rnorm(n_obs * lambda)
+      data$Y <- data$X * delta + data$U * delta + data$X * data$U * theta + rnorm(n_obs * lambda)
 
       # write out GEN file
       fileConn <- file("data/genotypes.gen")
@@ -86,14 +74,19 @@ for (phi in seq(0, 6, 0.5)) {
       system("../build/bin/jlst_cpp -v data/phenotypes.csv -s , -o data/gwas.txt -b data/genotypes.bgen -p Y -i S -t 1")
       system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca.txt --vqtl-mtd 1")
 
-      # parse output
-      res <- fread("data/gwas.txt", select = c("BETA", "SE", "P"), col.names = c("BETA.cpp", "SE.cpp", "P.cpp"))
-      res <- cbind(res, fread("data/osca.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA.osca", "SE.osca", "P.osca")))
+      # B-P using R implementation
+      res_r <- bp(data$X, data$Y)
 
-      # run B-P using R
-      res <- cbind(res, bp_f(data$X, data$Y))
+      # B-P using C++
+      res_cpp <- fread("data/gwas.txt", select = c("BETA", "SE", "P"), col.names = c("BETA_x.cpp", "SE_x.cpp", "P.cpp"))
+      
+      # Levene using OSCA
+      res_osca <- fread("data/osca.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca", "SE_x.osca", "P.osca"))      
 
-      # run LM
+      # combine results
+      res <- cbind(res_r, res_cpp, res_osca)
+
+      # add LM
       fit <- tidy(lm(Y ~ X * U, data=data))
       res$BETA.x <- fit$estimate[2]
       res$BETA.u <- fit$estimate[3]
@@ -102,13 +95,16 @@ for (phi in seq(0, 6, 0.5)) {
       res$SE.u <- fit$std.error[3]
       res$SE.xu <- fit$std.error[4]
 
+      # add expected variance parameters
+      res$EXP_x <- 2*delta*theta
+      res$EXP_xsq <- theta*theta
+
       # add params
       res$phi <- phi
       res$af <- af
       res$lambda <- lambda
       res$theta <- theta
       res$delta <- delta
-      res$var <- 2 * theta^2
 
       # store result
       results <- rbind(results, res)

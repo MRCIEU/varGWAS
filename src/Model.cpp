@@ -95,6 +95,7 @@ void Model::run() {
           Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
 #pragma omp critical
           {
+            // TODO implement file buffer
             file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
                  << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.pval << "\t" << res.n << "\t"
                  << res.eaf << "\n";
