@@ -50,11 +50,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
     # compilers can use the frame pointer register as a general-purpose register for optimization purposes
     # which may lead to broken stack traces
     if (APPLE)
-        if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang")
-            message("Adding flags for Clang")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer")
-            set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer")
-        elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+        if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
             message("Adding flags for GNU")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
             set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fno-omit-frame-pointer")

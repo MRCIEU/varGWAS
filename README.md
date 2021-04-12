@@ -25,7 +25,7 @@ bash lib.sh
 
 Build
 
-Tested with GCC v5 & v6 and with Apple Clang v12. Quantile regression library does not build with GCC >=v7.
+Tested with GCC v5 & v6. Quantile regression library does not build with GCC >=v7.
 
 ```shell
 mkdir -p build
