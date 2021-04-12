@@ -25,7 +25,7 @@ bash lib.sh
 
 Build
 
-Tested with GCC v5 & v6. Quantile regression library does not build with GCC >=v7.
+Tested with GCC v5 & v6. [Libscl](http://www.aronaldg.org/webfiles/libscl/) does not build with GCC >=v7.
 
 ```shell
 mkdir -p build
@@ -39,8 +39,7 @@ Note on HPC systems you may need to explicitly set the compiler path
 ```shell
 # BC4
 module load build/gcc-5.5.0
-PATH="$PATH":/mnt/storage/home/ml18692/projects/jlst_cpp/lib/cmake-3.20.0-rc2-linux-x86_64/bin
-CMAKE_ROOT=/mnt/storage/home/ml18692/projects/jlst_cpp/lib/cmake-3.20.0-rc2-linux-x86_64
+module load tools/cmake/3.20.0
 CC=/mnt/storage/software/languages/gcc-5.5.0/bin/gcc \
 CXX=/mnt/storage/software/languages/gcc-5.5.0/bin/g++ \
 cmake .. \
@@ -117,6 +116,22 @@ Rscript sim.R
 ```
 
 Inspect output ```results.csv```
+
+## Simulation
+
+```shell
+cd sim
+mkdir -p data
+PATH="$PATH":$PWD
+
+# obtain OSCA
+curl -L https://cnsgenomics.com/software/osca/download/osca_Linux.zip > osca_Linux.zip
+unzip osca_Linux.zip
+ln -s osca_Linux osca
+
+# run simulation
+Rscript sim.R
+```
 
 ## Logging
 

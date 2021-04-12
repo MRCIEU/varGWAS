@@ -11,4 +11,6 @@ module load apps/qctool/2.0rc4
 module load apps/bgen/1.1.6
 
 # run simulation
+mkdir -p data
+PATH="$PATH":$PWD
 Rscript sim.R
