@@ -17,6 +17,7 @@ struct Result {
   double se_x{};
   double beta_xsq{};
   double se_xsq{};
+  double fstat{};
   double eaf{};
   unsigned n{};
 };

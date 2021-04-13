@@ -8,7 +8,7 @@
 #include <Eigen/Dense>
 #include <utility>
 #include <vector>
-#include <boost/math/distributions/students_t.hpp>
+#include <boost/math/distributions/fisher_f.hpp>
 #include "Model.h"
 #include "PhenotypeFile.h"
 #include "Result.h"
@@ -50,7 +50,7 @@ void Model::run() {
   // open output file
   std::ofstream file(_output_file);
   if (file.is_open()) {
-    file << "CHR\tPOS\tRSID\tOA\tEA\tBETA_x\tSE_x\tBETA_xsq\tSE_xsq\tP\tN\tEAF" << std::endl;
+    file << "CHR\tPOS\tRSID\tOA\tEA\tBETA_x\tSE_x\tBETA_xsq\tSE_xsq\tF\tP\tN\tEAF" << std::endl;
     file.flush();
 #pragma omp parallel default(none) shared(file, X, y) private(chromosome, position, rsid, alleles, probs, dosages)
     {
@@ -98,7 +98,7 @@ void Model::run() {
             // TODO implement file buffer to improve performance
             file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
                  << res.effect_allele << "\t" << res.beta_x << "\t" << res.se_x << "\t" << res.beta_xsq << "\t"
-                 << res.se_xsq << "\t" << res.pval << "\t" << res.n << "\t"
+                 << res.se_xsq << "\t" << res.fstat << "\t" << res.pval << "\t" << res.n << "\t"
                  << res.eaf << "\n";
             file.flush();
           }
@@ -154,49 +154,75 @@ Result Model::fit(std::string &chromosome,
   std::vector<unsigned> non_null_idx_vec(non_null_idx.begin(), non_null_idx.end());
   Eigen::MatrixXd X_complete = X(non_null_idx_vec, Eigen::all).eval();
   Eigen::VectorXd y_complete = y(non_null_idx_vec, Eigen::all).eval();
+  int n = X_complete.rows();
 
   // first stage model
   spdlog::debug("Checking for rank deficiency for first fit");
-  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X_complete);
-  if (qr.rank() < X_complete.cols()) {
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr1(X_complete);
+  if (qr1.rank() < X_complete.cols()) {
     return res;
   }
   spdlog::debug("Estimating first stage model");
-  Eigen::MatrixXd fs_fit = qr.solve(y_complete);
+  Eigen::MatrixXd fs_fit = qr1.solve(y_complete);
   Eigen::VectorXd fs_fitted = X_complete * fs_fit;
   Eigen::VectorXd fs_resid = y_complete - fs_fitted;
   Eigen::VectorXd fs_resid2 = fs_resid.array().square();
 
   // second stage model
-  /*Eigen::MatrixXd X_complete2 = Eigen::MatrixXd(X_complete.rows(), 3);
-  X_complete2[0] = 1;
-  X_complete2[1] = X_complete.col(1);
-  X_complete2[2] = X_complete.col(1).square();
-
   spdlog::debug("Estimating second stage model");
-  Eigen::MatrixXd fit2 = qr.solve(fs_resid2);
-  Eigen::VectorXd ss_fitted = X_complete * fit2;
+  Eigen::MatrixXd X_complete2 = Eigen::MatrixXd(n, 3);
+  X_complete2.col(0).setOnes();
+  X_complete2.col(1) = X_complete.col(1).array();
+  X_complete2.col(2) = X_complete.col(1).array().square();
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr2(X_complete2);
+  if (qr2.rank() < X_complete2.cols()) {
+    throw std::runtime_error("rank-deficient matrix");
+  }
+  Eigen::MatrixXd ss_fit = qr2.solve(fs_resid2);
+  Eigen::VectorXd ss_fitted = X_complete2 * ss_fit;
   Eigen::VectorXd ss_resid = fs_resid2 - ss_fitted;
+  Eigen::VectorXd ss_resid2 = ss_resid.array().square();
 
   // se
   spdlog::debug("Estimating SE");
   double sig2 = ss_resid.squaredNorm();
-  long df = X_complete.rows() - X_complete.cols();
-  Eigen::MatrixXd XtX = (X_complete.transpose() * X_complete);
+  long df = X_complete2.rows() - X_complete2.cols();
+  Eigen::MatrixXd XtX = (X_complete2.transpose() * X_complete2);
   Eigen::MatrixXd vcov = XtX.inverse();
   Eigen::VectorXd se = (vcov * (sig2 / df)).diagonal().cwiseSqrt();
 
-  // F-test
+  // intercept only model
+  Eigen::MatrixXd X_complete3 = Eigen::MatrixXd(n, 1);
+  X_complete3.col(0).setOnes();
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr3(X_complete3);
+  if (qr3.rank() < X_complete3.cols()) {
+    throw std::runtime_error("rank-deficient matrix");
+  }
+  Eigen::MatrixXd null_fit = qr3.solve(fs_resid2);
+  Eigen::VectorXd null_fitted = X_complete3 * null_fit;
+  Eigen::VectorXd null_resid = fs_resid2 - null_fitted;
+  Eigen::VectorXd null_resid2 = null_resid.array().square();
 
+  // F-test
+  // adapted from http://people.reed.edu/~jones/Courses/P24.pdf
+  int df_f = n - 3;
+  int df_r = n - 1;
+  int df_n = df_r - df_f;
+  double rss_f = ss_resid.squaredNorm();
+  double rss_r = null_resid.squaredNorm();
+  double f = ((rss_r - rss_f) / (df_r - df_f)) / (rss_f / df_f);
+  boost::math::fisher_f dist(df_n, df_f);
+  double pval = 1 - boost::math::cdf(dist, f);
 
   // set results
-  //res.beta_x = fit2(1, 0);
-  //res.beta_xsq = fit2(2, 0);
+  res.beta_x = ss_fit(1, 0);
+  res.beta_xsq = ss_fit(2, 0);
   res.se_x = se(1, 0);
   res.se_xsq = se(2, 0);
-  //res.pval = pvalues[1];
-  res.n = X_complete.rows();
-  res.eaf = X_complete.col(1).mean() * 0.5;*/
+  res.pval = pval;
+  res.n = n;
+  res.eaf = X_complete.col(1).mean() * 0.5;
+  res.fstat = f;
 
   return res;
 }

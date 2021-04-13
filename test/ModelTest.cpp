@@ -77,11 +77,10 @@ TEST(ModelTest, fit) {
   jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X, y);
 
   // check estimate and SE are similar to R
-  ASSERT_NEAR(result.beta_x, 12.79318, 0.01);
-  ASSERT_NEAR(result.se_x, 2.298094, 0.01);
-  ASSERT_NEAR(result.pval, 8.36e-08, 0.01);
-
-  // check 95% CI contains true value
-  ASSERT_GT(result.beta_x, 16.03478 - (result.se_x * 1.96));
-  ASSERT_LT(result.beta_x, 16.03478 + (result.se_x * 1.96));
+  ASSERT_NEAR(result.beta_x, 3.743, 0.01);
+  ASSERT_NEAR(result.se_x, 6.797, 0.01);
+  ASSERT_NEAR(result.beta_xsq, 4.956, 0.01);
+  ASSERT_NEAR(result.se_xsq, 3.504, 0.01);
+  ASSERT_NEAR(result.pval, 2.225e-07, 0.01);
+  ASSERT_NEAR(result.fstat, 16.573, 0.01);
 }
