@@ -50,7 +50,7 @@ void Model::run() {
   // open output file
   std::ofstream file(_output_file);
   if (file.is_open()) {
-    file << "CHR\tPOS\tRSID\tOA\tEA\tBETA\tSE\tP\tN\tEAF" << std::endl;
+    file << "CHR\tPOS\tRSID\tOA\tEA\tBETA_x\tSE_x\tBETA_xsq\tSE_xsq\tP\tN\tEAF" << std::endl;
     file.flush();
 #pragma omp parallel default(none) shared(file, X, y) private(chromosome, position, rsid, alleles, probs, dosages)
     {
@@ -84,7 +84,7 @@ void Model::run() {
         }
 
         // check no missing values between sample list and dosage
-        if (dosages.size() != _phenotype_file.GetNSamples()){
+        if (dosages.size() != _phenotype_file.GetNSamples()) {
           throw std::runtime_error("Number of dosage values does not match number of participants");
         }
 
@@ -95,9 +95,10 @@ void Model::run() {
           Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
 #pragma omp critical
           {
-            // TODO implement file buffer
+            // TODO implement file buffer to improve performance
             file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
-                 << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.pval << "\t" << res.n << "\t"
+                 << res.effect_allele << "\t" << res.beta_x << "\t" << res.se_x << "\t" << res.beta_xsq << "\t"
+                 << res.se_xsq << "\t" << res.pval << "\t" << res.n << "\t"
                  << res.eaf << "\n";
             file.flush();
           }
@@ -128,6 +129,13 @@ Result Model::fit(std::string &chromosome,
   res.rsid = rsid;
   res.effect_allele = effect_allele;
   res.other_allele = other_allele;
+  res.beta_x = -1;
+  res.se_x = -1;
+  res.beta_xsq = -1;
+  res.se_xsq = -1;
+  res.pval = -1;
+  res.n = -1;
+  res.eaf = -1;
 
   // set dosage values
   // X is passed without reference to allow for modification on each thread
@@ -147,21 +155,12 @@ Result Model::fit(std::string &chromosome,
   Eigen::MatrixXd X_complete = X(non_null_idx_vec, Eigen::all).eval();
   Eigen::VectorXd y_complete = y(non_null_idx_vec, Eigen::all).eval();
 
-  // model
-  spdlog::debug("Checking for rank deficiency");
+  // first stage model
+  spdlog::debug("Checking for rank deficiency for first fit");
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X_complete);
   if (qr.rank() < X_complete.cols()) {
-    // skip result
-    res.beta = -1;
-    res.se = -1;
-    res.pval = -1;
-    res.n = -1;
-    res.eaf = -1;
-
     return res;
   }
-
-  // first stage model
   spdlog::debug("Estimating first stage model");
   Eigen::MatrixXd fs_fit = qr.solve(y_complete);
   Eigen::VectorXd fs_fitted = X_complete * fs_fit;
@@ -169,43 +168,37 @@ Result Model::fit(std::string &chromosome,
   Eigen::VectorXd fs_resid2 = fs_resid.array().square();
 
   // second stage model
+  /*Eigen::MatrixXd X_complete2 = Eigen::MatrixXd(X_complete.rows(), 3);
+  X_complete2[0] = 1;
+  X_complete2[1] = X_complete.col(1);
+  X_complete2[2] = X_complete.col(1).square();
+
   spdlog::debug("Estimating second stage model");
   Eigen::MatrixXd fit2 = qr.solve(fs_resid2);
   Eigen::VectorXd ss_fitted = X_complete * fit2;
   Eigen::VectorXd ss_resid = fs_resid2 - ss_fitted;
 
   // se
-  spdlog::debug("Estimating SE and P value");
-  // TODO check df is correct as using multiple models - do we include the second-stage intercept and slope?
+  spdlog::debug("Estimating SE");
   double sig2 = ss_resid.squaredNorm();
   long df = X_complete.rows() - X_complete.cols();
   Eigen::MatrixXd XtX = (X_complete.transpose() * X_complete);
   Eigen::MatrixXd vcov = XtX.inverse();
   Eigen::VectorXd se = (vcov * (sig2 / df)).diagonal().cwiseSqrt();
 
-  // t-stat
-  Eigen::VectorXd tstat = fit2.array() / se.array();
+  // F-test
 
-  // P
-  std::vector<double> pvalues = get_p(tstat, X_complete.rows(), X_complete.cols());
 
   // set results
-  res.beta = fit2(1, 0);
-  res.se = se(1, 0);
-  res.pval = pvalues[1];
+  //res.beta_x = fit2(1, 0);
+  //res.beta_xsq = fit2(2, 0);
+  res.se_x = se(1, 0);
+  res.se_xsq = se(2, 0);
+  //res.pval = pvalues[1];
   res.n = X_complete.rows();
-  res.eaf = X_complete.col(1).mean() * 0.5;
+  res.eaf = X_complete.col(1).mean() * 0.5;*/
 
   return res;
 }
 
-std::vector<double> Model::get_p(Eigen::VectorXd &tstat, int n, int p) {
-  boost::math::students_t dist(n - (p + 1)); // use student's t-distribution to compute p-value
-  std::vector<double> pvalues;
-  for (int i = 0; i < tstat.size(); i++) {
-    double pval = 2.0 * cdf(complement(dist, tstat[i] > 0 ? tstat[i] : (0 - tstat[i])));
-    pvalues.push_back(pval);
-  }
-  return pvalues;
-}
 }

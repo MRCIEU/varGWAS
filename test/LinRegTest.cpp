@@ -6,6 +6,7 @@
 #include <Eigen/QR>
 #include <Eigen/Dense>
 #include <boost/math/distributions/students_t.hpp>
+#include <boost/math/distributions/fisher_f.hpp>
 
 /*
  * Test for performing linear regression model
@@ -323,4 +324,80 @@ TEST(LinRegTest, check_se_with_r) {
   ASSERT_NEAR(se(1, 0), 0.03136, 0.03136 * .001);
   ASSERT_NEAR(se(2, 0), 0.04509, 0.04509 * .001);
   ASSERT_NEAR(se(3, 0), 0.03030, 0.03030 * .001);
+}
+
+TEST(LinRegTest, xsq) {
+  const double intercept = 1.0;
+  double x_f;
+  double c1_f;
+  double c2_f;
+  double y_f;
+  int n = 1000;
+
+  Eigen::MatrixXd X1 = Eigen::MatrixXd(n, 4);
+  Eigen::VectorXd y = Eigen::VectorXd(n);
+
+  // get data (see data/data.R)
+  io::CSVReader<4> in("data.csv");
+  in.read_header(io::ignore_extra_column, "x", "c1", "c2", "y");
+  int t = 0;
+  while (in.read_row(x_f, c1_f, c2_f, y_f)) {
+    X1(t, 0) = intercept;
+    X1(t, 1) = x_f;
+    X1(t, 2) = c1_f;
+    X1(t, 3) = c2_f;
+    y(t, 0) = y_f;
+    t++;
+  }
+
+  // first-fit
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr1(X1);
+  if (qr1.rank() < X1.cols()) {
+    throw std::runtime_error("rank-deficient matrix");
+  }
+  Eigen::MatrixXd fs_fit = qr1.solve(y);
+  Eigen::VectorXd fs_fitted = X1 * fs_fit;
+  Eigen::VectorXd fs_resid = y - fs_fitted;
+  Eigen::VectorXd fs_resid2 = fs_resid.array().square();
+
+  // second-fit
+  Eigen::MatrixXd X2 = Eigen::MatrixXd(X1.rows(), 3);
+  X2.col(0).setOnes();
+  X2.col(1) = X1.col(1).array();
+  X2.col(2) = X1.col(1).array().square();
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr2(X2);
+  if (qr2.rank() < X2.cols()) {
+    throw std::runtime_error("rank-deficient matrix");
+  }
+  Eigen::MatrixXd ss_fit = qr2.solve(fs_resid2);
+  Eigen::VectorXd ss_fitted = X2 * ss_fit;
+  Eigen::VectorXd ss_resid = fs_resid2 - ss_fitted;
+  Eigen::VectorXd ss_resid2 = ss_resid.array().square();
+
+  // intercept only model
+  Eigen::MatrixXd X3 = Eigen::MatrixXd(X1.rows(), 1);
+  X3.col(0).setOnes();
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr3(X3);
+  if (qr3.rank() < X3.cols()) {
+    throw std::runtime_error("rank-deficient matrix");
+  }
+  Eigen::MatrixXd null_fit = qr3.solve(fs_resid2);
+  Eigen::VectorXd null_fitted = X3 * null_fit;
+  Eigen::VectorXd null_resid = fs_resid2 - null_fitted;
+  Eigen::VectorXd null_resid2 = null_resid.array().square();
+
+  // F-test
+  // adapted from http://people.reed.edu/~jones/Courses/P24.pdf
+  int df_f = n - 3;
+  int df_r = n - 1;
+  int df_n = df_r - df_f;
+  double rss_f = ss_resid.squaredNorm();
+  double rss_r = null_resid.squaredNorm();
+  double f = ((rss_r - rss_f) / (df_r - df_f)) / (rss_f / df_f);
+  boost::math::fisher_f dist(df_n, df_f);
+  double pval = 1 - boost::math::cdf(dist, f);
+
+  ASSERT_NEAR(f, 0.0308, 0.0308 * .001);
+  ASSERT_NEAR(pval, 0.970, 0.970 * .001);
+
 }

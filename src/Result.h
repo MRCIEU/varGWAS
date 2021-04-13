@@ -13,8 +13,10 @@ struct Result {
   std::string effect_allele{};
   std::string other_allele{};
   double pval{};
-  double beta{};
-  double se{};
+  double beta_x{};
+  double se_x{};
+  double beta_xsq{};
+  double se_xsq{};
   double eaf{};
   unsigned n{};
 };
