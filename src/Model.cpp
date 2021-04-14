@@ -136,6 +136,7 @@ Result Model::fit(std::string &chromosome,
   res.pval = -1;
   res.n = -1;
   res.eaf = -1;
+  res.fstat = -1;
 
   // set dosage values
   // X is passed without reference to allow for modification on each thread
@@ -176,7 +177,7 @@ Result Model::fit(std::string &chromosome,
   X_complete2.col(2) = X_complete.col(1).array().square();
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr2(X_complete2);
   if (qr2.rank() < X_complete2.cols()) {
-    throw std::runtime_error("rank-deficient matrix");
+    return res;
   }
   Eigen::MatrixXd ss_fit = qr2.solve(fs_resid2);
   Eigen::VectorXd ss_fitted = X_complete2 * ss_fit;
@@ -196,7 +197,7 @@ Result Model::fit(std::string &chromosome,
   X_complete3.col(0).setOnes();
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr3(X_complete3);
   if (qr3.rank() < X_complete3.cols()) {
-    throw std::runtime_error("rank-deficient matrix");
+    return res;
   }
   Eigen::MatrixXd null_fit = qr3.solve(fs_resid2);
   Eigen::VectorXd null_fitted = X_complete3 * null_fit;
@@ -211,6 +212,9 @@ Result Model::fit(std::string &chromosome,
   double rss_f = ss_resid.squaredNorm();
   double rss_r = null_resid.squaredNorm();
   double f = ((rss_r - rss_f) / (df_r - df_f)) / (rss_f / df_f);
+  if (f < 0){
+    return res;
+  }
   boost::math::fisher_f dist(df_n, df_f);
   double pval = 1 - boost::math::cdf(dist, f);
 
