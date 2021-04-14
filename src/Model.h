@@ -43,7 +43,6 @@ class Model {
                     std::set<unsigned> non_null_idx,
                     Eigen::MatrixXd X,
                     Eigen::VectorXd y);
-  static std::vector<double> get_p(Eigen::VectorXd &tstat, int n, int p);
  private:
   jlst::PhenotypeFile &_phenotype_file;
   genfile::bgen::BgenParser &_bgen_parser;

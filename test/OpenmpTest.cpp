@@ -18,8 +18,8 @@ jlst::Result func(std::string chromosome,
   res.rsid = std::move(rsid);
   res.effect_allele = alleles[0];
   res.other_allele = alleles[1];
-  res.beta = probs[0][0];
-  res.se = probs[0][0];
+  res.beta_x = probs[0][0];
+  res.se_x = probs[0][0];
   res.pval = probs[0][0];
   res.n = probs[0][0];
   res.eaf = probs[0][0];
@@ -49,7 +49,7 @@ TEST(OpenMPTest, process_variants) {
 #pragma omp critical
         {
           buf << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
-              << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.pval << "\t" << res.n
+              << res.effect_allele << "\t" << res.beta_x << "\t" << res.se_x << "\t" << res.pval << "\t" << res.n
               << "\t"
               << res.eaf << "\n";
           buf.flush();
