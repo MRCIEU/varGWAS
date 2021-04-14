@@ -63,7 +63,7 @@ Usage:
   -p, --phenotype arg      Column name for phenotype
   -i, --id arg             Column name for genotype identifier
   -h, --help               Print usage
-  -t, --threads arg        Number of threads (default: 8)
+  -t, --threads arg        Number of threads
 ```
 
 - Unordered categorical variables should be one-hot encoded.
