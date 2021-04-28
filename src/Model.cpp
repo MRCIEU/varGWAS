@@ -149,7 +149,7 @@ Result Model::fit(std::string &chromosome,
   assert(dosages.size() == X.rows());
   for (unsigned i = 0; i < dosages.size(); i++) {
     if (dosages[i] == -1) {
-      std::cout << rsid << std::endl;
+      std::cout << "Missing dosage value found for: " << rsid << std::endl;
       non_null_idx.erase(i);
     } else {
       X(i, 1) = dosages[i];
