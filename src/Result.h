@@ -19,7 +19,7 @@ struct Result {
   double se_xsq{};
   double fstat{};
   double eaf{};
-  unsigned n{};
+  int n{};
 };
 }
 

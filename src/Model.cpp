@@ -101,7 +101,6 @@ void Model::run() {
 #pragma omp critical
           {
             // TODO implement file buffer to improve performance
-            // TODO check float precision
             file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
                  << res.effect_allele << "\t" << res.beta_x << "\t" << res.se_x << "\t" << res.beta_xsq << "\t"
                  << res.se_xsq << "\t" << res.fstat << "\t" << res.pval << "\t" << res.n << "\t"
@@ -150,6 +149,7 @@ Result Model::fit(std::string &chromosome,
   assert(dosages.size() == X.rows());
   for (unsigned i = 0; i < dosages.size(); i++) {
     if (dosages[i] == -1) {
+      std::cout << rsid << std::endl;
       non_null_idx.erase(i);
     } else {
       X(i, 1) = dosages[i];
