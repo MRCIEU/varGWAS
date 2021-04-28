@@ -2,6 +2,7 @@
 #include "iostream"
 #include "Model.h"
 #include "Result.h"
+#include <boost/math/distributions/fisher_f.hpp>
 
 /*
  * Test for performing Breusch-Pagan model
@@ -83,4 +84,16 @@ TEST(ModelTest, fit) {
   ASSERT_NEAR(result.se_xsq, 3.504, 0.01);
   ASSERT_NEAR(result.pval, 2.225e-07, 0.01);
   ASSERT_NEAR(result.fstat, 16.573, 0.01);
+}
+
+TEST(ModelTest, ftest) {
+  unsigned n = 321305;
+  unsigned df_f = n - 3;
+  unsigned df_r = n - 1;
+  unsigned df_n = df_r - df_f;
+  double f = 500;
+  boost::math::fisher_f dist(df_n, df_f);
+  double pval = boost::math::cdf(boost::math::complement(dist, f));
+  //printf("%e\n", pval);
+  ASSERT_NEAR(pval, 1.548735e-217, 1.548735e-217 * .001);
 }

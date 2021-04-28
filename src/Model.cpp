@@ -96,6 +96,7 @@ void Model::run() {
 #pragma omp critical
           {
             // TODO implement file buffer to improve performance
+            // TODO check float precision
             file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
                  << res.effect_allele << "\t" << res.beta_x << "\t" << res.se_x << "\t" << res.beta_xsq << "\t"
                  << res.se_xsq << "\t" << res.fstat << "\t" << res.pval << "\t" << res.n << "\t"
@@ -212,11 +213,11 @@ Result Model::fit(std::string &chromosome,
   double rss_f = ss_resid.squaredNorm();
   double rss_r = null_resid.squaredNorm();
   double f = ((rss_r - rss_f) / (df_r - df_f)) / (rss_f / df_f);
-  if (f < 0){
+  if (f < 0) {
     return res;
   }
   boost::math::fisher_f dist(df_n, df_f);
-  double pval = 1 - boost::math::cdf(dist, f);
+  double pval = boost::math::cdf(boost::math::complement(dist, f));
 
   // set results
   res.beta_x = ss_fit(1, 0);
