@@ -76,7 +76,7 @@ void Model::run() {
           }
 
           // convert genotype probabilities to copies of alt
-          if (prob[0] == -1 && prob[1] == -1 && prob[2] == -1) {
+          if ((prob[0] == -1 && prob[1] == -1 && prob[2] == -1) || (prob[0] == 0 && prob[1] == 0 && prob[2] == 0)) {
             dosages.push_back(-1);
           } else {
             dosages.push_back(prob[1] + (2 * prob[2]));
