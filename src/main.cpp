@@ -5,7 +5,6 @@
 #include <vector>
 #include <string>
 #include <set>
-#include <memory>
 #include <cxxopts.hpp>
 #include "spdlog/spdlog.h"
 #include "spdlog/cfg/env.h"
