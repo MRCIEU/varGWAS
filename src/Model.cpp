@@ -155,7 +155,9 @@ Result Model::fit(std::string &chromosome,
   // set dosage values
   // X is passed without reference to allow for modification on each thread
   spdlog::debug("Checking for null dosage values");
-  assert(dosages.size() == X.rows());
+  if (dosages.size() != X.rows()) {
+    throw std::runtime_error("Number of dosage values does not match number of participants");
+  }
   int j = 0;
   for (unsigned i = 0; i < dosages.size(); i++) {
     if (dosages[i] == -1) {
