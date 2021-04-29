@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 #include <boost/math/distributions/fisher_f.hpp>
+#include <boost/math/distributions/students_t.hpp>
 #include "Model.h"
 #include "PhenotypeFile.h"
 #include "Result.h"
@@ -50,7 +51,7 @@ void Model::run() {
   // open output file
   std::ofstream file(_output_file);
   if (file.is_open()) {
-    file << "CHR\tPOS\tRSID\tOA\tEA\tBETA_x\tSE_x\tBETA_xsq\tSE_xsq\tF\tP\tN\tEAF" << std::endl;
+    file << "chr\tpos\trsid\toa\tea\tbeta\tse\tt\tp\tphi_x\tse_x\tphi_xsq\tse_xsq\tphi_f\tphi_p\tn\teaf" << std::endl;
     file.flush();
 #pragma omp parallel default(none) shared(file, X, y) private(chromosome, position, rsid, alleles, probs, dosages)
     {
@@ -76,11 +77,15 @@ void Model::run() {
           }
 
           // check dosage values are within expected range
-          assert(prob[0] >= 0 && prob[0] <= 1);
-          assert(prob[1] >= 0 && prob[1] <= 1);
-          assert(prob[2] >= 0 && prob[2] <= 1);
+          if (prob[0] < 0 || prob[0] > 1 || prob[1] < 0 || prob[1] > 1 || prob[2] < 0 || prob[2] > 1) {
+            throw std::runtime_error(
+                "Dosage value outside expected range: " + std::to_string(prob[0]) + " " + std::to_string(prob[1]) + " "
+                    + std::to_string(prob[2])
+            );
+          }
 
           // convert genotype probabilities to copies of alt
+          // TODO how are null values recorded in BGEN?
           if ((prob[0] == -1 && prob[1] == -1 && prob[2] == -1) || (prob[0] == 0 && prob[1] == 0 && prob[2] == 0)) {
             dosages.push_back(-1);
           } else {
@@ -102,9 +107,9 @@ void Model::run() {
           {
             // TODO implement file buffer to improve performance
             file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
-                 << res.effect_allele << "\t" << res.beta_x << "\t" << res.se_x << "\t" << res.beta_xsq << "\t"
-                 << res.se_xsq << "\t" << res.fstat << "\t" << res.pval << "\t" << res.n << "\t"
-                 << res.eaf << "\n";
+                 << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.t << "\t"
+                 << res.pval << "\t" << res.phi_x << "\t" << res.se_x << "\t" << res.phi_xsq << "\t"
+                 << res.se_xsq << "\t" << res.phi_f << "\t" << res.phi_pval << "\t" << res.n << "\t" << res.eaf << "\n";
             file.flush();
           }
         }
@@ -134,27 +139,33 @@ Result Model::fit(std::string &chromosome,
   res.rsid = rsid;
   res.effect_allele = effect_allele;
   res.other_allele = other_allele;
-  res.beta_x = -1;
-  res.se_x = -1;
-  res.beta_xsq = -1;
-  res.se_xsq = -1;
-  res.pval = -1;
-  res.n = -1;
   res.eaf = -1;
-  res.fstat = -1;
+  res.n = -1;
+  res.beta = -1;
+  res.se = -1;
+  res.t = -1;
+  res.pval = -1;
+  res.phi_x = -1;
+  res.se_x = -1;
+  res.phi_xsq = -1;
+  res.se_xsq = -1;
+  res.phi_f = -1;
+  res.phi_pval = -1;
 
   // set dosage values
   // X is passed without reference to allow for modification on each thread
   spdlog::debug("Checking for null dosage values");
   assert(dosages.size() == X.rows());
+  int j = 0;
   for (unsigned i = 0; i < dosages.size(); i++) {
     if (dosages[i] == -1) {
-      std::cout << "Missing dosage value found for: " << rsid << std::endl;
+      j++;
       non_null_idx.erase(i);
     } else {
       X(i, 1) = dosages[i];
     }
   }
+  spdlog::debug("Found {} null values", j);
 
   // subset data with non-null values
   spdlog::debug("Selecting non-null values for model");
@@ -175,6 +186,20 @@ Result Model::fit(std::string &chromosome,
   Eigen::VectorXd fs_resid = y_complete - fs_fitted;
   Eigen::VectorXd fs_resid2 = fs_resid.array().square();
 
+  // se
+  spdlog::debug("Estimating SE");
+  double fs_sig2 = fs_resid.squaredNorm();
+  long fs_df = X_complete.rows() - X_complete.cols();
+  Eigen::MatrixXd fs_XtX = (X_complete.transpose() * X_complete);
+  Eigen::MatrixXd fs_vcov = fs_XtX.inverse();
+  Eigen::VectorXd fs_se = (fs_vcov * (fs_sig2 / fs_df)).diagonal().cwiseSqrt();
+
+  // pval
+  spdlog::debug("Estimating P");
+  double t_stat = fs_fit(1, 0) / fs_se(1, 0);
+  boost::math::students_t t_dist(fs_df);
+  double pval = 2.0 * boost::math::cdf(boost::math::complement(t_dist, fabs(t_stat)));
+
   // second stage model
   spdlog::debug("Estimating second stage model");
   Eigen::MatrixXd X_complete2 = Eigen::MatrixXd(n, 3);
@@ -192,11 +217,11 @@ Result Model::fit(std::string &chromosome,
 
   // se
   spdlog::debug("Estimating SE");
-  double sig2 = ss_resid.squaredNorm();
-  long df = X_complete2.rows() - X_complete2.cols();
-  Eigen::MatrixXd XtX = (X_complete2.transpose() * X_complete2);
-  Eigen::MatrixXd vcov = XtX.inverse();
-  Eigen::VectorXd se = (vcov * (sig2 / df)).diagonal().cwiseSqrt();
+  double ss_sig2 = ss_resid.squaredNorm();
+  long ss_df = X_complete2.rows() - X_complete2.cols();
+  Eigen::MatrixXd ss_XtX = (X_complete2.transpose() * X_complete2);
+  Eigen::MatrixXd ss_vcov = ss_XtX.inverse();
+  Eigen::VectorXd ss_se = (ss_vcov * (ss_sig2 / ss_df)).diagonal().cwiseSqrt();
 
   // intercept only model
   Eigen::MatrixXd X_complete3 = Eigen::MatrixXd(n, 1);
@@ -221,18 +246,22 @@ Result Model::fit(std::string &chromosome,
   if (f < 0) {
     return res;
   }
-  boost::math::fisher_f dist(df_n, df_f);
-  double pval = boost::math::cdf(boost::math::complement(dist, f));
+  boost::math::fisher_f f_dist(df_n, df_f);
+  double phi_pval = boost::math::cdf(boost::math::complement(f_dist, f));
 
   // set results
-  res.beta_x = ss_fit(1, 0);
-  res.beta_xsq = ss_fit(2, 0);
-  res.se_x = se(1, 0);
-  res.se_xsq = se(2, 0);
+  res.beta = fs_fit(1, 0);
+  res.se = fs_se(1, 0);
+  res.t = t_stat;
   res.pval = pval;
+  res.phi_x = ss_fit(1, 0);
+  res.phi_xsq = ss_fit(2, 0);
+  res.se_x = ss_se(1, 0);
+  res.se_xsq = ss_se(2, 0);
+  res.phi_f = f;
+  res.phi_pval = phi_pval;
   res.n = n;
   res.eaf = X_complete.col(1).mean() * 0.5;
-  res.fstat = f;
 
   return res;
 }

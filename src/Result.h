@@ -12,14 +12,18 @@ struct Result {
   std::string rsid{};
   std::string effect_allele{};
   std::string other_allele{};
+  double beta{};
+  double se{};
+  double t{};
   double pval{};
-  double beta_x{};
+  double phi_x{};
   double se_x{};
-  double beta_xsq{};
+  double phi_xsq{};
   double se_xsq{};
-  double fstat{};
-  double eaf{};
+  double phi_f{};
+  double phi_pval{};
   int n{};
+  double eaf{};
 };
 }
 
