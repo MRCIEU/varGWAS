@@ -78,10 +78,10 @@ for (phi in seq(0, 6, 0.5)) {
       res_r <- bp(data$X, data$Y)
 
       # B-P using C++
-      res_cpp <- fread("data/gwas.txt", select = c("BETA_x", "SE_x", "BETA_xsq", "SE_xsq", "P"), col.names = c("BETA_x.cpp", "SE_x.cpp", "BETA_xsq.cpp", "SE_xsq.cpp", "P.cpp"))
+      res_cpp <- fread("data/gwas.txt", select = c("beta", "se", "p", "phi_x", "se_x", "phi_xsq", "se_xsq", "phi_p"), col.names = c("BETA_mu.cpp", "SE_mu.cpp", "P_mu.cpp", "BETA_x.cpp", "SE_x.cpp", "BETA_xsq.cpp", "SE_xsq.cpp", "P.cpp"))
       
       # Levene using OSCA
-      res_osca <- fread("data/osca.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca", "SE_x.osca", "P.osca"))      
+      res_osca <- fread("data/osca.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca", "SE_x.osca", "P.osca"))
 
       # combine results
       res <- cbind(res_r, res_cpp, res_osca)
@@ -94,6 +94,10 @@ for (phi in seq(0, 6, 0.5)) {
       res$SE.x <- fit$std.error[2]
       res$SE.u <- fit$std.error[3]
       res$SE.xu <- fit$std.error[4]
+      fit <- tidy(lm(Y ~ X, data=data))
+      res$BETA_mu.r <- fit$estimate[2]
+      res$SE_mu.r <- fit$std.error[2]
+      res$P_mu.r <- fit$p.value[2]
 
       # add expected variance parameters
       res$EXP_x <- 2*delta*theta
