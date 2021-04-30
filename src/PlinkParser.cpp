@@ -10,7 +10,6 @@
 
 std::vector<std::string> jlst::PlinkParser::get_samples() {
   struct pio_file_t plink_file{};
-  snp_t *snp_buffer;
   int sample_id;
   std::vector<std::string> samples;
 
@@ -27,7 +26,6 @@ std::vector<std::string> jlst::PlinkParser::get_samples() {
     samples.emplace_back(sample->iid);
   }
 
-  free(snp_buffer);
   pio_close(&plink_file);
 
   return(samples);

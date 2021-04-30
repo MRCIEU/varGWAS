@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
     jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
     phenotype_file.parse();
 
-    if (genotype_file.substr(genotype_file.length() - 5, 5) == ".bgen") {
+    if (genotype_file.length() > 4 && genotype_file.substr(genotype_file.length() - 5, 5) == ".bgen") {
       spdlog::info("Detected BGEN format");
 
       // parse sample list from BGEN file
@@ -147,6 +147,7 @@ int main(int argc, char **argv) {
 
       // parse sample list from plink file
       jlst::PlinkParser plink_parser(genotype_file);
+      std::cout << "here" << std::endl;
       static std::vector<std::string> samples = plink_parser.get_samples();
 
       // Subset samples using BGEN sample list

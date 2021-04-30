@@ -174,11 +174,12 @@ void Model::parse_plink(std::string &file_path) {
       // loop over variants
       while (pio_next_row(&plink_file, snp_buffer) == PIO_OK) {
         struct pio_locus_t *locus = pio_get_locus(&plink_file, locus_id);
-        chromosome = locus->chromosome;
-        position = locus->position;
+        int chr = locus->chromosome;
+        chromosome = std::to_string(chr);
+        position = locus->bp_position;
         rsid = locus->name;
-        alleles.push_back(locus->allele2);
         alleles.push_back(locus->allele1);
+        alleles.push_back(locus->allele2);
 
         // loop over samples
         for (sample_id = 0; sample_id < pio_num_samples(&plink_file); sample_id++) {
