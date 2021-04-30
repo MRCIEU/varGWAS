@@ -134,6 +134,13 @@ void Model::parse_plink(std::string &file_path) {
   int sample_id;
   int locus_id;
 
+  if (pio_open(&plink_file, file_path.c_str()) != PIO_OK) {
+    throw std::runtime_error("Could not open file: " + file_path);
+  }
+  if (!pio_one_locus_per_row(&plink_file)) {
+    throw std::runtime_error("This script requires that snps are rows and samples columns");
+  }
+
   // Create Eigen matrix of phenotypes wo dosage
   // p+2 for dosage and intercept
   Eigen::MatrixXd X = Eigen::MatrixXd(_phenotype_file.GetNSamples(), _phenotype_file.GetCovariateColumn().size() + 2);
@@ -156,18 +163,9 @@ void Model::parse_plink(std::string &file_path) {
   if (file.is_open()) {
     file << "chr\tpos\trsid\toa\tea\tbeta\tse\tt\tp\tphi_x\tse_x\tphi_xsq\tse_xsq\tphi_f\tphi_p\tn\teaf" << std::endl;
     file.flush();
-#pragma omp parallel default(none) shared(file, file_path, plink_file, X, y) private(snp_buffer, sample_id, locus_id, chromosome, position, rsid, alleles, dosages)
+#pragma omp parallel default(none) shared(file, plink_file, snp_buffer, X, y) private(sample_id, locus_id, chromosome, position, rsid, alleles, dosages)
     {
 #pragma omp master
-      // Read variant-by-variant
-      if (pio_open(&plink_file, file_path.c_str()) != PIO_OK) {
-        throw std::runtime_error("Could not open file: " + file_path);
-      }
-
-      if (!pio_one_locus_per_row(&plink_file)) {
-        throw std::runtime_error("This script requires that snps are rows and samples columns");
-      }
-
       locus_id = 0;
       snp_buffer = (snp_t *) malloc(pio_row_size(&plink_file));
 
@@ -219,11 +217,11 @@ void Model::parse_plink(std::string &file_path) {
         alleles.clear();
       }
 
-      free(snp_buffer);
-      pio_close(&plink_file);
 #pragma omp taskwait
     }
 
+    free(snp_buffer);
+    pio_close(&plink_file);
     file.close();
   } else {
     throw std::runtime_error("Could not open file: " + _output_file);
