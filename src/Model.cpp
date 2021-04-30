@@ -20,7 +20,7 @@
  * */
 namespace jlst {
 
-void Model::run() {
+void Model::parse_bgen(genfile::bgen::BgenParser &bgen_parser) {
   std::string chromosome;
   uint32_t position;
   std::string rsid;
@@ -53,11 +53,11 @@ void Model::run() {
   if (file.is_open()) {
     file << "chr\tpos\trsid\toa\tea\tbeta\tse\tt\tp\tphi_x\tse_x\tphi_xsq\tse_xsq\tphi_f\tphi_p\tn\teaf" << std::endl;
     file.flush();
-#pragma omp parallel default(none) shared(file, X, y) private(chromosome, position, rsid, alleles, probs, dosages)
+#pragma omp parallel default(none) shared(file, bgen_parser, X, y) private(chromosome, position, rsid, alleles, probs, dosages)
     {
 #pragma omp master
       // Read variant-by-variant
-      while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
+      while (bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
 
         // only support bi-allelic variants
         if (alleles.size() != 2) {
@@ -66,7 +66,7 @@ void Model::run() {
         }
 
         // convert probabilities to dosage values
-        _bgen_parser.read_probs(&probs);
+        bgen_parser.read_probs(&probs);
 
         spdlog::debug("Converting probabilities to dosage values");
         dosages.clear();

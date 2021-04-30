@@ -15,6 +15,7 @@
 #include <Eigen/Eigen>
 #include "PhenotypeFile.h"
 #include "BgenParser.h"
+#include "PlinkParser.h"
 #include "Result.h"
 
 #ifndef JLST_CPP_SRC_MODEL_H_
@@ -24,16 +25,16 @@ namespace jlst {
 class Model {
  public:
   Model(jlst::PhenotypeFile &phenotype_file,
-        genfile::bgen::BgenParser &bgen_parser,
         std::set<unsigned> &non_null_idx,
         std::string &output_file,
         int threads)
       : _phenotype_file(phenotype_file),
-        _bgen_parser(bgen_parser),
         _non_null_idx(non_null_idx),
         _output_file(output_file),
-        _threads(threads) {}
-  void run();
+        _threads(threads) {
+  }
+  void parse_bgen(genfile::bgen::BgenParser &bgen_parser);
+  void parse_plink(jlst::PlinkParser &plink_parser);
   static Result fit(std::string &chromosome,
                     uint32_t position,
                     std::string &rsid,
@@ -45,7 +46,6 @@ class Model {
                     Eigen::VectorXd y);
  private:
   jlst::PhenotypeFile &_phenotype_file;
-  genfile::bgen::BgenParser &_bgen_parser;
   std::set<unsigned> &_non_null_idx;
   int _threads;
   std::string &_output_file;

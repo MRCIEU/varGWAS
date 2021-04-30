@@ -60,3 +60,13 @@ cmake .. && make -j
 cd "$LIB_DIR"
 curl -L https://github.com/google/googletest/archive/release-1.10.0.tar.gz >release-1.10.0.tar.gz
 tar -xvf release-1.10.0.tar.gz
+
+# plinkio
+cd "$LIB_DIR"
+curl -L https://github.com/mfranberg/libplinkio/archive/refs/tags/v0.9.8.zip >v0.9.8.zip
+unzip v0.9.8.zip
+cd libplinkio-0.9.8
+mkdir -p build
+cd build
+cmake ..
+make

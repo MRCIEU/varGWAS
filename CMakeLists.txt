@@ -20,15 +20,18 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/fast-cpp-csv-parser)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen-master)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/cxxopts-2.2.0/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/libplinkio-0.9.8/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # libraries
-find_library(BGEN_LIB_PATH NAMES libbgen.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build)
+find_library(BGEN_LIB_PATH NAMES libbgen.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build NO_DEFAULT_PATH)
 find_library(ZSTD_LIB_PATH NAMES libzstd.so libzstd.dylib HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd-1.1.0/build/cmake/build/lib)
 find_library(SQLITE_LIB_PATH NAMES libsqlite3.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/sqlite3)
-find_library(DB_LIB_PATH NAMES libdb.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db)
-find_library(SPDLOG_LIB_PATH NAMES libglog.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build)
-find_library(LIBSCL_LIB_PATH NAMES libscl.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp)
+find_library(DB_LIB_PATH NAMES libdb.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db NO_DEFAULT_PATH)
+find_library(SPDLOG_LIB_PATH NAMES libglog.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build NO_DEFAULT_PATH)
+find_library(LIBSCL_LIB_PATH NAMES libscl.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/libscl/gpp NO_DEFAULT_PATH)
+find_library(LIBPLINKIO_LIB_PATH NAMES libplinkio.a libplinkio.dylib HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/libplinkio-0.9.8/build/src NO_DEFAULT_PATH)
+find_library(LIBCSV_LIB_PATH NAMES libcsv.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/libplinkio-0.9.8/build/libs/libcsv NO_DEFAULT_PATH)
 
 # src
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)

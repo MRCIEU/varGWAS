@@ -10,6 +10,7 @@
 #include "spdlog/cfg/env.h"
 #include "PhenotypeFile.h"
 #include "Model.h"
+#include "PlinkParser.h"
 #include "PhenotypeFileException.h"
 
 bool file_exists(const std::string &name) {
@@ -33,7 +34,7 @@ int main(int argc, char **argv) {
        "List of covariates column names separated by a comma (whitespace and quotes are not permitted).",
        cxxopts::value<std::vector<std::string>>())
       ("o,output_file", "Path to output file", cxxopts::value<std::string>())
-      ("b,bgen_file", "Path to BGEN file", cxxopts::value<std::string>())
+      ("g,genotype_file", "Path to BED/BGEN file", cxxopts::value<std::string>())
       ("p,phenotype", "Column name for phenotype", cxxopts::value<std::string>())
       ("i,id", "Column name for genotype identifier", cxxopts::value<std::string>())
       ("h,help", "Print usage")
@@ -62,8 +63,8 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  if (result.count("bgen_file") == 0) {
-    spdlog::error("BGEN file not provided");
+  if (result.count("genotype_file") == 0) {
+    spdlog::error("Genotype file not provided");
     exit(1);
   }
 
@@ -96,8 +97,8 @@ int main(int argc, char **argv) {
   }
   std::string output_file = result["output_file"].as<std::string>();
   spdlog::debug("Output file: {}", output_file);
-  std::string bgen_file = result["bgen_file"].as<std::string>();
-  spdlog::debug("BGEN file: {}", bgen_file);
+  std::string genotype_file = result["genotype_file"].as<std::string>();
+  spdlog::debug("Genotype file: {}", genotype_file);
   std::string phenotype = result["phenotype"].as<std::string>();
   spdlog::debug("Phenotype column: {}", phenotype);
   std::string id = result["id"].as<std::string>();
@@ -110,8 +111,8 @@ int main(int argc, char **argv) {
     spdlog::error("File does not exist or is not readable: {}", variable_file);
     return -1;
   }
-  if (!file_exists(bgen_file)) {
-    spdlog::error("File does not exist or is not readable: {}", bgen_file);
+  if (!file_exists(genotype_file) && !file_exists(genotype_file + ".bed")) {
+    spdlog::error("File does not exist or is not readable: {}", genotype_file);
     return -1;
   }
   if (threads < 1) {
@@ -120,22 +121,41 @@ int main(int argc, char **argv) {
   }
 
   try {
-    // Open BGEN and read sample list
-    spdlog::info("Reading samples from BGEN: {}", bgen_file);
-    genfile::bgen::BgenParser bgen_parser(bgen_file);
-    static std::vector<std::string> samples;
-    bgen_parser.get_sample_ids(
-        [](std::string const &id) { samples.push_back(id); }
-    );
 
-    // Read phenotypes and subset using sample list
+    // Read phenotype file
     jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
     phenotype_file.parse();
-    std::set<unsigned> non_null_idx = phenotype_file.join(samples);
 
-    // Perform locus association tests & write to file
-    jlst::Model model(phenotype_file, bgen_parser, non_null_idx, output_file, threads);
-    model.run();
+    if (genotype_file.substr(genotype_file.length() - 5, 5) == ".bgen") {
+      spdlog::info("Detected BGEN format");
+
+      // parse sample list from BGEN file
+      genfile::bgen::BgenParser bgen_parser(genotype_file);
+      static std::vector<std::string> samples;
+      bgen_parser.get_sample_ids(
+          [](std::string const &id) { samples.push_back(id); }
+      );
+
+      // Subset samples using BGEN sample list
+      std::set<unsigned> non_null_idx = phenotype_file.join(samples);
+
+      // Perform locus association tests & write to file
+      jlst::Model model(phenotype_file, non_null_idx, output_file, threads);
+      model.parse_bgen(bgen_parser);
+    } else {
+      spdlog::info("Detected PLINK format");
+
+      // parse sample list from plink file
+      jlst::PlinkParser plink_parser(genotype_file);
+      static std::vector<std::string> samples = plink_parser.get_samples();
+
+      // Subset samples using BGEN sample list
+      std::set<unsigned> non_null_idx = phenotype_file.join(samples);
+
+      // Perform locus association tests & write to file
+      jlst::Model model(phenotype_file, non_null_idx, output_file, threads);
+      //model.parse_bgen(plink_parser);
+    }
 
     spdlog::info("Analysis complete!");
 
