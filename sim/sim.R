@@ -71,20 +71,22 @@ for (phi in seq(0, 6, 0.5)) {
       system("sed 's/^/S/g' -i data/genotypes.fam")
       
       # run vGWAS
-      system("../build/bin/jlst_cpp -v data/phenotypes.csv -s , -o data/gwas.txt -b data/genotypes.bgen -p Y -i S -t 1")
+      system("../build/bin/jlst_cpp -v data/phenotypes.csv -s , -o data/gwas_bgen.txt -g data/genotypes.bgen -p Y -i S -t 1")
+      system("../build/bin/jlst_cpp -v data/phenotypes.csv -s , -o data/gwas_plink.txt -g data/genotypes -p Y -i S -t 1")
       system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca.txt --vqtl-mtd 1")
 
       # B-P using R implementation
       res_r <- bp(data$X, data$Y)
 
       # B-P using C++
-      res_cpp <- fread("data/gwas.txt", select = c("beta", "se", "p", "phi_x", "se_x", "phi_xsq", "se_xsq", "phi_p"), col.names = c("BETA_mu.cpp", "SE_mu.cpp", "P_mu.cpp", "BETA_x.cpp", "SE_x.cpp", "BETA_xsq.cpp", "SE_xsq.cpp", "P.cpp"))
+      res_cpp_bgen <- fread("data/gwas_bgen.txt", select = c("beta", "se", "p", "phi_x", "se_x", "phi_xsq", "se_xsq", "phi_p"), col.names = c("BETA_mu.cpp_bgen", "SE_mu.cpp_bgen", "P_mu.cpp_bgen", "BETA_x.cpp_bgen", "SE_x.cpp_bgen", "BETA_xsq.cpp_bgen", "SE_xsq.cpp_bgen", "P.cpp_bgen"))
+      res_cpp_plink <- fread("data/gwas_plink.txt", select = c("beta", "se", "p", "phi_x", "se_x", "phi_xsq", "se_xsq", "phi_p"), col.names = c("BETA_mu.cpp_plink", "SE_mu.cpp_plink", "P_mu.cpp_plink", "BETA_x.cpp_plink", "SE_x.cpp_plink", "BETA_xsq.cpp_plink", "SE_xsq.cpp_plink", "P.cpp_plink"))
       
       # Levene using OSCA
       res_osca <- fread("data/osca.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca", "SE_x.osca", "P.osca"))
 
       # combine results
-      res <- cbind(res_r, res_cpp, res_osca)
+      res <- cbind(res_r, res_cpp_bgen, res_cpp_plink, res_osca)
 
       # add LM
       fit <- tidy(lm(Y ~ X * U, data=data))
@@ -94,6 +96,7 @@ for (phi in seq(0, 6, 0.5)) {
       res$SE.x <- fit$std.error[2]
       res$SE.u <- fit$std.error[3]
       res$SE.xu <- fit$std.error[4]
+
       fit <- tidy(lm(Y ~ X, data=data))
       res$BETA_mu.r <- fit$estimate[2]
       res$SE_mu.r <- fit$std.error[2]
