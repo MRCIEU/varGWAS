@@ -2,7 +2,7 @@
 #include <plinkio/plinkio.h>
 
 TEST(PlinkTest, read_bed) {
-  /*std::string file_name = "/Users/ml18692/projects/jlst_cpp/lib/libplinkio-0.9.8/tests/data/wgas";
+  std::string file_name = "/Users/ml18692/projects/jlst_cpp/lib/libplinkio-0.9.8/tests/data/wgas";
   struct pio_file_t plink_file{};
   snp_t *snp_buffer;
   int sample_id;
@@ -34,5 +34,5 @@ TEST(PlinkTest, read_bed) {
   }
 
   free(snp_buffer);
-  pio_close(&plink_file);*/
+  pio_close(&plink_file);
 }

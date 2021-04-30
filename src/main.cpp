@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
 
       // Perform locus association tests & write to file
       jlst::Model model(phenotype_file, non_null_idx, output_file, threads);
-      //model.parse_bgen(plink_parser);
+      model.parse_plink(genotype_file);
     }
 
     spdlog::info("Analysis complete!");

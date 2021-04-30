@@ -13,9 +13,11 @@
 #include <Eigen/QR>
 #include <Eigen/Dense>
 #include <Eigen/Eigen>
+#include <spdlog/spdlog.h>
 #include "PhenotypeFile.h"
 #include "BgenParser.h"
 #include "PlinkParser.h"
+#include <omp.h>
 #include "Result.h"
 
 #ifndef JLST_CPP_SRC_MODEL_H_
@@ -32,9 +34,12 @@ class Model {
         _non_null_idx(non_null_idx),
         _output_file(output_file),
         _threads(threads) {
+
+    spdlog::info("Using {} thread(s)", _threads);
+    omp_set_num_threads(_threads);
   }
   void parse_bgen(genfile::bgen::BgenParser &bgen_parser);
-  void parse_plink(jlst::PlinkParser &plink_parser);
+  void parse_plink(std::string &file_path);
   static Result fit(std::string &chromosome,
                     uint32_t position,
                     std::string &rsid,

@@ -1,7 +1,6 @@
 //
 // Created by Matt Lyon on 10/02/2021.
 //
-
 #include <omp.h>
 #include <Eigen/Core>
 #include <Eigen/QR>
@@ -14,6 +13,9 @@
 #include "PhenotypeFile.h"
 #include "Result.h"
 #include "spdlog/spdlog.h"
+extern "C" {
+#include <plinkio/plinkio.h>
+}
 
 /*
  * Class to perform association testing
@@ -27,9 +29,6 @@ void Model::parse_bgen(genfile::bgen::BgenParser &bgen_parser) {
   std::vector<std::string> alleles;
   std::vector<std::vector<double>> probs;
   std::vector<double> dosages;
-
-  spdlog::info("Using {} thread(s)", _threads);
-  omp_set_num_threads(_threads);
 
   // Create Eigen matrix of phenotypes wo dosage
   // p+2 for dosage and intercept
@@ -114,6 +113,107 @@ void Model::parse_bgen(genfile::bgen::BgenParser &bgen_parser) {
           }
         }
       }
+#pragma omp taskwait
+    }
+
+    file.close();
+  } else {
+    throw std::runtime_error("Could not open file: " + _output_file);
+  }
+
+}
+
+void Model::parse_plink(std::string &file_path) {
+  std::string chromosome;
+  uint32_t position;
+  std::string rsid;
+  std::vector<std::string> alleles;
+  std::vector<double> dosages;
+  struct pio_file_t plink_file;
+  snp_t *snp_buffer;
+  int sample_id;
+  int locus_id;
+
+  // Create Eigen matrix of phenotypes wo dosage
+  // p+2 for dosage and intercept
+  Eigen::MatrixXd X = Eigen::MatrixXd(_phenotype_file.GetNSamples(), _phenotype_file.GetCovariateColumn().size() + 2);
+  Eigen::VectorXd y = Eigen::VectorXd(_phenotype_file.GetNSamples());
+
+  // Populate Eigen matrices
+  for (unsigned i = 0; i < _phenotype_file.GetNSamples(); i++) {
+    X(i, 0) = 1; // intercept
+    X(i, 1) = 0; // dosage values are initially set to zero
+    for (unsigned j = 0; j < _phenotype_file.GetCovariateColumn().size(); j++) {
+      X(i, j + 2) = _phenotype_file.GetCovariateColumn()[j][i]; // covariates
+    }
+    y(i, 0) = _phenotype_file.GetOutcomeColumn()[i]; // outcome
+  }
+
+  spdlog::info("Estimating model with {} samples and {} parameters", _non_null_idx.size(), X.cols());
+
+  // open output file
+  std::ofstream file(_output_file);
+  if (file.is_open()) {
+    file << "chr\tpos\trsid\toa\tea\tbeta\tse\tt\tp\tphi_x\tse_x\tphi_xsq\tse_xsq\tphi_f\tphi_p\tn\teaf" << std::endl;
+    file.flush();
+#pragma omp parallel default(none) shared(file, file_path, plink_file, X, y) private(snp_buffer, sample_id, locus_id, chromosome, position, rsid, alleles, dosages)
+    {
+#pragma omp master
+      // Read variant-by-variant
+      if (pio_open(&plink_file, file_path.c_str()) != PIO_OK) {
+        throw std::runtime_error("Could not open file: " + file_path);
+      }
+
+      if (!pio_one_locus_per_row(&plink_file)) {
+        throw std::runtime_error("This script requires that snps are rows and samples columns");
+      }
+
+      locus_id = 0;
+      snp_buffer = (snp_t *) malloc(pio_row_size(&plink_file));
+
+      // loop over variants
+      while (pio_next_row(&plink_file, snp_buffer) == PIO_OK) {
+        struct pio_locus_t *locus = pio_get_locus(&plink_file, locus_id);
+        dosages.clear();
+
+        // loop over samples
+        for (sample_id = 0; sample_id < pio_num_samples(&plink_file); sample_id++) {
+          struct pio_sample_t *sample = pio_get_sample(&plink_file, sample_id);
+          int dosage = snp_buffer[sample_id];
+          if (dosage = 3) {
+            dosages.push_back(-1);
+          } else {
+            dosages.push_back(dosage);
+          }
+        }
+
+        // check no missing values between sample list and dosage
+        if (dosages.size() != _phenotype_file.GetNSamples()) {
+          throw std::runtime_error("Number of dosage values does not match number of participants");
+        }
+
+        // run test and write to file
+#pragma omp task
+        {
+          spdlog::debug("rsid = {}, thread = {}", rsid, omp_get_thread_num());
+          Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
+#pragma omp critical
+          {
+            // TODO implement file buffer to improve performance
+            file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
+                 << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.t << "\t"
+                 << res.pval << "\t" << res.phi_x << "\t" << res.se_x << "\t" << res.phi_xsq << "\t"
+                 << res.se_xsq << "\t" << res.phi_f << "\t" << res.phi_pval << "\t" << res.n << "\t" << res.eaf
+                 << "\n";
+            file.flush();
+          }
+        }
+
+        locus_id++;
+      }
+
+      free(snp_buffer);
+      pio_close(&plink_file);
 #pragma omp taskwait
     }
 
