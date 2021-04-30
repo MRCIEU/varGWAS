@@ -16,11 +16,6 @@ TEST(PlinkTest, read_bed) {
     throw std::runtime_error("This script requires that snps are rows and samples columns");
   }
 
-  for (sample_id = 0; sample_id < pio_num_samples(&plink_file); sample_id++) {
-    struct pio_sample_t *sample = pio_get_sample(&plink_file, sample_id);
-    printf("%s\n", sample->iid);
-  }
-
   locus_id = 0;
   snp_buffer = (snp_t *) malloc(pio_row_size(&plink_file));
   while (pio_next_row(&plink_file, snp_buffer) == PIO_OK) {
@@ -31,6 +26,7 @@ TEST(PlinkTest, read_bed) {
     }
 
     locus_id++;
+    break;
   }
 
   free(snp_buffer);
