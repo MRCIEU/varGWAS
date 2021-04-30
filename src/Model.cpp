@@ -185,10 +185,10 @@ void Model::parse_plink(std::string &file_path) {
         for (sample_id = 0; sample_id < pio_num_samples(&plink_file); sample_id++) {
           struct pio_sample_t *sample = pio_get_sample(&plink_file, sample_id);
           int dosage = snp_buffer[sample_id];
-          if (dosage = 3) {
-            dosages.push_back(-1);
+          if (dosage == 3) {
+            dosages.push_back(-1.0);
           } else {
-            dosages.push_back(dosage);
+            dosages.push_back((double) dosage);
           }
         }
 
