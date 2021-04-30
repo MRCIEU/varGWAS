@@ -8,5 +8,8 @@ test/data/*
 !test/data/data.R
 !test/data/CMakeLists.txt
 !test/data/test.bgen
+!test/data/test.bim
+!test/data/test.bed
+!test/data/test.fam
 !test/data/test.bgen.bgi
 sim/data/*
