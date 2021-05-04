@@ -1,7 +1,14 @@
 library("data.table")
 library("broom")
 library("genpwr")
+library('optparse')
 set.seed(12345)
+
+option_list <- list(
+  make_option(c("-d", "--dist"), type="character", default=NULL, help="Outcome distribution", metavar="character")
+);
+opt_parser <- OptionParser(option_list=option_list);
+opt <- parse_args(opt_parser);
 
 n_obs <- 200
 n_sim <- 200
@@ -50,7 +57,16 @@ for (phi in seq(0, 6, 0.5)) {
         age = sample(30:70, n_obs * lambda, replace = T),
         PC = sapply(1:10, function(x) rnorm(n_obs * lambda))
       )
-      data$Y <- data$X * delta + data$U * delta + data$X * data$U * theta + rnorm(n_obs * lambda)
+
+      if (opt$dist == "n"){
+        data$Y <- data$X * delta + data$U * delta + data$X * data$U * theta + rnorm(n_obs * lambda)
+      } else if (opt$dist == "t"){
+        data$Y <- data$X * delta + data$U * delta + data$X * data$U * theta + rt(n_obs * lambda, 4)
+      } else if (opt$dist == "l"){
+        data$Y <- data$X * delta + data$U * delta + data$X * data$U * theta + rlnorm(n_obs * lambda)
+      } else {
+        stop(paste0("Distribution not implemented: ", opt$dist))
+      }
 
       # write out GEN file
       fileConn <- file("data/genotypes.gen")
@@ -121,4 +137,4 @@ for (phi in seq(0, 6, 0.5)) {
 }
 
 # save results for plotting
-write.csv(results, file = "data/results.csv")
+write.csv(results, file = paste0("data/results_", opt$dist, ".csv"))

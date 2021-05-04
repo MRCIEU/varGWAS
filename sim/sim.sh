@@ -13,4 +13,6 @@ module load apps/bgen/1.1.6
 # run simulation
 mkdir -p data
 PATH="$PATH":$PWD
-Rscript sim.R
+Rscript sim.R --dist n
+Rscript sim.R --dist t
+Rscript sim.R --dist l
