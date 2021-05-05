@@ -41,7 +41,8 @@ class Model {
                     std::string &other_allele,
                     std::vector<double> dosages,
                     std::set<unsigned> non_null_idx,
-                    Eigen::MatrixXd X,
+                    Eigen::MatrixXd X1,
+                    Eigen::MatrixXd X2,
                     Eigen::VectorXd y);
  private:
   jlst::PhenotypeFile &_phenotype_file;

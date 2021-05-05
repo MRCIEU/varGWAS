@@ -60,14 +60,18 @@ TEST(ModelTest, fit) {
   std::vector<double> dosages = DOSAGES;
   assert(dosages.size() == pheno.size());
   int n = pheno.size();
-  int p = 1;
-  Eigen::MatrixXd X = Eigen::MatrixXd(n, p + 1);
+  int p = 1; // n of covariates
+  Eigen::MatrixXd X1 = Eigen::MatrixXd(n, p + 1); // add 1 for intercept
+  Eigen::MatrixXd X2 = Eigen::MatrixXd(n, p * 2 + 1); // added xsq and intercept
   Eigen::VectorXd y = Eigen::VectorXd(n);
 
   // initialise empty matrix
   for (unsigned i = 0; i < n; ++i) {
-    X(i, 0) = 1;
-    X(i, 1) = 0;
+    X1(i, 0) = 1; // intercept
+    X1(i, 1) = 0; // X
+    X2(i, 0) = 1; // intercept
+    X2(i, 1) = 0; // X
+    X2(i, 2) = 0; // Xsq
     y(i, 0) = pheno[i];
   }
 
@@ -79,7 +83,7 @@ TEST(ModelTest, fit) {
   for (unsigned i = 0; i < dosages.size(); i++) {
     non_nulls_idx.insert(i);
   }
-  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X, y);
+  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y);
 
   // check estimate and SE are similar to R
   ASSERT_NEAR(result.beta, 0.262569, 0.01);
@@ -101,13 +105,17 @@ TEST(ModelTest, fit_missing_vals) {
   dosages[0] = -1;
   int n = pheno.size();
   int p = 1;
-  Eigen::MatrixXd X = Eigen::MatrixXd(n, p + 1);
+  Eigen::MatrixXd X1 = Eigen::MatrixXd(n, p + 1);
+  Eigen::MatrixXd X2 = Eigen::MatrixXd(n, p * 2 + 1);
   Eigen::VectorXd y = Eigen::VectorXd(n);
 
   // initialise empty matrix
   for (unsigned i = 0; i < n; ++i) {
-    X(i, 0) = 1;
-    X(i, 1) = 0;
+    X1(i, 0) = 1; // intercept
+    X1(i, 1) = 0; // X
+    X2(i, 0) = 1; // intercept
+    X2(i, 1) = 0; // X
+    X2(i, 2) = 0; // Xsq
     y(i, 0) = pheno[i];
   }
 
@@ -120,7 +128,7 @@ TEST(ModelTest, fit_missing_vals) {
     non_nulls_idx.insert(i);
   }
   non_nulls_idx.erase(1);
-  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X, y);
+  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y);
   ASSERT_EQ(result.n, dosages.size() - 2);
 }
 

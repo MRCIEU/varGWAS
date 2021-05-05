@@ -32,28 +32,37 @@ void Model::run() {
   omp_set_num_threads(_threads);
 
   // Create Eigen matrix of phenotypes wo dosage
-  // p+2 for dosage and intercept
-  Eigen::MatrixXd X = Eigen::MatrixXd(_phenotype_file.GetNSamples(), _phenotype_file.GetCovariateColumn().size() + 2);
+  // create place for dosage and intercept
+  Eigen::MatrixXd
+      X1 = Eigen::MatrixXd(_phenotype_file.GetNSamples(), 1 + 1 + _phenotype_file.GetCovariateColumn().size());
+  Eigen::MatrixXd
+      X2 = Eigen::MatrixXd(_phenotype_file.GetNSamples(), 1 + 2 + _phenotype_file.GetCovariateColumn().size() * 2);
   Eigen::VectorXd y = Eigen::VectorXd(_phenotype_file.GetNSamples());
 
   // Populate Eigen matrices
   for (unsigned i = 0; i < _phenotype_file.GetNSamples(); i++) {
-    X(i, 0) = 1; // intercept
-    X(i, 1) = 0; // dosage values are initially set to zero
+    X1(i, 0) = 1; // intercept
+    X2(i, 0) = 1; // intercept
+    X1(i, 1) = 0; // dosage values are initially set to zero
+    X2(i, 1) = 0; // dosage values are initially set to zero
+    X2(i, 2) = 0; // dosage values are initially set to zero
     for (unsigned j = 0; j < _phenotype_file.GetCovariateColumn().size(); j++) {
-      X(i, j + 2) = _phenotype_file.GetCovariateColumn()[j][i]; // covariates
+      X1(i, j + 2) = _phenotype_file.GetCovariateColumn()[j][i]; // covariates
+      X2(i, j + 2) = _phenotype_file.GetCovariateColumn()[j][i]; // covariates
+      X2(i, j + _phenotype_file.GetCovariateColumn().size() + 2) =
+          pow(_phenotype_file.GetCovariateColumn()[j][i], 2.0); // xsq covariate
     }
     y(i, 0) = _phenotype_file.GetOutcomeColumn()[i]; // outcome
   }
 
-  spdlog::info("Estimating model with {} samples and {} parameters", _non_null_idx.size(), X.cols());
+  spdlog::info("Estimating model with {} samples and {} parameters", _non_null_idx.size(), X1.cols());
 
   // open output file
   std::ofstream file(_output_file);
   if (file.is_open()) {
     file << "chr\tpos\trsid\toa\tea\tbeta\tse\tt\tp\tphi_x\tse_x\tphi_xsq\tse_xsq\tphi_f\tphi_p\tn\teaf" << std::endl;
     file.flush();
-#pragma omp parallel default(none) shared(file, X, y) private(chromosome, position, rsid, alleles, probs, dosages)
+#pragma omp parallel default(none) shared(file, X1, X2, y) private(chromosome, position, rsid, alleles, probs, dosages)
     {
 #pragma omp master
       // Read variant-by-variant
@@ -102,7 +111,7 @@ void Model::run() {
 #pragma omp task
         {
           spdlog::debug("rsid = {}, thread = {}", rsid, omp_get_thread_num());
-          Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X, y);
+          Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X1, X2, y);
 #pragma omp critical
           {
             // TODO implement file buffer to improve performance
@@ -131,7 +140,8 @@ Result Model::fit(std::string &chromosome,
                   std::string &other_allele,
                   std::vector<double> dosages,
                   std::set<unsigned> non_null_idx,
-                  Eigen::MatrixXd X,
+                  Eigen::MatrixXd X1,
+                  Eigen::MatrixXd X2,
                   Eigen::VectorXd y) {
   Result res;
   res.chromosome = chromosome;
@@ -154,8 +164,12 @@ Result Model::fit(std::string &chromosome,
 
   // set dosage values
   // X is passed without reference to allow for modification on each thread
+  spdlog::debug("Checking X has same number of observations");
+  if (X1.rows() != X2.rows()) {
+    throw std::runtime_error("Number of observations for X1 and X2 differ");
+  }
   spdlog::debug("Checking for null dosage values");
-  if (dosages.size() != X.rows()) {
+  if (dosages.size() != X1.rows()) {
     throw std::runtime_error("Number of dosage values does not match number of participants");
   }
   int j = 0;
@@ -164,7 +178,9 @@ Result Model::fit(std::string &chromosome,
       j++;
       non_null_idx.erase(i);
     } else {
-      X(i, 1) = dosages[i];
+      X1(i, 1) = dosages[i];
+      X2(i, 1) = dosages[i];
+      X2(i, 2) = pow(dosages[i], 2.0); // xsq
     }
   }
   spdlog::debug("Found {} null values", j);
@@ -172,27 +188,28 @@ Result Model::fit(std::string &chromosome,
   // subset data with non-null values
   spdlog::debug("Selecting non-null values for model");
   std::vector<unsigned> non_null_idx_vec(non_null_idx.begin(), non_null_idx.end());
-  Eigen::MatrixXd X_complete = X(non_null_idx_vec, Eigen::all).eval();
+  Eigen::MatrixXd X_complete1 = X1(non_null_idx_vec, Eigen::all).eval();
+  Eigen::MatrixXd X_complete2 = X2(non_null_idx_vec, Eigen::all).eval();
   Eigen::VectorXd y_complete = y(non_null_idx_vec, Eigen::all).eval();
-  int n = X_complete.rows();
+  int n = X_complete1.rows();
 
   // first stage model
   spdlog::debug("Checking for rank deficiency for first fit");
-  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr1(X_complete);
-  if (qr1.rank() < X_complete.cols()) {
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr1(X_complete1);
+  if (qr1.rank() < X_complete1.cols()) {
     return res;
   }
   spdlog::debug("Estimating first stage model");
   Eigen::MatrixXd fs_fit = qr1.solve(y_complete);
-  Eigen::VectorXd fs_fitted = X_complete * fs_fit;
+  Eigen::VectorXd fs_fitted = X_complete1 * fs_fit;
   Eigen::VectorXd fs_resid = y_complete - fs_fitted;
   Eigen::VectorXd fs_resid2 = fs_resid.array().square();
 
   // se
   spdlog::debug("Estimating SE");
   double fs_sig2 = fs_resid.squaredNorm();
-  long fs_df = X_complete.rows() - X_complete.cols();
-  Eigen::MatrixXd fs_XtX = (X_complete.transpose() * X_complete);
+  long fs_df = X_complete1.rows() - X_complete1.cols();
+  Eigen::MatrixXd fs_XtX = (X_complete1.transpose() * X_complete1);
   Eigen::MatrixXd fs_vcov = fs_XtX.inverse();
   Eigen::VectorXd fs_se = (fs_vcov * (fs_sig2 / fs_df)).diagonal().cwiseSqrt();
 
@@ -204,10 +221,6 @@ Result Model::fit(std::string &chromosome,
 
   // second stage model
   spdlog::debug("Estimating second stage model");
-  Eigen::MatrixXd X_complete2 = Eigen::MatrixXd(n, 3);
-  X_complete2.col(0).setOnes();
-  X_complete2.col(1) = X_complete.col(1).array();
-  X_complete2.col(2) = X_complete.col(1).array().square();
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr2(X_complete2);
   if (qr2.rank() < X_complete2.cols()) {
     return res;
@@ -225,9 +238,17 @@ Result Model::fit(std::string &chromosome,
   Eigen::MatrixXd ss_vcov = ss_XtX.inverse();
   Eigen::VectorXd ss_se = (ss_vcov * (ss_sig2 / ss_df)).diagonal().cwiseSqrt();
 
-  // intercept only model
-  Eigen::MatrixXd X_complete3 = Eigen::MatrixXd(n, 1);
-  X_complete3.col(0).setOnes();
+  // null model (intercept & covariates)
+  std::vector<unsigned> covariates_to_keep;
+  for (unsigned i = 0; i < X_complete2.cols(); ++i) {
+    // drop x and xsq but keep intercept & all covariates
+    if (i == 1 || i == 2) {
+      continue;
+    } else {
+      covariates_to_keep.push_back(i);
+    }
+  }
+  Eigen::MatrixXd X_complete3 = X_complete2(Eigen::all, covariates_to_keep).eval();
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr3(X_complete3);
   if (qr3.rank() < X_complete3.cols()) {
     return res;
@@ -239,8 +260,10 @@ Result Model::fit(std::string &chromosome,
 
   // F-test
   // adapted from http://people.reed.edu/~jones/Courses/P24.pdf
-  int df_f = n - 3;
-  int df_r = n - 1;
+  int df_f = n - X_complete2.cols();
+  spdlog::debug("DF full model " + std::to_string(df_f));
+  int df_r = n - X_complete3.cols();
+  spdlog::debug("DF restricted model " + std::to_string(df_r));
   int df_n = df_r - df_f;
   double rss_f = ss_resid.squaredNorm();
   double rss_r = null_resid.squaredNorm();
@@ -263,7 +286,7 @@ Result Model::fit(std::string &chromosome,
   res.phi_f = f;
   res.phi_pval = phi_pval;
   res.n = n;
-  res.eaf = X_complete.col(1).mean() * 0.5;
+  res.eaf = X_complete1.col(1).mean() * 0.5;
 
   return res;
 }
