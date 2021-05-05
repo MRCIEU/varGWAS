@@ -107,21 +107,7 @@ make
 
 ## Simulation
 
-```shell
-cd sim
-mkdir -p data
-PATH="$PATH":$PWD
-
-# obtain OSCA
-curl -L https://cnsgenomics.com/software/osca/download/osca_Linux.zip > osca_Linux.zip
-unzip osca_Linux.zip
-ln -s osca_Linux osca
-
-# run simulation
-Rscript sim.R --dist n # outcome distribution is normal
-Rscript sim.R --dist t # outcome distribution is t
-Rscript sim.R --dist l # outcome distribution is lognormal
-```
+See [README](./sim/README.md)
 
 ## Logging
 
