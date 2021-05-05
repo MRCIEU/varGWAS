@@ -2,9 +2,16 @@ library("ggplot2")
 library("dplyr")
 library("tidyr")
 library("broom")
+library('optparse')
 library("data.table")
 library("gridExtra")
 set.seed(123)
+
+option_list <- list(
+  make_option(c("-d", "--dist"), type="character", default=NULL, help="Outcome distribution", metavar="character")
+);
+opt_parser <- OptionParser(option_list=option_list);
+opt <- parse_args(opt_parser);
 
 #' Function to plot the power analysis
 #' @param h1 dataframe from power_funs.R:calc_power
@@ -68,15 +75,15 @@ calc_power <- function(results, field, n_sim, grp_name, alpha=0.05){
 }
 
 # load data
-d <- fread("results.csv")
+d <- fread(paste0("data/results_", opt$d, ".csv"))
 
 # process data
 cpp <- calc_power(d, "P.cpp", 200, c("phi", "lambda"))
 osca <- calc_power(d, "P.osca", 200, c("phi", "lambda"))
 
 # plot
-pdf("plot.pdf")
-cpp_p <- plot_power(cpp, "vGWAS power to detect GxE effect using B-P", "Sample size inflation factor", "lambda", "est_power", "est_power_low", "est_power_high", group="phi", color="phi")
-osca_p <- plot_power(osca, "vGWAS power to detect GxE effect using OSCA", "Sample size inflation factor", "lambda", "est_power", "est_power_low", "est_power_high", group="phi", color="phi")
+pdf(paste0("power_", opt$dist, ".pdf"))
+cpp_p <- plot_power(cpp, paste0("vGWAS power to detect GxE effect using B-P: ", opt$d, " distribution"), "Sample size inflation factor", "lambda", "est_power", "est_power_low", "est_power_high", group="phi", color="phi")
+osca_p <- plot_power(osca, paste0("vGWAS power to detect GxE effect using OSCA: ", opt$d, " distribution"), "Sample size inflation factor", "lambda", "est_power", "est_power_low", "est_power_high", group="phi", color="phi")
 grid.arrange(cpp_p, osca_p, ncol = 1, nrow = 2)
 dev.off()
