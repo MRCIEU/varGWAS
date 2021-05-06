@@ -2,6 +2,7 @@ library("data.table")
 library("broom")
 library("genpwr")
 library('optparse')
+library("jlst")
 source("funs.R")
 set.seed(12345)
 
@@ -25,30 +26,30 @@ for (phi in seq(0, 6, 0.5)) {
 
   for (lambda in c(1, 10, 100, 1000)) {
     for (i in 1:n_sim) {
-      # simulate data
+
+      # simulate covariates
       data <- data.frame(
         S = paste0("S", seq(1, n_obs * lambda)),
         X = get_simulated_genotypes(af, n_obs * lambda),
-        U = rnorm(n_obs * lambda),
-        sex = rbinom(n_obs * lambda, 1, .5),
-        age = sample(30:70, n_obs * lambda, replace = T),
-        PC = sapply(1:10, function(x) rnorm(n_obs * lambda))
+        U = rnorm(n_obs * lambda)
       )
 
+      # simulate outcome
+      data$Y <- data$X * delta + data$U * delta + data$X * data$U * theta
+
+      # add error term
       if (opt$dist == "n"){
-        data$Y <- data$X * delta + data$U * delta + data$X * data$U * theta + rnorm(n_obs * lambda)
+        data$Y <- data$Y + rnorm(n_obs * lambda)
       } else if (opt$dist == "t"){
-        data$Y <- data$X * delta + data$U * delta + data$X * data$U * theta + rt(n_obs * lambda, 4)
+        data$Y <- data$Y + rt(n_obs * lambda, 4)
       } else if (opt$dist == "l"){
-        data$Y <- data$X * delta + data$U * delta + data$X * data$U * theta + rlnorm(n_obs * lambda)
+        data$Y <- data$Y + rlnorm(n_obs * lambda)
       } else {
         stop(paste0("Distribution not implemented: ", opt$dist))
       }
 
       # write out GEN file
-      fileConn <- file("data/genotypes.gen")
-      writeLines(c(paste("01", "SNPID_1", "RSID_1", "1", "A", "G", paste(sapply(data$X, function(g) if (g == 0) { "1 0 0" } else if (g == 1) { "0 1 0" } else if (g == 2) { "0 0 1" }), collapse = " "), collapse = " ")), fileConn)
-      close(fileConn)
+      write_gen("data/genotypes.gen", "01", "SNPID_1", "RSID_1", "1", "A", "G", data$X)
 
       # write phenotype & sample file
       write.table(file = "data/phenotypes.csv", sep = ",", quote = F, row.names = F, data)
@@ -68,12 +69,14 @@ for (phi in seq(0, 6, 0.5)) {
       system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca.txt --vqtl-mtd 1")
 
       # B-P using R implementation
-      res_r <- bp(data$X, data$Y)
+      bp <- vartest(data$Y, x=data$X, type=1, x.sq=T)
+      res_r <- data.frame(BETA_x.r = bp$coef[2,1], SE_x.r = bp$coef[2,2], BETA_xsq.r = bp$coef[3,1], SE_xsq.r = bp$coef[3,2], P.r = as.numeric(bp$test[3]))
 
       # B-P using C++
       res_cpp <- fread("data/gwas.txt", select = c("beta", "se", "p", "phi_x", "se_x", "phi_xsq", "se_xsq", "phi_p"), col.names = c("BETA_mu.cpp", "SE_mu.cpp", "P_mu.cpp", "BETA_x.cpp", "SE_x.cpp", "BETA_xsq.cpp", "SE_xsq.cpp", "P.cpp"))
       
       # Levene using OSCA
+      # Note this method will not produce effect or se if P==0
       res_osca <- fread("data/osca.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca", "SE_x.osca", "P.osca"))
 
       # combine results

@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <set>
 #include <unordered_map>
-#include <algorithm>
 #include "spdlog/spdlog.h"
 #include "PhenotypeFileException.h"
 #include "PhenotypeFile.h"

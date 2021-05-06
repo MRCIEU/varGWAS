@@ -1,20 +1,24 @@
-# JLST C++ simulation
+# Simulations
 
-## Simulation
+## Power
+
+Simulation
 
 ```sh
 # normal dist
-sbatch sim.sh "$n"
+sbatch runR.sh sim1.R --dist "n"
 # t4 dist
-sbatch sim.sh "$t"
+sbatch runR.sh sim1.R --dist "t"
 # lognormal dist
-sbatch sim.sh "$l"
+sbatch runR.sh sim1.R --dist "l"
 ```
 
-## Power
+Plot
 
 ```sh
 Rscript power.R --dist "n"
 Rscript power.R --dist "l"
 Rscript power.R --dist "t"
 ```
+
+## Confounding

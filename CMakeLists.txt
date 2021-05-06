@@ -5,6 +5,7 @@ project(jlst_cpp)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(DEBUG ${CMAKE_BUILD_TYPE} STREQUAL Debug)
 
 # OpenMP
 find_package(OpenMP REQUIRED)
@@ -34,7 +35,7 @@ find_library(LIBSCL_LIB_PATH NAMES libscl.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/li
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # build tests & configure for performance profiling if in debug mode
-if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+if (${DEBUG})
     message("Building in DEBUG mode")
 
     # adding test libs

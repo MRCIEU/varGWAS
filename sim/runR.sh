@@ -10,7 +10,7 @@ module load languages/r/3.6.0
 module load apps/qctool/2.0rc4
 module load apps/bgen/1.1.6
 
-# run simulation
+# run
 mkdir -p data
 PATH="$PATH":$PWD
-Rscript sim.R --dist "$1"
+Rscript "$@"

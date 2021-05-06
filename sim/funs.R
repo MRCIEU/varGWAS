@@ -1,17 +1,4 @@
-#' Function to perform Breusch-Pagan test using f-test
-#' @param x vector of genotype
-#' @param y vector of response
-bp <- function(x, y) {
-  xsq <- x^2
-  fit1 <- lm(y ~ x)
-  d <- resid(fit1)^2
-  fit2 <- lm(d ~ x + xsq)
-  fit0 <- lm(d ~ 1)
-  f <- anova(fit0, fit2)
-  fit2 <- tidy(fit2)
-  f <- tidy(f)
-  return(data.frame(BETA_x.r = fit2$estimate[2], SE_x.r = fit2$std.error[2], BETA_xsq.r = fit2$estimate[3], SE_xsq.r = fit2$std.error[3], P.r = f$p.value[2]))
-}
+library("pwr")
 
 #' Function to simulate genotypes in HWE
 #' @param q Recessive/alternative allele frequency
@@ -20,4 +7,40 @@ get_simulated_genotypes <- function(q, n_obs){
   p <- 1 - q
   x <- sample(c(0, 1, 2), n_obs, prob=c(p^2, 2 * p * q, q^2), replace=T)
   return(x)
+}
+
+#' Estimate treatment effect size a binary exposure
+#' @param n_obs Number of samples in analysis
+#' @param treatment1_p The probability of recieving treatment
+#' @param sd The SD out of the normal outcome
+#' @param alpha P value threshold
+#' @param power Power to detect effect
+#' @return Effect size
+get_binary_delta <- function(n_obs, treatment1_p, sd, alpha, power){
+  p <- power.t.test(n=n_obs * treatment1_p, delta=NULL, sd=sd, sig.level=alpha, power=power, type = c("two.sample"), alternative = c("two.sided"))
+  return(p$delta)
+}
+
+#' Estimate treatment effect size given a continuous exposure
+#' @param n_obs Number of samples in analysis
+#' @param alpha P value threshold
+#' @param power Power to detect effect
+#' @return Effect size
+get_cont_delta <- function(n_obs, alpha, power){
+  # u = number of terms in the model (excluding intercept)
+  u <- 1
+
+  # v = error degrees of freedom
+  v <- n_obs - u - 1
+
+  # f2 = Cohen f2 (variance explained by the model)
+  p <- pwr.f2.test(u = u, v = v, sig.level = alpha, power = power)
+
+  return(sqrt(p$f2))
+}
+
+write_gen <- function(f, chr, snpid, rsid, pos, A1, A2, x){
+  fileConn <- file(f)
+  writeLines(c(paste(chr, snpid, rsid, pos, A1, A2, paste(sapply(x, function(g) if (g == 0) { "0 0 1" } else if (g == 1) { "0 1 0" } else if (g == 2) { "1 0 0" }), collapse = " "), collapse = " ")), fileConn)
+  close(fileConn)
 }

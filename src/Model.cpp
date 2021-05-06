@@ -111,7 +111,7 @@ void Model::run() {
 #pragma omp task
         {
           spdlog::debug("rsid = {}, thread = {}", rsid, omp_get_thread_num());
-          Result res = fit(chromosome, position, rsid, alleles[1], alleles[0], dosages, _non_null_idx, X1, X2, y);
+          Result res = fit(chromosome, position, rsid, alleles[0], alleles[1], dosages, _non_null_idx, X1, X2, y);
 #pragma omp critical
           {
             // TODO implement file buffer to improve performance
