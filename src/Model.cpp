@@ -60,9 +60,9 @@ void Model::run() {
   if (file.is_open()) {
     file << "chr\tpos\trsid\toa\tea\tbeta\tse\tt\tp\tphi_x\tse_x\tphi_xsq\tse_xsq\tphi_f\tphi_p\tn\teaf" << std::endl;
     file.flush();
-#pragma omp parallel default(none) shared(file, X1, X2, y) private(chromosome, position, rsid, alleles, probs, dosages)
+//#pragma omp parallel default(none) shared(file, X1, X2, y) private(chromosome, position, rsid, alleles, probs, dosages)
     {
-#pragma omp master
+//#pragma omp master
       // Read variant-by-variant
       while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
 
@@ -91,12 +91,12 @@ void Model::run() {
             );
           }
 
-          // convert genotype probabilities to copies of alt
+          // convert genotype probabilities to copies of A1
           // TODO how are null values recorded in BGEN?
           if ((prob[0] == -1 && prob[1] == -1 && prob[2] == -1) || (prob[0] == 0 && prob[1] == 0 && prob[2] == 0)) {
             dosages.push_back(-1);
           } else {
-            dosages.push_back(prob[1] + (2 * prob[2]));
+            dosages.push_back(prob[1] + (2 * prob[0]));
           }
         }
 
@@ -106,11 +106,11 @@ void Model::run() {
         }
 
         // run test and write to file
-#pragma omp task
+//#pragma omp task
         {
           spdlog::debug("rsid = {}, thread = {}", rsid, omp_get_thread_num());
           Result res = fit(chromosome, position, rsid, alleles[0], alleles[1], dosages, _non_null_idx, X1, X2, y);
-#pragma omp critical
+//#pragma omp critical
           {
             // TODO implement file buffer to improve performance
             file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
@@ -121,7 +121,7 @@ void Model::run() {
           }
         }
       }
-#pragma omp taskwait
+//#pragma omp taskwait
     }
 
     file.close();
