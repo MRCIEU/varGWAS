@@ -9,4 +9,4 @@ test/data/*
 !test/data/CMakeLists.txt
 !test/data/test.bgen
 !test/data/test.bgen.bgi
-sim/data/*
+sim/data

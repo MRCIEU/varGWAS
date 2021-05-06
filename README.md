@@ -42,8 +42,7 @@ module load build/gcc-5.5.0
 module load tools/cmake/3.20.0
 CC=/mnt/storage/software/languages/gcc-5.5.0/bin/gcc \
 CXX=/mnt/storage/software/languages/gcc-5.5.0/bin/g++ \
-cmake .. \
--DCMAKE_BUILD_TYPE=Release
+cmake .. -DCMAKE_BUILD_TYPE=Release
 ```
 
 ## Usage
