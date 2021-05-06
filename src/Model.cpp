@@ -48,7 +48,7 @@ void Model::run() {
     X2(i, 2) = 0; // dosage values are initially set to zero
     for (unsigned j = 0; j < _phenotype_file.GetCovariateColumn().size(); j++) {
       X1(i, j + 2) = _phenotype_file.GetCovariateColumn()[j][i]; // covariates
-      X2(i, j + 2) = _phenotype_file.GetCovariateColumn()[j][i]; // covariates
+      X2(i, j + 3) = _phenotype_file.GetCovariateColumn()[j][i]; // covariates
     }
     y(i, 0) = _phenotype_file.GetOutcomeColumn()[i]; // outcome
   }
