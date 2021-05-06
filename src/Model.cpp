@@ -36,7 +36,7 @@ void Model::run() {
   Eigen::MatrixXd
       X1 = Eigen::MatrixXd(_phenotype_file.GetNSamples(), 1 + 1 + _phenotype_file.GetCovariateColumn().size());
   Eigen::MatrixXd
-      X2 = Eigen::MatrixXd(_phenotype_file.GetNSamples(), 1 + 2 + _phenotype_file.GetCovariateColumn().size() * 2);
+      X2 = Eigen::MatrixXd(_phenotype_file.GetNSamples(), 1 + 2 + _phenotype_file.GetCovariateColumn().size());
   Eigen::VectorXd y = Eigen::VectorXd(_phenotype_file.GetNSamples());
 
   // Populate Eigen matrices
@@ -49,8 +49,6 @@ void Model::run() {
     for (unsigned j = 0; j < _phenotype_file.GetCovariateColumn().size(); j++) {
       X1(i, j + 2) = _phenotype_file.GetCovariateColumn()[j][i]; // covariates
       X2(i, j + 2) = _phenotype_file.GetCovariateColumn()[j][i]; // covariates
-      X2(i, j + _phenotype_file.GetCovariateColumn().size() + 2) =
-          pow(_phenotype_file.GetCovariateColumn()[j][i], 2.0); // xsq covariate
     }
     y(i, 0) = _phenotype_file.GetOutcomeColumn()[i]; // outcome
   }
