@@ -6,7 +6,7 @@
 #include <boost/math/distributions/students_t.hpp>
 
 /*
- * Test for performing Breusch-Pagan model
+ * Test for performing model
  * */
 
 static std::vector<double> DOSAGES = {
@@ -55,7 +55,7 @@ static std::vector<double> PHENO = {
     1.28624046292148
 };
 
-TEST(ModelTest, fit) {
+TEST(ModelTest, bp) {
   std::vector<double> pheno = PHENO;
   std::vector<double> dosages = DOSAGES;
   assert(dosages.size() == pheno.size());
@@ -83,7 +83,7 @@ TEST(ModelTest, fit) {
   for (unsigned i = 0; i < dosages.size(); i++) {
     non_nulls_idx.insert(i);
   }
-  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y);
+  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, false);
 
   // check estimate and SE are similar to R
   ASSERT_NEAR(result.beta, 0.262569, 0.01);
@@ -96,6 +96,49 @@ TEST(ModelTest, fit) {
   ASSERT_NEAR(result.se_xsq, 3.504, 0.01);
   ASSERT_NEAR(result.phi_pval, 2.225e-07, 0.01);
   ASSERT_NEAR(result.phi_f, 16.573, 0.01);
+}
+
+TEST(ModelTest, bf) {
+  std::vector<double> pheno = PHENO;
+  std::vector<double> dosages = DOSAGES;
+  assert(dosages.size() == pheno.size());
+  int n = pheno.size();
+  int p = 1; // n of covariates
+  Eigen::MatrixXd X1 = Eigen::MatrixXd(n, p + 1); // add 1 for intercept
+  Eigen::MatrixXd X2 = Eigen::MatrixXd(n, p * 2 + 1); // added xsq and intercept
+  Eigen::VectorXd y = Eigen::VectorXd(n);
+
+  // initialise empty matrix
+  for (unsigned i = 0; i < n; ++i) {
+    X1(i, 0) = 1; // intercept
+    X1(i, 1) = 0; // X
+    X2(i, 0) = 1; // intercept
+    X2(i, 1) = 0; // X
+    X2(i, 2) = 0; // Xsq
+    y(i, 0) = pheno[i];
+  }
+
+  // fit B-F model
+  std::string chr = "01";
+  std::string rsid = "rs1";
+  std::string allele = "A";
+  std::set<unsigned> non_nulls_idx;
+  for (unsigned i = 0; i < dosages.size(); i++) {
+    non_nulls_idx.insert(i);
+  }
+  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, true);
+
+  // check estimate and SE are similar to R
+  ASSERT_NEAR(result.beta, -0.14919, 0.01);
+  ASSERT_EQ(result.se, -1);
+  ASSERT_EQ(result.pval, -1);
+  ASSERT_EQ(result.t, -1);
+  ASSERT_NEAR(result.phi_x, 3.351, 0.02);
+  ASSERT_NEAR(result.se_x, 7.215, 0.02);
+  ASSERT_NEAR(result.phi_xsq, 5.309, 0.02);
+  ASSERT_NEAR(result.se_xsq, 3.719, 0.02);
+  ASSERT_NEAR(result.phi_pval, 6.146e-07, 0.0001);
+  ASSERT_NEAR(result.phi_f, 15.393, 0.05);
 }
 
 TEST(ModelTest, fit_missing_vals) {
@@ -128,7 +171,7 @@ TEST(ModelTest, fit_missing_vals) {
     non_nulls_idx.insert(i);
   }
   non_nulls_idx.erase(1);
-  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y);
+  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, false);
   ASSERT_EQ(result.n, dosages.size() - 2);
 }
 

@@ -301,9 +301,11 @@ Result Model::fit(std::string &chromosome,
 
   // set results
   res.beta = fs_fit(1, 0);
-  res.se = fs_se(1, 0);
-  res.t = t_stat;
-  res.pval = pval;
+  if (!robust) {
+    res.se = fs_se(1, 0);
+    res.t = t_stat;
+    res.pval = pval;
+  }
   res.phi_x = ss_fit(1, 0);
   res.phi_xsq = ss_fit(2, 0);
   res.se_x = ss_se(1, 0);
