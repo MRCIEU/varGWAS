@@ -150,18 +150,18 @@ Result Model::fit(std::string &chromosome,
   res.rsid = rsid;
   res.effect_allele = effect_allele;
   res.other_allele = other_allele;
-  res.eaf = -1;
+  res.eaf = NAN;
   res.n = -1;
-  res.beta = -1;
-  res.se = -1;
-  res.t = -1;
-  res.pval = -1;
-  res.phi_x = -1;
-  res.se_x = -1;
-  res.phi_xsq = -1;
-  res.se_xsq = -1;
-  res.phi_f = -1;
-  res.phi_pval = -1;
+  res.beta = NAN;
+  res.se = NAN;
+  res.t = NAN;
+  res.pval = NAN;
+  res.phi_x = NAN;
+  res.se_x = NAN;
+  res.phi_xsq = NAN;
+  res.se_xsq = NAN;
+  res.phi_f = NAN;
+  res.phi_pval = NAN;
 
   // set dosage values
   // X is passed without reference to allow for modification on each thread
