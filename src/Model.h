@@ -27,12 +27,14 @@ class Model {
         genfile::bgen::BgenParser &bgen_parser,
         std::set<unsigned> &non_null_idx,
         std::string &output_file,
-        int threads)
+        int threads,
+        bool robust)
       : _phenotype_file(phenotype_file),
         _bgen_parser(bgen_parser),
         _non_null_idx(non_null_idx),
         _output_file(output_file),
-        _threads(threads) {}
+        _threads(threads),
+        _robust(robust) {}
   void run();
   static Result fit(std::string &chromosome,
                     uint32_t position,
@@ -43,12 +45,14 @@ class Model {
                     std::set<unsigned> non_null_idx,
                     Eigen::MatrixXd X1,
                     Eigen::MatrixXd X2,
-                    Eigen::VectorXd y);
+                    Eigen::VectorXd y,
+                    bool robust);
  private:
   jlst::PhenotypeFile &_phenotype_file;
   genfile::bgen::BgenParser &_bgen_parser;
   std::set<unsigned> &_non_null_idx;
   int _threads;
+  bool _robust;
   std::string &_output_file;
 };
 }

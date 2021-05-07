@@ -36,6 +36,7 @@ int main(int argc, char **argv) {
       ("b,bgen_file", "Path to BGEN file", cxxopts::value<std::string>())
       ("p,phenotype", "Column name for phenotype", cxxopts::value<std::string>())
       ("i,id", "Column name for genotype identifier", cxxopts::value<std::string>())
+      ("r,robust", "Robust method using median value (Brown-Forsythe)")
       ("h,help", "Print usage")
       ("t,threads",
        "Number of threads",
@@ -104,6 +105,8 @@ int main(int argc, char **argv) {
   spdlog::debug("ID column: {}", id);
   int threads = result["threads"].as<int>();
   spdlog::debug("Threads n={}", threads);
+  bool robust = result.count("robust") == 1;
+  spdlog::debug("Using robust mode");
 
   // check files exist
   if (!file_exists(variable_file)) {
@@ -134,7 +137,7 @@ int main(int argc, char **argv) {
     std::set<unsigned> non_null_idx = phenotype_file.join(samples);
 
     // Perform locus association tests & write to file
-    jlst::Model model(phenotype_file, bgen_parser, non_null_idx, output_file, threads);
+    jlst::Model model(phenotype_file, bgen_parser, non_null_idx, output_file, threads, robust);
     model.run();
 
     spdlog::info("Analysis complete!");
