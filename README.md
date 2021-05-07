@@ -1,9 +1,10 @@
 # JLSP C++
 
-Implementation of the Breusch-Pagan heteroscedasticity test for genome-wide association studies
+Implementation of Breusch-Pagan and Brown-Forsythe heteroscedasticity tests for genome-wide association studies
 
 ```
 T. S. Breusch and A. R. Pagan, “A Simple Test for Heteroscedasticity and Random Coefficient Variation,” Econometrica, vol. 47, no. 5, p. 1287, Sep. 1979, doi: 10.2307/1911963.
+M. B. Brown and A. B. Forsythe, “Robust tests for the equality of variances,” J. Am. Stat. Assoc., 1974, doi: 10.1080/01621459.1974.10482955.
 ```
 
 ## Install
@@ -48,7 +49,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 ## Usage
 
 ```shell
-./bin/jlst_cpp
+./jlst_cpp
 
 Program to perform vGWAS of trait against variants in the BGEN format
 Usage:
@@ -61,8 +62,9 @@ Usage:
   -b, --bgen_file arg      Path to BGEN file
   -p, --phenotype arg      Column name for phenotype
   -i, --id arg             Column name for genotype identifier
+  -r, --robust             Robust method using median value (Brown-Forsythe)
   -h, --help               Print usage
-  -t, --threads arg        Number of threads
+  -t, --threads arg        Number of threads (default: 8)
 ```
 
 - Unordered categorical variables should be one-hot encoded.
@@ -115,9 +117,5 @@ the [spdlog](https://github.com/gabime/spdlog#load-log-levels-from-env-variable-
 
 ```shell
 export SPDLOG_LEVEL=debug
-./bin/jlst_cpp
+./jlst_cpp
 ```
-
-## Contributing
-
-This project follows the [Google style guide](https://google.github.io/styleguide/cppguide.html)
