@@ -113,5 +113,8 @@ for (phi in seq(0, 6, 0.5)) {
 
 }
 
+# print warnings
+warnings()
+
 # save results for plotting
 write.csv(results, file = paste0("data/power_", opt$dist, ".csv"))
