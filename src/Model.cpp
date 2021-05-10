@@ -205,7 +205,7 @@ Result Model::fit(std::string &chromosome,
     spdlog::debug("Estimating first stage model using OLS regression");
     fs_fit = qr1.solve(y_complete);
   } else {
-    spdlog::debug("Estimating first stage model using quantile regression");
+    spdlog::debug("Mapping Eigen matrix to SCL");
     // map eigen matrix to scl
     scl::realmat scl_X(X_complete1.rows(), X_complete1.cols());
     scl::realmat scl_y(X_complete1.rows(), 1);
@@ -216,11 +216,15 @@ Result Model::fit(std::string &chromosome,
       }
     }
     // model
+    spdlog::debug("Creating SCL matrix");
     scl::realmat b(X_complete1.cols(), 1);
     REAL tau = 0.5;
+    spdlog::debug("Estimating first stage model using quantile regression");
     b = scl::quantreg(scl_y, scl_X, tau);
+    spdlog::debug("Fit complete");
 
     //map betas from scl to eigen
+    spdlog::debug("Mapping SCL betas to Eigen matrix");
     fs_fit.resize(X_complete1.cols(), 1);
     for (int i = 0; i < X_complete1.cols(); i++) {
       fs_fit(i, 0) = b[i + 1];
