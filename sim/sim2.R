@@ -56,7 +56,7 @@ for (phi in seq(0, 6, 0.5)) {
       system("bgenix -g data/genotypes.bgen -clobber -index")
 
       # run vGWAS
-      system("../build/bin/jlst_cpp -v data/phenotypes.csv -s , -o data/gwas.txt -b data/genotypes.bgen -p Y -i S -t 1 -c C1,C2")
+      system("jlst_cpp -v data/phenotypes.csv -s , -o data/gwas.txt -b data/genotypes.bgen -p Y -i S -t 1 -c C1,C2")
 
       # B-P using R implementation
       bp <- vartest(data$Y, x=data$X, covar=data.frame(data$C1, data$C2), type=1, x.sq=T, covar.var=T)
