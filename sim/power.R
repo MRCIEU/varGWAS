@@ -5,6 +5,7 @@ library("broom")
 library('optparse')
 library("data.table")
 library("gridExtra")
+library("grid")
 set.seed(123)
 
 option_list <- list(
@@ -75,15 +76,34 @@ calc_power <- function(results, field, n_sim, grp_name, alpha=0.05){
 }
 
 # load data
-d <- fread(paste0("data/results_", opt$d, ".csv"))
+d <- fread(paste0("data/power_", opt$d, ".csv"))
 
 # process data
-cpp <- calc_power(d, "P.cpp", 200, c("phi", "lambda"))
+cpp_bp <- calc_power(d, "P.cpp_bp", 200, c("phi", "lambda"))
+cpp_bf <- calc_power(d, "P.cpp_bf", 200, c("phi", "lambda"))
 osca <- calc_power(d, "P.osca", 200, c("phi", "lambda"))
 
-# plot
+# create plots
+cpp_bp_p <- plot_power(cpp_bp, "B-P", "Sample size inflation factor", "lambda", "est_power", "est_power_low", "est_power_high", group="phi", color="phi")
+cpp_bf_p <- plot_power(cpp_bf, "B-F", "Sample size inflation factor", "lambda", "est_power", "est_power_low", "est_power_high", group="phi", color="phi")
+osca_p <- plot_power(osca, "OSCA", "Sample size inflation factor", "lambda", "est_power", "est_power_low", "est_power_high", group="phi", color="phi")
+
+# merge plots
+if (opt$d == "n"){
+    d <- "Normal"
+} else if (opt$d == "l"){
+    d <- "Log-normal"
+} else if (opt$d == "t"){
+    d <- "t-distribution df=4"
+}
 pdf(paste0("power_", opt$dist, ".pdf"))
-cpp_p <- plot_power(cpp, paste0("vGWAS power to detect GxE effect using B-P: ", opt$d, " distribution"), "Sample size inflation factor", "lambda", "est_power", "est_power_low", "est_power_high", group="phi", color="phi")
-osca_p <- plot_power(osca, paste0("vGWAS power to detect GxE effect using OSCA: ", opt$d, " distribution"), "Sample size inflation factor", "lambda", "est_power", "est_power_low", "est_power_high", group="phi", color="phi")
-grid.arrange(cpp_p, osca_p, ncol = 1, nrow = 2)
+grid.arrange(
+    top = textGrob(paste0("vGWAS power to detect GxE effect: ", d, " distribution")),
+    osca_p, 
+    cpp_bp_p + theme(legend.position="none"), 
+    cpp_bf_p + theme(legend.position="none"), 
+    ncol = 2, 
+    nrow = 2,
+    layout_matrix = rbind(c(1, 1),c(2, 3))
+)
 dev.off()
