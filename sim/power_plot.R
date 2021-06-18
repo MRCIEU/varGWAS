@@ -68,7 +68,6 @@ ggplot(data=results, aes(x=lambda, y=est_power, ymin=est_power_low, ymax=est_pow
     geom_point() + 
     geom_errorbar(width=.05) +
     theme_classic() + 
-    ggtitle("Power of heteroscedasticity tests to detect gene-interaction effect") +
     xlab("Sample size inflation factor") + 
     ylab(paste0("Power (alpha=", 0.05, ")")) +
     labs(color = expression(phi)) +
