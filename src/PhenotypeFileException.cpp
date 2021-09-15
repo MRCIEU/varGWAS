@@ -4,7 +4,7 @@
 
 #include "PhenotypeFileException.h"
 
-namespace jlst {
+namespace vargwas {
 PhenotypeFileException::PhenotypeFileException(const std::string &msg) {
   this->msg = msg;
 };
