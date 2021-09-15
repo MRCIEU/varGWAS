@@ -1,7 +1,7 @@
 # adapted from: https://raymii.org/s/tutorials/Cpp_project_setup_with_cmake_and_unit_tests.html
 
 cmake_minimum_required(VERSION 3.15)
-project(jlst_cpp)
+project(varGWAS)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
