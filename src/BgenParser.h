@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef JLST_CPP_BGENPARSER_H
-#define JLST_CPP_BGENPARSER_H
+#ifndef VARGWAS_CPP_BGENPARSER_H
+#define VARGWAS_CPP_BGENPARSER_H
 
 #include <iostream>
 #include <fstream>
