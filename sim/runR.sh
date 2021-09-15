@@ -12,6 +12,6 @@ module load apps/bgen/1.1.6
 
 # run
 mkdir -p data
-PATH="$PATH":/mnt/storage/home/ml18692/projects/jlst_cpp/sim
-PATH="$PATH":/mnt/storage/home/ml18692/projects/jlst_cpp/build/bin
+PATH="$PATH":/mnt/storage/home/ml18692/projects/varGWAS/sim
+PATH="$PATH":/mnt/storage/home/ml18692/projects/varGWAS/build/bin
 Rscript "$@"
