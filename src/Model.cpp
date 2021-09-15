@@ -19,7 +19,7 @@
 /*
  * Class to perform association testing
  * */
-namespace jlst {
+namespace vargwas {
 
 void Model::run() {
   std::string chromosome;
