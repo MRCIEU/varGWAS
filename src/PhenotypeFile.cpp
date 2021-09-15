@@ -14,7 +14,7 @@
  * Class to read in outcome, covariate(s) and sample identifier into memory
  * */
 
-namespace jlst {
+namespace vargwas {
 /*
  * Function to parse file
  * */
