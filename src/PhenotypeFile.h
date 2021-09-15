@@ -2,10 +2,10 @@
 #include <vector>
 #include <set>
 
-#ifndef JLST_CPP_PHENOTYPEFILE_H
-#define JLST_CPP_PHENOTYPEFILE_H
+#ifndef VARGWAS_CPP_PHENOTYPEFILE_H
+#define VARGWAS_CPP_PHENOTYPEFILE_H
 
-namespace jlst {
+namespace vargwas {
 class PhenotypeFile {
 
  public:
@@ -41,4 +41,4 @@ class PhenotypeFile {
 };
 }
 
-#endif //JLST_CPP_PHENOTYPEFILE_H
+#endif //VARGWAS_CPP_PHENOTYPEFILE_H
