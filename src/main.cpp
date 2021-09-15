@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 
   // Configure arguments
   cxxopts::Options
-      options(PROGRAM_NAME + " " + VERSION, "Program to perform vGWAS of trait against variants in the BGEN format");
+      options(PROGRAM_NAME + " " + VERSION, "Program to perform GWAS of trait variability against variants in the BGEN format");
   options.add_options()
       ("v,variable_file", "Path to phenotype file", cxxopts::value<std::string>())
       ("s,sep", "File separator", cxxopts::value<char>())
