@@ -4,8 +4,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef JLST_CPP_PROBSETTER_H
-#define JLST_CPP_PROBSETTER_H
+#ifndef VARGWAS_CPP_PROBSETTER_H
+#define VARGWAS_CPP_PROBSETTER_H
 
 #include <iostream>
 #include <fstream>
@@ -48,4 +48,4 @@ namespace genfile {
     };
 }
 
-#endif //JLST_CPP_PROBSETTER_H
+#endif //VARGWAS_CPP_PROBSETTER_H
