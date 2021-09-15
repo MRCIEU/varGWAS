@@ -132,17 +132,17 @@ int main(int argc, char **argv) {
     );
 
     // Read phenotypes and subset using sample list
-    jlst::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
+    vargwas::PhenotypeFile phenotype_file(variable_file, covariates, phenotype, id, sep);
     phenotype_file.parse();
     std::set<unsigned> non_null_idx = phenotype_file.join(samples);
 
     // Perform locus association tests & write to file
-    jlst::Model model(phenotype_file, bgen_parser, non_null_idx, output_file, threads, robust);
+    vargwas::Model model(phenotype_file, bgen_parser, non_null_idx, output_file, threads, robust);
     model.run();
 
     spdlog::info("Analysis complete!");
 
-  } catch (jlst::PhenotypeFileException const &e) {
+  } catch (vargwas::PhenotypeFileException const &e) {
     spdlog::error("Error parsing phenotype file: {}", e.what());
     return -1;
   } catch (genfile::bgen::BGenError const &e) {

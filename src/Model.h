@@ -48,7 +48,7 @@ class Model {
                     Eigen::VectorXd y,
                     bool robust);
  private:
-  jlst::PhenotypeFile &_phenotype_file;
+  vargwas::PhenotypeFile &_phenotype_file;
   genfile::bgen::BgenParser &_bgen_parser;
   std::set<unsigned> &_non_null_idx;
   int _threads;
@@ -57,4 +57,4 @@ class Model {
 };
 }
 
-#endif //JLST_CPP_SRC_MODEL_H_
+#endif //VARGWAS_CPP_SRC_MODEL_H_

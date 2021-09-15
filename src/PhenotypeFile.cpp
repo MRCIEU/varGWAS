@@ -100,14 +100,14 @@ void PhenotypeFile::parse() {
         }
 
         if (out_idx == -1) {
-          throw jlst::PhenotypeFileException("Field missing from phenotype file: " + _outcome_column_header);
+          throw vargwas::PhenotypeFileException("Field missing from phenotype file: " + _outcome_column_header);
         }
         if (sid_idx == -1) {
-          throw jlst::PhenotypeFileException("Field missing from phenotype file: " + _id_column_header);
+          throw vargwas::PhenotypeFileException("Field missing from phenotype file: " + _id_column_header);
         }
         if (_covariate_column.size() != _covariate_column_headers.size()
             || cov_idx.size() != _covariate_column.size()) {
-          throw jlst::PhenotypeFileException(
+          throw vargwas::PhenotypeFileException(
               "Expected n=" + std::to_string(_covariate_column_headers.size()) + " covariate(s) but n="
                   + std::to_string(_covariate_column.size()) + " were found in the file");
         }
