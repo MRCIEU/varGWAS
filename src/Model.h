@@ -17,13 +17,13 @@
 #include "BgenParser.h"
 #include "Result.h"
 
-#ifndef JLST_CPP_SRC_MODEL_H_
-#define JLST_CPP_SRC_MODEL_H_
+#ifndef VARGWAS_CPP_SRC_MODEL_H_
+#define VARGWAS_CPP_SRC_MODEL_H_
 
-namespace jlst {
+namespace vargwas {
 class Model {
  public:
-  Model(jlst::PhenotypeFile &phenotype_file,
+  Model(vargwas::PhenotypeFile &phenotype_file,
         genfile::bgen::BgenParser &bgen_parser,
         std::set<unsigned> &non_null_idx,
         std::string &output_file,
