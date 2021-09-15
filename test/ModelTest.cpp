@@ -83,7 +83,7 @@ TEST(ModelTest, bp) {
   for (unsigned i = 0; i < dosages.size(); i++) {
     non_nulls_idx.insert(i);
   }
-  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, false);
+  vargwas::Result result = vargwas::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, false);
 
   // check estimate and SE are similar to R
   ASSERT_NEAR(result.beta, 0.262569, 0.01);
@@ -126,7 +126,7 @@ TEST(ModelTest, bf) {
   for (unsigned i = 0; i < dosages.size(); i++) {
     non_nulls_idx.insert(i);
   }
-  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, true);
+  vargwas::Result result = vargwas::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, true);
 
   // check estimate and SE are similar to R
   ASSERT_NEAR(result.beta, -0.14919, 0.01);
@@ -171,7 +171,7 @@ TEST(ModelTest, fit_missing_vals) {
     non_nulls_idx.insert(i);
   }
   non_nulls_idx.erase(1);
-  jlst::Result result = jlst::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, false);
+  vargwas::Result result = vargwas::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, false);
   ASSERT_EQ(result.n, dosages.size() - 2);
 }
 
