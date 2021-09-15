@@ -1,6 +1,6 @@
-# JLSP C++
+# varGWAS
 
-Implementation of Breusch-Pagan and Brown-Forsythe heteroscedasticity tests for genome-wide association studies
+Implementation of Breusch-Pagan and regression based Brown-Forsythe heteroscedasticity tests for genome-wide association studies
 
 ```
 T. S. Breusch and A. R. Pagan, “A Simple Test for Heteroscedasticity and Random Coefficient Variation,” Econometrica, vol. 47, no. 5, p. 1287, Sep. 1979, doi: 10.2307/1911963.
@@ -14,8 +14,8 @@ Requires UNIX environment
 SRC
 
 ```shell
-git clone git@ieugit-scmv-d0.epi.bris.ac.uk:ml18692/jlst_cpp.git
-cd jlst_cpp
+git clone git@github.com:MRCIEU/varGWAS.git
+cd varGWAS
 ```
 
 Libraries
@@ -49,11 +49,11 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 ## Usage
 
 ```shell
-./jlst_cpp
+./varGWAS
 
 Program to perform vGWAS of trait against variants in the BGEN format
 Usage:
-  JLST C++ v1.0.0 [OPTION...]
+  varGWAS C++ v1.0.0 [OPTION...]
 
   -v, --variable_file arg  Path to phenotype file
   -s, --sep arg            File separator
@@ -75,16 +75,16 @@ Usage:
 Build image
 
 ```shell
-docker build -t jlst_cpp .
+docker build -t varGWAS .
 ```
 
-Perform vGWAS
+Perform GWAS
 
 ```shell
 docker run \
--v /Users/ml18692/projects/jlst_cpp/test/data:/data \
+-v /Users/ml18692/projects/varGWAS/test/data:/data \
 -e SPDLOG_LEVEL=debug \
--it jlst_cpp \
+-it varGWAS \
 -v /data/phenotypes.csv \
 -s , \
 -c sex,age,PC.1,PC.2,PC.3,PC.4,PC.5,PC.6,PC.7,PC.8,PC.9,PC.10 \
@@ -117,5 +117,5 @@ the [spdlog](https://github.com/gabime/spdlog#load-log-levels-from-env-variable-
 
 ```shell
 export SPDLOG_LEVEL=debug
-./jlst_cpp
+./varGWAS
 ```
