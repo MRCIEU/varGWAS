@@ -17,4 +17,4 @@ RUN bash lib.sh
 RUN mkdir /app/build && cd /app/build && cmake .. -DCMAKE_BUILD_TYPE=Release && make
 
 # launch app
-ENTRYPOINT ["/app/build/bin/jlst_cpp"]
+ENTRYPOINT ["/app/build/bin/varGWAS"]
