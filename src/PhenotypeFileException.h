@@ -2,13 +2,13 @@
 // Created by Matt Lyon on 10/02/2021.
 //
 
-#ifndef JLST_CPP_SRC_PHENOTYPEFILEEXCEPTION_H_
-#define JLST_CPP_SRC_PHENOTYPEFILEEXCEPTION_H_
+#ifndef VARGWAS_CPP_SRC_PHENOTYPEFILEEXCEPTION_H_
+#define VARGWAS_CPP_SRC_PHENOTYPEFILEEXCEPTION_H_
 
 #include <exception>
 #include <string>
 
-namespace jlst {
+namespace vargwas {
 class PhenotypeFileException : public std::exception {
  public:
   explicit PhenotypeFileException(const std::string &msg);
@@ -18,4 +18,4 @@ class PhenotypeFileException : public std::exception {
 };
 }
 
-#endif //JLST_CPP_SRC_PHENOTYPEFILEEXCEPTION_H_
+#endif // VARGWAS_CPP_SRC_PHENOTYPEFILEEXCEPTION_H_
