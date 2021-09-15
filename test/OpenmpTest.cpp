@@ -5,13 +5,13 @@
 #include <Result.h>
 #include "BgenParser.h"
 
-jlst::Result func(std::string chromosome,
+vargwas::Result func(std::string chromosome,
                   uint32_t position,
                   std::string rsid,
                   std::vector<std::string> alleles,
                   std::vector<std::vector<double>> probs) {
 
-  jlst::Result res;
+  vargwas::Result res;
 
   res.chromosome = std::move(chromosome);
   res.position = position;
@@ -33,7 +33,7 @@ TEST(OpenMPTest, process_variants) {
   std::string rsid;
   std::vector<std::string> alleles;
   std::vector<std::vector<double>> probs;
-  genfile::bgen::BgenParser bgen_parser("/Users/ml18692/projects/jlst_cpp/lib/bgen/example/example.v11.bgen");
+  genfile::bgen::BgenParser bgen_parser("/Users/ml18692/projects/vargwas/lib/bgen/example/example.v11.bgen");
   std::stringstream buf;
   unsigned i = 0;
 
@@ -45,7 +45,7 @@ TEST(OpenMPTest, process_variants) {
       bgen_parser.read_probs(&probs);
 #pragma omp task
       {
-        jlst::Result res = func(chromosome, position, rsid, alleles, probs);
+        vargwas::Result res = func(chromosome, position, rsid, alleles, probs);
 #pragma omp critical
         {
           buf << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
