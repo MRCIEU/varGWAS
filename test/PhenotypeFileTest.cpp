@@ -18,7 +18,7 @@ TEST(PhenotypeFileTest, parse_should_function) {
   static std::string idColumnHeader = "id";
   static char sep = ',';
 
-  jlst::PhenotypeFile phenotypeFile(filePath,
+  vargwas::PhenotypeFile phenotypeFile(filePath,
                                     covariateColumnHeaders,
                                     outcomeColumnHeader,
                                     idColumnHeader,
@@ -43,14 +43,14 @@ TEST(PhenotypeFileTest, parse_missing_exposure_field) {
   static std::string idColumnHeader = "id";
   static char sep = ',';
   try {
-    jlst::PhenotypeFile phenotypeFile(filePath,
+    vargwas::PhenotypeFile phenotypeFile(filePath,
                                       covariateColumnHeaders,
                                       outcomeColumnHeader,
                                       idColumnHeader,
                                       sep);
     phenotypeFile.parse();
     FAIL() << "Expected PhenotypeFileException";
-  } catch (jlst::PhenotypeFileException const &err) {
+  } catch (vargwas::PhenotypeFileException const &err) {
     EXPECT_EQ(err.what(), std::string("Field missing from phenotype file: NA"));
   } catch (...) {
     FAIL() << "Expected PhenotypeFileException";
@@ -64,7 +64,7 @@ TEST(PhenotypeFileTest, subset_samples_should_function) {
   static std::string idColumnHeader = "id";
   static char sep = ',';
 
-  jlst::PhenotypeFile phenotypeFile(filePath,
+  vargwas::PhenotypeFile phenotypeFile(filePath,
                                     covariateColumnHeaders,
                                     outcomeColumnHeader,
                                     idColumnHeader,
