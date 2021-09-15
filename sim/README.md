@@ -16,13 +16,17 @@ sbatch runR.sh sim1.R --dist "l"
 Plot
 
 ```shell
-Rscript power.R --dist "n"
-Rscript power.R --dist "l"
-Rscript power.R --dist "t"
+Rscript power_plot.R
 ```
 
-## Confounding
+## T1E
 
 ```shell
 sbatch runR.sh sim2.R
+```
+
+Plot
+
+```shell
+Rscript t1e_plot.R
 ```
