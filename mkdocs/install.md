@@ -99,7 +99,7 @@ make
 
 # Simulation
 
-See [README](./sim/README.md)
+See [README](https://github.com/MRCIEU/varGWAS/blob/master/sim/README.md)
 
 # Logging
 
