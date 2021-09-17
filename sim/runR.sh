@@ -14,4 +14,5 @@ module load apps/bgen/1.1.6
 mkdir -p data
 PATH="$PATH":/mnt/storage/home/ml18692/projects/varGWAS/sim
 PATH="$PATH":/mnt/storage/home/ml18692/projects/varGWAS/build/bin
+PATH="$PATH":/mnt/storage/home/ml18692/apps/osca
 Rscript "$@"
