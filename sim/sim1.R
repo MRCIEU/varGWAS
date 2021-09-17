@@ -42,6 +42,8 @@ for (phi in seq(0, 6, 0.5)) {
       # add error term
       if (opt$dist == "n") {
         data$Y <- data$Y + rnorm(n_obs * lambda)
+      } else if (opt$dist == "mn") {
+        data$Y <- data$Y + c(rnorm(n_obs * lambda *.9), rnorm(n_obs * lambda * .1, mean=5))
       } else if (opt$dist == "t") {
         data$Y <- data$Y + rt(n_obs * lambda, 4)
       } else if (opt$dist == "l") {
