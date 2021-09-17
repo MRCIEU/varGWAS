@@ -27,7 +27,7 @@ Rscript power_plot.R
 sbatch runR.sh sim2.R
 ```
 
-## Sim3 - T1E of B-P and Levene's test under main effect with non-normal/normal dist  transformation
+## Sim3 - T1E of B-P and Levene's test under main effect with non-normal/normal dist transformation
 
 ```shell
 sbatch runR.sh sim3.R
