@@ -33,9 +33,10 @@ calc_power <- function(results, field, n_sim, grp_name, alpha=0.05){
 }
 
 # load data
-n <- fread(paste0("data/power_n.csv"))
-l <- fread(paste0("data/power_l.csv"))
-t <- fread(paste0("data/power_t.csv"))
+n <- fread(paste0("n/data/power_n.csv"))
+mn <- fread(paste0("mn/data/power_mn.csv"))
+l <- fread(paste0("l/data/power_l.csv"))
+t <- fread(paste0("t/data/power_t.csv"))
 
 # process data
 cpp_bp_n <- calc_power(n, "P.cpp_bp", 200, c("phi", "lambda"))
@@ -43,22 +44,28 @@ cpp_bp_n$dist <- "Normal"
 cpp_bp_n$method <- "Breusch-Pagan"
 osca_n <- calc_power(n, "P.osca", 200, c("phi", "lambda"))
 osca_n$dist <- "Normal"
-osca_n$method <- "OSCA"
+osca_n$method <- "Levene"
+cpp_bp_mn <- calc_power(mn, "P.cpp_bp", 200, c("phi", "lambda"))
+cpp_bp_mn$dist <- "Mixed normal"
+cpp_bp_mn$method <- "Breusch-Pagan"
+osca_mn <- calc_power(mn, "P.osca", 200, c("phi", "lambda"))
+osca_mn$dist <- "Mixed normal"
+osca_mn$method <- "Levene"
 cpp_bp_l <- calc_power(l, "P.cpp_bp", 200, c("phi", "lambda"))
 cpp_bp_l$dist <- "Lognormal"
 cpp_bp_l$method <- "Breusch-Pagan"
 osca_l <- calc_power(l, "P.osca", 200, c("phi", "lambda"))
 osca_l$dist <- "Lognormal"
-osca_l$method <- "OSCA"
+osca_l$method <- "Levene"
 cpp_bp_t <- calc_power(t, "P.cpp_bp", 200, c("phi", "lambda"))
 cpp_bp_t$dist <- "T-dist"
 cpp_bp_t$method <- "Breusch-Pagan"
 osca_t <- calc_power(t, "P.osca", 200, c("phi", "lambda"))
 osca_t$dist <- "T-dist"
-osca_t$method <- "OSCA"
-results <- rbind(cpp_bp_n, cpp_bp_l, cpp_bp_t, osca_n, osca_l, osca_t)
-results$method <- factor(results$method, levels = c("Breusch-Pagan", "OSCA"))
-results$dist <- factor(results$dist, levels = c("Normal", "Lognormal", "T-dist"))
+osca_t$method <- "Levene"
+results <- rbind(cpp_bp_n, cpp_bp_mn, cpp_bp_l, cpp_bp_t, osca_n, osca_mn, osca_l, osca_t)
+results$method <- factor(results$method, levels = c("Breusch-Pagan", "Levene"))
+results$dist <- factor(results$dist, levels = c("Normal", "Mixed normal", "Lognormal", "T-dist"))
 results$lambda <- factor(results$lambda, levels = c(1,10,100,1000))
 
 # create plot
@@ -71,7 +78,7 @@ ggplot(data=results, aes(x=lambda, y=est_power, ymin=est_power_low, ymax=est_pow
     xlab("Sample size inflation factor") + 
     ylab(paste0("Power (alpha=", 0.05, ")")) +
     labs(color = expression(phi)) +
-    scale_y_continuous(limits = c(0, 1), breaks = scales::pretty_breaks(n = 10)) +
+    scale_y_continuous(limits = c(0, 1), breaks = scales::pretty_breaks(n = 5)) +
     geom_hline(yintercept = 0.05, linetype = "dashed", color = "grey") +
     geom_hline(yintercept = 0.8, linetype = "dashed", color = "grey") +
     scale_color_viridis(direction = 1) +
