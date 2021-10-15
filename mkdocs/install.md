@@ -39,5 +39,5 @@ make
 Build image
 
 ```shell
-docker build -t varGWAS .
+docker build -t vargwas .
 ```
