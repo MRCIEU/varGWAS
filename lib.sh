@@ -14,8 +14,8 @@ cd bgen
 
 # boost
 cd "$LIB_DIR"
-curl -L https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.bz2 >boost_1_75_0.tar.bz2
-tar --bzip2 -xf boost_1_75_0.tar.bz2
+curl -L https://boostorg.jfrog.io/artifactory/main/release/1.77.0/source/boost_1_77_0.tar.bz2 > boost_1_77_0.tar.bz2
+tar --bzip2 -xf boost_1_77_0.tar.bz2
 
 # zstd
 cd "$LIB_DIR"
@@ -42,8 +42,8 @@ mv fast-cpp-csv-parser-master fast-cpp-csv-parser
 
 # eigen (requires >=3.4)
 cd "$LIB_DIR"
-curl -L https://gitlab.com/libeigen/eigen/-/archive/master/eigen-master.tar.gz >eigen-master.tar.gz
-tar -xvf eigen-master.tar.gz
+curl -L https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz >eigen-3.4.0.tar.gz
+tar -xvf eigen-3.4.0.tar.gz
 
 # cxxopts
 cd "$LIB_DIR"

@@ -232,7 +232,13 @@ Result Model::fit(std::string &chromosome,
   }
   Eigen::VectorXd fs_fitted = X_complete1 * fs_fit;
   Eigen::VectorXd fs_resid = y_complete - fs_fitted;
-  Eigen::VectorXd fs_resid2 = fs_resid.array().square();
+  Eigen::VectorXd fs_resid2;
+
+  if (robust) {
+    fs_resid2 = fs_resid.array().abs();
+  } else {
+    fs_resid2 = fs_resid.array().square();
+  }
 
   // se
   spdlog::debug("Estimating SE");

@@ -11,4 +11,3 @@ test/data/*
 !test/data/test.bgen.bgi
 sim/data
 .Rapp.history
-.DS_Store
