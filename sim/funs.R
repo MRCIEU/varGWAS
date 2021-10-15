@@ -97,16 +97,5 @@ run_models <- function(data){
   res$SE_mu.r <- fit$std.error[2]
   res$P_mu.r <- fit$p.value[2]
 
-  # add expected variance parameters
-  res$EXP_x <- 2 * delta * theta
-  res$EXP_xsq <- theta * theta
-
-  # add params
-  res$phi <- phi
-  res$af <- af
-  res$lambda <- lambda
-  res$theta <- theta
-  res$delta <- delta
-
   return(res)
 }
