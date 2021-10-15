@@ -20,8 +20,7 @@ for (af in c(0.01, 0.05, 0.1, 0.2)){
             # simulate covariates
             data <- data.frame(
                 S = paste0("S", seq(1, n_obs)),
-                X = get_simulated_genotypes(af, n_obs),
-                U = rep(NA, n_obs)
+                X = get_simulated_genotypes(af, n_obs)
             )
 
             if (dist == "Normal"){

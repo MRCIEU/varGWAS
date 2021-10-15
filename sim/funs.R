@@ -88,17 +88,20 @@ run_models <- function(data){
   res <- cbind(res_r_bp, res_r_bf, res_cpp_bp, res_cpp_bf, res_osca)
 
   # add LM
-  fit <- tidy(lm(Y ~ X * U, data = data))
-  res$BETA.x <- fit$estimate[2]
-  res$BETA.u <- fit$estimate[3]
-  res$BETA.xu <- fit$estimate[4]
-  res$SE.x <- fit$std.error[2]
-  res$SE.u <- fit$std.error[3]
-  res$SE.xu <- fit$std.error[4]
+  if ("U" %in% names(data)){
+    fit <- tidy(lm(Y ~ X * U, data = data))
+    res$BETA.x <- fit$estimate[2]
+    res$BETA.u <- fit$estimate[3]
+    res$BETA.xu <- fit$estimate[4]
+    res$SE.x <- fit$std.error[2]
+    res$SE.u <- fit$std.error[3]
+    res$SE.xu <- fit$std.error[4]
+  }
+
   fit <- tidy(lm(Y ~ X, data = data))
   res$BETA_mu.r <- fit$estimate[2]
   res$SE_mu.r <- fit$std.error[2]
   res$P_mu.r <- fit$p.value[2]
-
+  
   return(res)
 }
