@@ -1,4 +1,5 @@
 library("pwr")
+library("jlst")
 
 #' Function to simulate genotypes in HWE
 #' @param q Recessive/alternative allele frequency
