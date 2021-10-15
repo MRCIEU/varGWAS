@@ -20,7 +20,8 @@ for (af in c(0.01, 0.05, 0.1, 0.2)){
             # simulate covariates
             data <- data.frame(
                 S = paste0("S", seq(1, n_obs)),
-                X = get_simulated_genotypes(af, n_obs)
+                X = get_simulated_genotypes(af, n_obs),
+                stringsAsFactors=F
             )
 
             if (dist == "Normal"){
@@ -50,8 +51,8 @@ qqgplot <- function(data, af, pcol, ci = 0.95) {
 
     for (dist in c("Normal", "T", "Lognormal", "Mixed Normal")){
         p <- data %>%
-            filter(dist == !!dist & af == !!af) %>%
-            pull(!!pcol)
+            dplyr::filter(dist == !!dist & af == !!af) %>%
+            dplyr::pull(!!pcol)
         n  <- length(p)
         temp <- rbind(temp, data.frame(
             dist,
