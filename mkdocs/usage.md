@@ -30,7 +30,7 @@ Perform GWAS
 docker run \
 -v /Users/ml18692/projects/varGWAS/test/data:/data \
 -e SPDLOG_LEVEL=debug \
--it varGWAS \
+-it vargwas \
 -v /data/phenotypes.csv \
 -s , \
 -c sex,age,PC.1,PC.2,PC.3,PC.4,PC.5,PC.6,PC.7,PC.8,PC.9,PC.10 \
