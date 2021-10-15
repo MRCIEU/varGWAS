@@ -19,7 +19,7 @@ for (af in c(0.01, 0.05, 0.1, 0.2)){
         for (i in 1:n_sim){
             # simulate covariates
             data <- data.frame(
-                S = paste0("S", seq(1, n_obs * lambda)),
+                S = paste0("S", seq(1, n_obs)),
                 X = get_simulated_genotypes(af, n_obs)
             )
 
