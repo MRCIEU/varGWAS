@@ -33,7 +33,8 @@ for (phi in seq(0, 6, 0.5)) {
       data <- data.frame(
         S = paste0("S", seq(1, n_obs * lambda)),
         X = get_simulated_genotypes(af, n_obs * lambda),
-        U = rnorm(n_obs * lambda)
+        U = rnorm(n_obs * lambda),
+        stringsAsFactors=F
       )
 
       # simulate outcome

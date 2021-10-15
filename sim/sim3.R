@@ -21,7 +21,8 @@ for (trans in c("log", "sqrt", "irnt", "cube_root")){
             # simulate covariates
             data <- data.frame(
                 S = paste0("S", seq(1, n_obs)),
-                X = get_simulated_genotypes(0.1, n_obs)
+                X = get_simulated_genotypes(0.1, n_obs),
+                stringsAsFactors=F
             )
 
             # simulate outcome
