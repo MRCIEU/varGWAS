@@ -17,27 +17,29 @@ results <- data.frame()
 for (af in c(0.01, 0.05, 0.1, 0.2)){
     for (dist in c("Normal", "T", "Lognormal", "Mixed Normal")){
         for (i in 1:n_sim){
-            x <- get_simulated_genotypes(af, n_obs)
-            x2 <- x^2
+            # simulate covariates
+            data <- data.frame(
+                S = paste0("S", seq(1, n_obs * lambda)),
+                X = get_simulated_genotypes(af, n_obs)
+            )
 
             if (dist == "Normal"){
-                y <- x * b + rnorm(n_obs)
+                data$Y <- data$X * b + rnorm(n_obs)
             } else if (dist == "T"){
-                y <- x * b + rt(n_obs, 4)
+                data$Y <- data$X * b + rt(n_obs, 4)
             } else if (dist == "Lognormal"){
-                y <- x * b + rlnorm(n_obs)
+                data$Y <- data$X * b + rlnorm(n_obs)
             } else if (dist == "Mixed Normal"){
-                y <- x * b + c(rnorm(n_obs * .9), rnorm(n_obs * .1, mean=5))
+                data$Y <- data$X * b + c(rnorm(n_obs * .9), rnorm(n_obs * .1, mean=5))
             }
 
-            # test for variance effect
-            res <- data.frame(
-                dist,
-                af,
-                b,
-                bp_p=vartest(y, x, type=1, x.sq=T)$test$P,
-                osca_p=get_osca(x, y)$P
-            )
+            # run models
+            res <- run_models(data)
+            res$dist <- dist
+            res$af <- af
+            res$b <- b
+
+            # store result
             results <- rbind(results, res)
         }
     }
@@ -76,20 +78,30 @@ qqgplot <- function(data, af, pcol, ci = 0.95) {
     return(pl)
 }
 
-p1 <- qqgplot(results, 0.01, "bp_p")
-p2 <- qqgplot(results, 0.05, "bp_p")
-p3 <- qqgplot(results, 0.1, "bp_p")
-p4 <- qqgplot(results, 0.2, "bp_p")
+p1 <- qqgplot(results, 0.01, "P.cpp_bp")
+p2 <- qqgplot(results, 0.05, "P.cpp_bp")
+p3 <- qqgplot(results, 0.1, "P.cpp_bp")
+p4 <- qqgplot(results, 0.2, "P.cpp_bp")
 
 p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
 pdf("data/maf_t1e_bp.pdf")
 print(p)
 dev.off()
 
-p1 <- qqgplot(results, 0.01, "osca_p")
-p2 <- qqgplot(results, 0.05, "osca_p")
-p3 <- qqgplot(results, 0.1, "osca_p")
-p4 <- qqgplot(results, 0.2, "osca_p")
+p1 <- qqgplot(results, 0.01, "P.cpp_bf")
+p2 <- qqgplot(results, 0.05, "P.cpp_bf")
+p3 <- qqgplot(results, 0.1, "P.cpp_bf")
+p4 <- qqgplot(results, 0.2, "P.cpp_bf")
+
+p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
+pdf("data/maf_t1e_bf.pdf")
+print(p)
+dev.off()
+
+p1 <- qqgplot(results, 0.01, "P.osca")
+p2 <- qqgplot(results, 0.05, "P.osca")
+p3 <- qqgplot(results, 0.1, "P.osca")
+p4 <- qqgplot(results, 0.2, "P.osca")
 
 p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
 pdf("data/maf_t1e_osca.pdf")
