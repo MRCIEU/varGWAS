@@ -71,6 +71,8 @@ run_models <- function(data){
   # R
   bp <- vartest(data$Y, x = data$X, type = 1, x.sq = T)
   bf <- vartest(data$Y, x = data$X, type = 2, x.sq = T)
+  bp$coef <- rbind(bp$coef, c(NA, NA, NA, NA))
+  bf$coef <- rbind(bf$coef, c(NA, NA, NA, NA))
   res_r_bp <- data.frame(BETA_x.r_bp = bp$coef[2, 1], SE_x.r_bp = bp$coef[2, 2], BETA_xsq.r_bp = bp$coef[3, 1], SE_xsq.r_bp = bp$coef[3, 2], P.r_bp = as.numeric(bp$test[3]))
   res_r_bf <- data.frame(BETA_x.r_bf = bf$coef[2, 1], SE_x.r_bf = bf$coef[2, 2], BETA_xsq.r_bf = bf$coef[3, 1], SE_xsq.r_bf = bf$coef[3, 2], P.r_bf = as.numeric(bf$test[3]))
 
