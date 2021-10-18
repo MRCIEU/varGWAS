@@ -108,6 +108,7 @@ run_models <- function(data){
   res$BETA_mu.r <- fit$estimate[2]
   res$SE_mu.r <- fit$std.error[2]
   res$P_mu.r <- fit$p.value[2]
+  res$n <- nrow(data)
   
   return(res)
 }
