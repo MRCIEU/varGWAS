@@ -105,3 +105,11 @@ run_models <- function(data){
   
   return(res)
 }
+
+# taken from https://github.com/MRCIEU/PHESANT/blob/3f4a65d7fe93aaf01f3a4a3f39843562612a8d65/WAS/testContinuous.r#L243
+irnt <- function(pheno) {
+	numPhenos = length(which(!is.na(pheno)))
+	quantilePheno = (rank(pheno, na.last="keep", ties.method="random")-0.5)/numPhenos
+	phenoIRNT = qnorm(quantilePheno)	
+	return(phenoIRNT);
+}
