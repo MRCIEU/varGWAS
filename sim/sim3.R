@@ -72,6 +72,7 @@ qqgplot <- function(data, trans, pcol, ci = 0.95) {
     for (dist in c("Normal", "T", "Lognormal", "Mixed Normal")){
         p <- data %>%
             filter(dist == !!dist & trans == !!trans) %>%
+            drop_na(!!pcol) %>%
             pull(!!pcol)
         n  <- length(p)
         temp <- rbind(temp, data.frame(
