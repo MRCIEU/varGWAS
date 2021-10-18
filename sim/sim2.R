@@ -80,6 +80,12 @@ qqgplot <- function(data, af, pcol, ci = 0.95) {
     return(pl)
 }
 
+# print warnings
+warnings()
+
+# save results for plotting
+write.csv(results, file = paste0("data/sim2.csv"))
+
 p1 <- qqgplot(results, 0.01, "P.cpp_bp")
 p2 <- qqgplot(results, 0.05, "P.cpp_bp")
 p3 <- qqgplot(results, 0.1, "P.cpp_bp")

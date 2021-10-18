@@ -100,6 +100,12 @@ qqgplot <- function(data, trans, pcol, ci = 0.95) {
     return(pl)
 }
 
+# print warnings
+warnings()
+
+# save results for plotting
+write.csv(results, file = paste0("data/sim3.csv"))
+
 p1 <- qqgplot(results, "log", "P.cpp_bp")
 p2 <- qqgplot(results, "sqrt", "P.cpp_bp")
 p3 <- qqgplot(results, "irnt", "P.cpp_bp")
