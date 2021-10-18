@@ -64,9 +64,15 @@ run_models <- function(data){
   system("sed 's/^/S/g' -i data/genotypes.fam")
 
   # run vGWAS
-  system("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bp.txt -b data/genotypes.bgen -p Y -i S -t 1")
-  system("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t 1 -r")
-  system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca.txt --vqtl-mtd 2")
+  bp.time <- system.time(system("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bp.txt -b data/genotypes.bgen -p Y -i S -t 1"))
+  bf.time <- system.time(system("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t 1 -r"))
+  osca.time <- system.time(system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca.txt --vqtl-mtd 2"))
+  bp.time <- t(data.matrix(bp.time)) %>% as.data.frame
+  bf.time <- t(data.matrix(bf.time)) %>% as.data.frame
+  osca.time <- t(data.matrix(osca.time)) %>% as.data.frame
+  names(bp.time) <- paste0(names(bp.time), ".cpp_bp")
+  names(bf.time) <- paste0(names(bf.time), ".cpp_bf")
+  names(osca.time) <- paste0(names(osca.time), ".osca")
 
   # R
   bp <- vartest(data$Y, x = data$X, type = 1, x.sq = T)
@@ -85,7 +91,7 @@ run_models <- function(data){
   res_osca <- fread("data/osca.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca", "SE_x.osca", "P.osca"))
 
   # combine results
-  res <- cbind(res_r_bp, res_r_bf, res_cpp_bp, res_cpp_bf, res_osca)
+  res <- cbind(res_r_bp, res_r_bf, res_cpp_bp, res_cpp_bf, res_osca, bp.time, bf.time, osca.time)
 
   # add LM
   if ("U" %in% names(data)){
