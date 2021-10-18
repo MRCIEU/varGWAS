@@ -66,13 +66,16 @@ run_models <- function(data){
   # run vGWAS
   bp.time <- system.time(system("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bp.txt -b data/genotypes.bgen -p Y -i S -t 1"))
   bf.time <- system.time(system("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t 1 -r"))
-  osca.time <- system.time(system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca.txt --vqtl-mtd 2"))
+  osca_mean.time <- system.time(system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-mean.txt --vqtl-mtd 1"))
+  osca_median.time <- system.time(system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-median.txt --vqtl-mtd 2"))
   bp.time <- t(data.matrix(bp.time)) %>% as.data.frame
   bf.time <- t(data.matrix(bf.time)) %>% as.data.frame
-  osca.time <- t(data.matrix(osca.time)) %>% as.data.frame
+  osca_mean.time <- t(data.matrix(osca_mean.time)) %>% as.data.frame
+  osca_median.time <- t(data.matrix(osca_median.time)) %>% as.data.frame
   names(bp.time) <- paste0(names(bp.time), ".cpp_bp")
   names(bf.time) <- paste0(names(bf.time), ".cpp_bf")
-  names(osca.time) <- paste0(names(osca.time), ".osca")
+  names(osca_mean.time) <- paste0(names(osca_mean.time), ".osca_mean")
+  names(osca_median.time) <- paste0(names(osca_median.time), ".osca_median")
 
   # R
   bp <- vartest(data$Y, x = data$X, type = 1, x.sq = T)
@@ -88,10 +91,11 @@ run_models <- function(data){
 
   # Levene using OSCA
   # Note this method will not produce effect or se if P==0
-  res_osca <- fread("data/osca.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca", "SE_x.osca", "P.osca"))
+  res_osca_mean <- fread("data/osca-mean.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca_mean", "SE_x.osca_mean", "P.osca_mean"))
+  res_osca_median <- fread("data/osca-median.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca_median", "SE_x.osca_median", "P.osca_median"))
 
   # combine results
-  res <- cbind(res_r_bp, res_r_bf, res_cpp_bp, res_cpp_bf, res_osca, bp.time, bf.time, osca.time)
+  res <- cbind(res_r_bp, res_r_bf, res_cpp_bp, res_cpp_bf, res_osca_mean, res_osca_median, bp.time, bf.time, osca_mean.time, osca_median.time)
 
   # add LM
   if ("U" %in% names(data)){
