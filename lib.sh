@@ -22,6 +22,10 @@ cd "$LIB_DIR"
 curl -L https://github.com/facebook/zstd/archive/v1.1.0.tar.gz > zstd-1.1.0.tar.gz
 tar -xvf zstd-1.1.0.tar.gz
 cd zstd-1.1.0/build/cmake
+mkdir build
+cd build
+cmake ..
+make
 
 # armadillo
 curl --insecure -L http://sourceforge.net/projects/arma/files/armadillo-10.7.1.tar.xz >armadillo-10.7.1.tar.xz
