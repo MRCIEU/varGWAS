@@ -9,7 +9,7 @@ set(DEBUG ${CMAKE_BUILD_TYPE} STREQUAL Debug)
 
 # OpenMP
 find_package(OpenMP REQUIRED)
-find_package(Armadillo REQUIRED)
+#find_package(Armadillo REQUIRED)
 
 # include
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/genfile/include)
@@ -22,7 +22,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/eigen-3.4.0)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/cxxopts-2.2.0/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
-include_directories(${ARMADILLO_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/armadillo-10.7.1/build/include)
 
 # libraries
 find_library(BGEN_LIB_PATH NAMES libbgen.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build)
@@ -30,6 +30,7 @@ find_library(ZSTD_LIB_PATH NAMES libzstd.so libzstd.a libzstd.dylib HINTS ${CMAK
 find_library(SQLITE_LIB_PATH NAMES libsqlite3.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/sqlite3)
 find_library(DB_LIB_PATH NAMES libdb.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db)
 find_library(SPDLOG_LIB_PATH NAMES libglog.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build)
+find_library(ARMADILLO_LIBRARIES NAMES libarmadillo.so HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/armadillo-10.7.1/build/lib64)
 
 # src
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)

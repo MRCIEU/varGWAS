@@ -23,7 +23,15 @@ curl -L https://github.com/facebook/zstd/archive/v1.1.0.tar.gz > zstd-1.1.0.tar.
 tar -xvf zstd-1.1.0.tar.gz
 cd zstd-1.1.0/build/cmake
 
-
+# armadillo
+curl --insecure -L http://sourceforge.net/projects/arma/files/armadillo-10.7.1.tar.xz >armadillo-10.7.1.tar.xz
+tar -xvf armadillo-10.7.1.tar.xz
+cd armadillo-10.7.1
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX:PATH=.
+make
+make install
 
 # csv reader
 cd "$LIB_DIR"
