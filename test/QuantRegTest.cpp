@@ -39,8 +39,8 @@ TEST(QuantRegTest, slope_residual) {
   // model
   Eigen::VectorXd b = cqrReg::cqrReg::qrmm(X, y, betahat, 0.001, 200, 0.5);
 
-  ASSERT_NEAR(b(0, 0), 4, 4 * .2);
-  ASSERT_NEAR(b(1, 0), 0.6, 0.6 * .2);
-  ASSERT_NEAR(b(2, 0), 2, 2 * 0.2);
-  ASSERT_NEAR(b(3, 0), 0.3, .3 * .2);
+  ASSERT_NEAR(b(0, 0), 4, 0.1);
+  ASSERT_NEAR(b(1, 0), 0.6, 0.05);
+  ASSERT_NEAR(b(2, 0), 2, 0.05);
+  ASSERT_NEAR(b(3, 0), 0.3, 0.05);
 }

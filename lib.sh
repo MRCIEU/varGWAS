@@ -22,10 +22,8 @@ cd "$LIB_DIR"
 curl -L https://github.com/facebook/zstd/archive/v1.1.0.tar.gz > zstd-1.1.0.tar.gz
 tar -xvf zstd-1.1.0.tar.gz
 cd zstd-1.1.0/build/cmake
-mkdir build
-cd build
-cmake ..
-make
+
+
 
 # csv reader
 cd "$LIB_DIR"
