@@ -1,52 +1,63 @@
 library("dplyr")
 library("broom")
 library("tidyr")
+library("data.table")
 library("ggpubr")
 source("funs.R")
 set.seed(123)
 
+# Requires OSCA and QCTOOL on PATH
+
 n_sim <- 1000
 n_obs <- 1000
+
+# effect size for SNP to have 80% power
+b <- 0.2125
 
 results <- data.frame()
 for (trans in c("log", "sqrt", "irnt", "cube_root")){
     for (dist in c("Normal", "T", "Lognormal", "Mixed Normal")){
         for (i in 1:n_sim){
-            # effect size for SNP to have 80% power
-            b <- 0.2125
-            x <- get_simulated_genotypes(0.1, n_obs)
+            # simulate covariates
+            data <- data.frame(
+                S = paste0("S", seq(1, n_obs)),
+                X = get_simulated_genotypes(0.1, n_obs),
+                stringsAsFactors=F
+            )
+
+            # simulate outcome
+            data$Y <- 100 + data$X * b
             if (dist == "Normal"){
-                y <- 100 + x * b + rnorm(n_obs)
+                data$Y <- data$Y + rnorm(n_obs)
             } else if (dist == "T"){
-                y <- 100 + x * b + rt(n_obs, 4)
+                data$Y <- data$Y + rt(n_obs, 4)
             } else if (dist == "Lognormal"){
-                y <- 100 + x * b + rlnorm(n_obs)
+                data$Y <- data$Y + rlnorm(n_obs)
             } else if (dist == "Mixed Normal"){
-                y <- 100 + x * b + c(rnorm(n_obs * .9), rnorm(n_obs * .1, mean=5))
+                data$Y <- data$Y + c(rnorm(n_obs * .9), rnorm(n_obs * .1, mean=5))
             }
 
             # test for main effect
-            lm_p <- tidy(lm(y ~ x))$p.value[2]
+            lm_p <- tidy(lm(Y ~ X, data=data))$p.value[2]
 
             if (trans == "log"){
-                y <- log(y)
+                data$Y <- log(data$Y)
             } else if (trans == "sqrt"){
-                y <- sqrt(y)
+                data$Y <- sqrt(data$Y)
             } else if (trans == "irnt"){
-                y <- irnt(y)
+                data$Y <- irnt(data$Y)
             } else if (trans == "cube_root"){
-                y <- y^(1/3)
+                data$Y <- data$Y^(1/3)
             }
 
-            # test for effect using B-P
-            res <- data.frame(
-                dist,
-                trans,
-                lm_p,
-                b,
-                bp_p=vartest(y, x, type=1, x.sq=T)$test$P,
-                osca_p=get_osca(x, y)$P
-            )
+            # run models
+            res <- run_models(data)
+            res$dist <- dist
+            res$trans <- trans
+            res$lm_p <- lm_p
+            res$b <- b
+
+            # store result
             results <- rbind(results, res)
         }
     }
@@ -60,8 +71,9 @@ qqgplot <- function(data, trans, pcol, ci = 0.95) {
 
     for (dist in c("Normal", "T", "Lognormal", "Mixed Normal")){
         p <- data %>%
-            filter(dist == !!dist & trans == !!trans) %>%
-            pull(!!pcol)
+            dplyr::filter(dist == !!dist & trans == !!trans) %>%
+            tidyr::drop_na(!!pcol) %>%
+            dplyr::pull(!!pcol)
         n  <- length(p)
         temp <- rbind(temp, data.frame(
             dist,
@@ -88,22 +100,48 @@ qqgplot <- function(data, trans, pcol, ci = 0.95) {
     return(pl)
 }
 
-p1 <- qqgplot(results, "log", "bp_p")
-p2 <- qqgplot(results, "sqrt", "bp_p")
-p3 <- qqgplot(results, "irnt", "bp_p")
-p4 <- qqgplot(results, "cube_root", "bp_p")
+# print warnings
+warnings()
+
+# save results for plotting
+write.csv(results, file = paste0("data/sim3.csv"))
+
+p1 <- qqgplot(results, "log", "P.cpp_bp")
+p2 <- qqgplot(results, "sqrt", "P.cpp_bp")
+p3 <- qqgplot(results, "irnt", "P.cpp_bp")
+p4 <- qqgplot(results, "cube_root", "P.cpp_bp")
 
 p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
 pdf("data/trans_t1e_bp.pdf")
 print(p)
 dev.off()
 
-p1 <- qqgplot(results, "log", "osca_p")
-p2 <- qqgplot(results, "sqrt", "osca_p")
-p3 <- qqgplot(results, "irnt", "osca_p")
-p4 <- qqgplot(results, "cube_root", "osca_p")
+p1 <- qqgplot(results, "log", "P.cpp_bf")
+p2 <- qqgplot(results, "sqrt", "P.cpp_bf")
+p3 <- qqgplot(results, "irnt", "P.cpp_bf")
+p4 <- qqgplot(results, "cube_root", "P.cpp_bf")
 
 p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
-pdf("data/trans_t1e_osca.pdf")
+pdf("data/trans_t1e_bf.pdf")
+print(p)
+dev.off()
+
+p1 <- qqgplot(results, "log", "P.osca_mean")
+p2 <- qqgplot(results, "sqrt", "P.osca_mean")
+p3 <- qqgplot(results, "irnt", "P.osca_mean")
+p4 <- qqgplot(results, "cube_root", "P.osca_mean")
+
+p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
+pdf("data/trans_t1e_osca_mean.pdf")
+print(p)
+dev.off()
+
+p1 <- qqgplot(results, "log", "P.osca_median")
+p2 <- qqgplot(results, "sqrt", "P.osca_median")
+p3 <- qqgplot(results, "irnt", "P.osca_median")
+p4 <- qqgplot(results, "cube_root", "P.osca_median")
+
+p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
+pdf("data/trans_t1e_osca_median.pdf")
 print(p)
 dev.off()
