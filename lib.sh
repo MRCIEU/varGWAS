@@ -27,13 +27,6 @@ cd build
 cmake ..
 make
 
-# quantile regression
-cd "$LIB_DIR"
-curl -L http://www.aronaldg.org/webfiles/libscl/libscl.tar >libscl.tar
-tar -xvf libscl.tar
-cd libscl/gpp
-make
-
 # csv reader
 cd "$LIB_DIR"
 curl -L https://github.com/ben-strasser/fast-cpp-csv-parser/archive/master.zip >fast-cpp-csv-parser.zip

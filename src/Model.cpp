@@ -13,7 +13,7 @@
 #include "Model.h"
 #include "PhenotypeFile.h"
 #include "Result.h"
-#include "libscl.h"
+#include "cqrReg.h"
 #include "spdlog/spdlog.h"
 
 /*
@@ -195,50 +195,20 @@ Result Model::fit(std::string &chromosome,
   int n = X_complete1.rows();
 
   // first stage model
-  Eigen::MatrixXd fs_fit;
-  if (!robust) {
-    spdlog::debug("Checking for rank deficiency for first fit");
-    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr1(X_complete1);
-    if (qr1.rank() < X_complete1.cols()) {
-      return res;
-    }
-    spdlog::debug("Estimating first stage model using OLS regression");
-    fs_fit = qr1.solve(y_complete);
-  } else {
-    spdlog::debug("Mapping Eigen matrix to SCL");
-    // map eigen matrix to scl
-    scl::realmat scl_X(X_complete1.rows(), X_complete1.cols());
-    scl::realmat scl_y(X_complete1.rows(), 1);
-    for (int i = 0; i < X_complete1.rows(); i++) {
-      scl_y[i + 1] = y_complete(i, 0);
-      for (int k = 0; k < X_complete1.cols(); k++) {
-        scl_X(i + 1, k + 1) = X_complete1(i, k);
-      }
-    }
-    // model
-    spdlog::debug("Creating SCL matrix");
-    scl::realmat b(X_complete1.cols(), 1);
-    REAL tau = 0.5;
-    spdlog::debug("Estimating first stage model using quantile regression");
-    b = scl::quantreg(scl_y, scl_X, tau);
-    spdlog::debug("Fit complete");
-
-    //map betas from scl to eigen
-    spdlog::debug("Mapping SCL betas to Eigen matrix");
-    fs_fit.resize(X_complete1.cols(), 1);
-    for (int i = 0; i < X_complete1.cols(); i++) {
-      fs_fit(i, 0) = b[i + 1];
-    }
+  spdlog::debug("Checking for rank deficiency for first fit");
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr1(X_complete1);
+  if (qr1.rank() < X_complete1.cols()) {
+    return res;
+  }
+  spdlog::debug("Estimating first stage model using OLS regression");
+  Eigen::MatrixXd fs_fit = qr1.solve(y_complete);
+  if (robust) {
+    spdlog::debug("Fitting quantile model");
+    fs_fit = cqrReg::cqrReg::qrmm(X_complete1, y_complete, fs_fit, 0.001, 200, 0.5);
   }
   Eigen::VectorXd fs_fitted = X_complete1 * fs_fit;
   Eigen::VectorXd fs_resid = y_complete - fs_fitted;
-  Eigen::VectorXd fs_resid2;
-
-  if (robust) {
-    fs_resid2 = fs_resid.array().abs();
-  } else {
-    fs_resid2 = fs_resid.array().square();
-  }
+  Eigen::VectorXd fs_resid2 = fs_resid.array().square();
 
   // se
   spdlog::debug("Estimating SE");
