@@ -15,9 +15,9 @@
 namespace cqrReg {
 class cqrReg {
  public:
-  static Eigen::VectorXd qrmm(Eigen::MatrixXd &X,
-                              Eigen::VectorXd &Y,
-                              Eigen::VectorXd &ols_beta,
+  static Eigen::VectorXd qrmm(Eigen::MatrixXd X,
+                              Eigen::VectorXd Y,
+                              Eigen::VectorXd ols_beta,
                               double toler,
                               int maxit,
                               double tau

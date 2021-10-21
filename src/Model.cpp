@@ -253,7 +253,6 @@ Result Model::fit(std::string &chromosome,
     fs_fitted = X_complete1 * fs_fitr;
     fs_resid = y_complete - fs_fitted;
   }
-
   // estimate squared residuals
   Eigen::VectorXd fs_resid2 = fs_resid.array().square();
 

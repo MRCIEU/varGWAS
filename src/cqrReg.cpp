@@ -7,9 +7,9 @@
 #include "cqrReg.h"
 
 namespace cqrReg {
-Eigen::VectorXd cqrReg::qrmm(Eigen::MatrixXd &X,
-                             Eigen::VectorXd &Y,
-                             Eigen::VectorXd &ols_beta,
+Eigen::VectorXd cqrReg::qrmm(Eigen::MatrixXd X,
+                             Eigen::VectorXd Y,
+                             Eigen::VectorXd ols_beta,
                              double toler,
                              int maxit,
                              double tau) {

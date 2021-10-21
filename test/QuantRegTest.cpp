@@ -37,12 +37,14 @@ TEST(QuantRegTest, slope_residual) {
   Eigen::VectorXd betahat = qr.solve(y);
 
   // model
+  double b1 = betahat(0, 0); // check that qrmm does not modify the vector which happens when pass by reference
   Eigen::VectorXd b = cqrReg::cqrReg::qrmm(X, y, betahat, 0.001, 200, 0.5);
 
   ASSERT_NEAR(b(0, 0), 4, 0.1);
   ASSERT_NEAR(b(1, 0), 0.6, 0.05);
   ASSERT_NEAR(b(2, 0), 2, 0.05);
   ASSERT_NEAR(b(3, 0), 0.3, 0.05);
+  ASSERT_EQ(b1, betahat(0, 0));
 }
 
 TEST(QuantRegTest, slope_residual_outlier) {

@@ -13,7 +13,7 @@ Load compiler (optional). Tested with GCC v7 & v9.
 
 ```shell
 # BC4
-module load build/gcc-7.2.0``
+module load build/gcc-7.2.0
 module load tools/cmake/3.20.0
 ```
 
