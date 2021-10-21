@@ -31,12 +31,15 @@ for (i in 1:n_sim){
     results <- rbind(results, res)
 }
 
+# save data
+write.table(results, "data/sim4.txt")
+
 # mean and 95% CI of elapsed time
 results <- data.frame()
-results <- rbind(results, tidy(t.test(d$elapsed.cpp_bp)))
-results <- rbind(results, tidy(t.test(d$elapsed.osca_median)))
-results <- rbind(results, tidy(t.test(d$elapsed.osca_mean)))
-results <- rbind(results, tidy(t.test(d$elapsed.cpp_bf)))
+results <- rbind(results, tidy(t.test(results$elapsed.cpp_bp)))
+results <- rbind(results, tidy(t.test(results$elapsed.osca_median)))
+results <- rbind(results, tidy(t.test(results$elapsed.osca_mean)))
+results <- rbind(results, tidy(t.test(results$elapsed.cpp_bf)))
 results$method <- factor(c("Breusch-Pagan", "Brown-Forsythe", "Levene", "Brown-Forsythe (LAD)"),
     levels=c("Levene", "Breusch-Pagan", "Brown-Forsythe", "Brown-Forsythe (LAD)"))
 results$location <- factor(c("Mean", "Median", "Mean", "Median"), levels=c("Mean", "Median"))
