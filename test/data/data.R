@@ -15,3 +15,9 @@ tidy(lm(y~x+c1+c2, data=d))
 
 # write out
 write.table(d, sep=",", quote=F, row.names=F, file="data.csv")
+
+# outlier
+n <- 100
+x <- rbinom(n, 2, .5)
+y <- x + rnorm(n)
+write.csv(data.frame(x,y), row.names=F, quote=F, file="data-outlier.csv")
