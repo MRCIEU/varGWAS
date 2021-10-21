@@ -129,7 +129,8 @@ TEST(ModelTest, bf) {
   vargwas::Result result = vargwas::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, true, 0);
 
   // check estimate and SE are similar to R
-  ASSERT_NEAR(result.beta, -0.01690149, 0.001);
+  ASSERT_NEAR(result.beta, 0.262569, 0.01);
+  ASSERT_NEAR(result.beta_lad, -0.01690149, 0.001);
   ASSERT_NEAR(result.phi_x, 3.351, 0.2);
   ASSERT_NEAR(result.se_x, 7.215, 0.2);
   ASSERT_NEAR(result.phi_xsq, 5.309, 0.2);
