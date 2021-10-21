@@ -9,7 +9,6 @@ set(DEBUG ${CMAKE_BUILD_TYPE} STREQUAL Debug)
 
 # OpenMP
 find_package(OpenMP REQUIRED)
-#find_package(Armadillo REQUIRED)
 
 # include
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/genfile/include)
