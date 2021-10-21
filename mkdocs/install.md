@@ -9,7 +9,7 @@ git clone git@github.com:MRCIEU/varGWAS.git
 cd varGWAS
 ```
 
-Load compiler (optional). Tested with GCC v5 & v6.
+Load compiler (optional). Tested with GCC v9.
 
 ```shell
 # BC4
@@ -19,8 +19,6 @@ module load OpenBLAS/0.2.20-GCC-6.4.0-2.28
 ```
 
 Libraries
-
-- Assumes you already have [armadillo](http://arma.sourceforge.net/download.html) installed and dependencies
 
 ```shell
 bash lib.sh
