@@ -42,6 +42,7 @@ results$method <- factor(c("Breusch-Pagan", "Brown-Forsythe", "Levene", "Brown-F
 results$location <- factor(c("Mean", "Median", "Mean", "Median"), levels=c("Mean", "Median"))
 
 # barchart
+pdf("data/sim4.pdf")
 ggplot(data=results, aes(x=method, y=estimate, ymin=conf.low, ymax=conf.high, group=location, color=location)) +
     geom_point() + 
     geom_errorbar(width=.05) +
@@ -50,3 +51,4 @@ ggplot(data=results, aes(x=method, y=estimate, ymin=conf.low, ymax=conf.high, gr
     labs(color="Location") +
     xlab("Method") +
     ylab("Mean runtime (seconds, 95% CI)")
+dev.off()
