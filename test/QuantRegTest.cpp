@@ -34,7 +34,7 @@ TEST(QuantRegTest, slope_residual) {
   }
 
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X);
-  Eigen::MatrixXd betahat = qr.solve(y);
+  Eigen::VectorXd betahat = qr.solve(y);
 
   // model
   Eigen::VectorXd b = cqrReg::cqrReg::qrmm(X, y, betahat, 0.001, 200, 0.5);
@@ -43,4 +43,35 @@ TEST(QuantRegTest, slope_residual) {
   ASSERT_NEAR(b(1, 0), 0.6, 0.05);
   ASSERT_NEAR(b(2, 0), 2, 0.05);
   ASSERT_NEAR(b(3, 0), 0.3, 0.05);
+}
+
+TEST(QuantRegTest, slope_residual_outlier) {
+  const double intercept = 1.0;
+  double x_f;
+  double y_f;
+  int n = 100;
+  int p = 2;
+
+  Eigen::MatrixXd X = Eigen::MatrixXd(n, p);
+  Eigen::VectorXd y = Eigen::VectorXd(n);
+
+  // get data (see data/data.R)
+  io::CSVReader<2> in("data-outlier.csv");
+  in.read_header(io::ignore_extra_column, "x", "y");
+  int t = 0;
+  while (in.read_row(x_f, y_f)) {
+    X(t, 0) = intercept;
+    X(t, 1) = x_f;
+    y(t, 0) = y_f;
+    t++;
+  }
+
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(X);
+  Eigen::VectorXd betahat = qr.solve(y);
+
+  // model
+  Eigen::VectorXd b = cqrReg::cqrReg::qrmm(X, y, betahat, 0.001, 200, 0.5);
+
+  ASSERT_NEAR(b(0, 0), 0, 0.1);
+  ASSERT_NEAR(b(1, 0), 1, 0.1);
 }
