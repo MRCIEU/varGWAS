@@ -32,3 +32,9 @@ sbatch runR.sh sim2.R
 ```shell
 sbatch runR.sh sim3.R
 ```
+
+## Sim4 - runtime performance
+
+```shell
+sbatch runR.sh sim4.R
+```
