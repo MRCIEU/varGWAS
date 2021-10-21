@@ -28,6 +28,7 @@ cmake ..
 make
 
 # armadillo
+cd "$LIB_DIR"
 curl --insecure -L http://sourceforge.net/projects/arma/files/armadillo-10.7.1.tar.xz >armadillo-10.7.1.tar.xz
 tar -xvf armadillo-10.7.1.tar.xz
 cd armadillo-10.7.1
