@@ -6,6 +6,7 @@
 #include <Eigen/Core>
 #include <Eigen/QR>
 #include <Eigen/Dense>
+#include <iostream>
 #include <sstream>
 
 #ifndef VARGWAS_SRC_CQRREG_H_

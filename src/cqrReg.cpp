@@ -2,6 +2,8 @@
 // Created by Matt Lyon on 20/10/2021.
 //
 
+#include <armadillo>
+#include <Eigen/Core>
 #include "cqrReg.h"
 
 namespace cqrReg {

@@ -15,7 +15,8 @@ Load compiler (optional). Tested with GCC v9.
 # BC4
 module load languages/gcc/9.3.0
 module load tools/cmake/3.20.0
-module load OpenBLAS/0.2.20-GCC-6.4.0-2.28  
+module load ScaLAPACK/2.0.2-gompic-2016.10-OpenBLAS-0.2.19-LAPACK-3.6.1
+module load HDF5/1.8.17-foss-2016b
 ```
 
 Libraries
