@@ -89,6 +89,18 @@ run_models <- function(data){
   res_cpp_bp <- fread("data/gwas-bp.txt", select = c("beta", "beta_lad", "se", "p", "phi_x", "se_x", "phi_xsq", "se_xsq", "phi_p"), col.names = c("BETA_mu.cpp_bp", "BETA_lad.cpp_bp", "SE_mu.cpp_bp", "P_mu.cpp_bp", "BETA_x.cpp_bp", "SE_x.cpp_bp", "BETA_xsq.cpp_bp", "SE_xsq.cpp_bp", "P.cpp_bp"))
   res_cpp_bf <- fread("data/gwas-bf.txt", select = c("beta", "beta_lad", "se", "p", "phi_x", "se_x", "phi_xsq", "se_xsq", "phi_p"), col.names = c("BETA_mu.cpp_bf", "BETA_lad.cpp_bf", "SE_mu.cpp_bf", "P_mu.cpp_bf", "BETA_x.cpp_bf", "SE_x.cpp_bf", "BETA_xsq.cpp_bf", "SE_xsq.cpp_bf", "P.cpp_bf"))
 
+  if (nrow(res_cpp_bp) == 0){
+    res_cpp_bp <- data.frame(
+      BETA_mu.cpp_bp=NA, BETA_lad.cpp_bp=NA, SE_mu.cpp_bp=NA, P_mu.cpp_bp=NA, BETA_x.cpp_bp=NA, SE_x.cpp_bp=NA, BETA_xsq.cpp_bp=NA, SE_xsq.cpp_bp=NA, P.cpp_bp=NA
+    )
+  }
+
+  if (nrow(res_cpp_bf) == 0){
+    res_cpp_bf <- data.frame(
+      BETA_mu.cpp_bf=NA, BETA_lad.cpp_bf=NA, SE_mu.cpp_bf=NA, P_mu.cpp_bf=NA, BETA_x.cpp_bf=NA, SE_x.cpp_bf=NA, BETA_xsq.cpp_bf=NA, SE_xsq.cpp_bf=NA, P.cpp_bf=NA
+    )
+  }
+
   # Levene using OSCA
   # Note this method will not produce effect or se if P==0
   res_osca_mean <- fread("data/osca-mean.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca_mean", "SE_x.osca_mean", "P.osca_mean"))
