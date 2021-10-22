@@ -247,14 +247,18 @@ Result Model::fit(std::string &chromosome,
 
   // LAD regression
   Eigen::VectorXd fs_fitr;
+  Eigen::VectorXd fs_resid2;
   if (robust) {
     spdlog::debug("Fitting quantile model");
     fs_fitr = cqrReg::cqrReg::qrmm(X_complete1, y_complete, fs_fit, 0.001, 200, 0.5);
     fs_fitted = X_complete1 * fs_fitr;
     fs_resid = y_complete - fs_fitted;
+    // estimate absolute residuals
+    fs_resid2 = fs_resid.array().abs();
+  } else {
+    // estimate squared residuals
+    fs_resid2 = fs_resid.array().square();
   }
-  // estimate squared residuals
-  Eigen::VectorXd fs_resid2 = fs_resid.array().square();
 
   // second stage model
   spdlog::debug("Estimating second stage model");

@@ -131,12 +131,12 @@ TEST(ModelTest, bf) {
   // check estimate and SE are similar to R
   ASSERT_NEAR(result.beta, 0.262569, 0.01);
   ASSERT_NEAR(result.beta_lad, -0.01690149, 0.001);
-  ASSERT_NEAR(result.phi_x, 3.351, 0.2);
-  ASSERT_NEAR(result.se_x, 7.215, 0.2);
-  ASSERT_NEAR(result.phi_xsq, 5.309, 0.2);
-  ASSERT_NEAR(result.se_xsq, 3.719, 0.2);
-  ASSERT_NEAR(result.phi_pval, 6.146e-07, 0.001);
-  ASSERT_NEAR(result.phi_f, 15.393, 0.5);
+  ASSERT_NEAR(result.phi_x, 1.53599923, 0.1);
+  ASSERT_NEAR(result.se_x, 0.5782677, 0.1);
+  ASSERT_NEAR(result.phi_xsq, 0.06555196, 0.1);
+  ASSERT_NEAR(result.se_xsq, 0.2981007, 0.1);
+  ASSERT_NEAR(result.phi_pval, 4.5195e-14, 0.001);
+  ASSERT_NEAR(result.phi_f, 36.06049, 0.5);
 }
 
 TEST(ModelTest, fit_missing_vals) {
