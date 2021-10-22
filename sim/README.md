@@ -38,3 +38,9 @@ sbatch runR.sh sim3.R
 ```shell
 sbatch runR.sh sim4.R
 ```
+
+## Sim5 - confounding
+
+```shell
+sbatch runR.sh sim5.R
+```

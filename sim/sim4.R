@@ -9,10 +9,11 @@ set.seed(123)
 
 # Requires OSCA and QCTOOL on PATH
 
+# TODO mult SNP analysis
 n_sim <- 200
 n_obs <- 300000
 
-results <- data.frame()
+d <- data.frame()
 for (i in 1:n_sim){
     # simulate covariates
     data <- data.frame(
@@ -28,24 +29,24 @@ for (i in 1:n_sim){
     res <- run_models(data)
 
     # store result
-    results <- rbind(results, res)
+    d <- rbind(d, res)
 }
 
 # save data
-write.table(results, "data/sim4.txt")
+write.table(d, "data/sim4.txt")
 
 # mean and 95% CI of elapsed time
 results <- data.frame()
-results <- rbind(results, tidy(t.test(results$elapsed.cpp_bp)))
-results <- rbind(results, tidy(t.test(results$elapsed.osca_median)))
-results <- rbind(results, tidy(t.test(results$elapsed.osca_mean)))
-results <- rbind(results, tidy(t.test(results$elapsed.cpp_bf)))
+results <- rbind(results, tidy(t.test(d$elapsed.cpp_bp)))
+results <- rbind(results, tidy(t.test(d$elapsed.osca_median)))
+results <- rbind(results, tidy(t.test(d$elapsed.osca_mean)))
+results <- rbind(results, tidy(t.test(d$elapsed.cpp_bf)))
 results$method <- factor(c("Breusch-Pagan", "Brown-Forsythe", "Levene", "Brown-Forsythe (LAD)"),
     levels=c("Levene", "Breusch-Pagan", "Brown-Forsythe", "Brown-Forsythe (LAD)"))
 results$location <- factor(c("Mean", "Median", "Mean", "Median"), levels=c("Mean", "Median"))
 
 # barchart
-pdf("data/sim4.pdf")
+pdf("data/sim4a.pdf")
 ggplot(data=results, aes(x=method, y=estimate, ymin=conf.low, ymax=conf.high, group=location, color=location)) +
     geom_point() + 
     geom_errorbar(width=.05) +

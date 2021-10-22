@@ -46,7 +46,7 @@ write_gen <- function(f, chr, snpid, rsid, pos, A1, A2, x){
   close(fileConn)
 }
 
-run_models <- function(data){
+run_models <- function(data, covar=NULL){
   # write out GEN file
   write_gen("data/genotypes.gen", "01", "SNPID_1", "RSID_1", "1", "A", "G", data$X)
 
@@ -61,11 +61,16 @@ run_models <- function(data){
   system("qctool -g data/genotypes.gen -og data/genotypes.bgen")
   system("bgenix -g data/genotypes.bgen -clobber -index")
   system("qctool -g data/genotypes.gen -s data/samples.txt -og data/genotypes -ofiletype binary_ped")
-  system("sed 's/^/S/g' -i data/genotypes.fam")
+  system("sed 's/^/S/g' data/genotypes.fam > data/genotypes.fam.sed; mv data/genotypes.fam.sed data/genotypes.fam")
 
   # run vGWAS
-  bp.time <- system.time(system("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bp.txt -b data/genotypes.bgen -p Y -i S -t 1"))
-  bf.time <- system.time(system("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t 1 -r"))
+  if (is.null(covar)){
+    bp.time <- system.time(system("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bp.txt -b data/genotypes.bgen -p Y -i S -t 1"))
+    bf.time <- system.time(system("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t 1 -r"))
+  } else {
+    bp.time <- system.time(system(paste0("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bp.txt -b data/genotypes.bgen -p Y -i S -t 1 -c ", paste0(covar, collapse=","))))
+    bf.time <- system.time(system(paste0("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t 1 -r -c ", paste0(covar, collapse=","))))
+  }
   osca_mean.time <- system.time(system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-mean.txt --vqtl-mtd 1"))
   osca_median.time <- system.time(system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-median.txt --vqtl-mtd 2"))
   bp.time <- t(data.matrix(bp.time)) %>% as.data.frame
@@ -78,8 +83,13 @@ run_models <- function(data){
   names(osca_median.time) <- paste0(names(osca_median.time), ".osca_median")
 
   # R
-  bp <- vartest(data$Y, x = data$X, type = 1, x.sq = T)
-  bf <- vartest(data$Y, x = data$X, type = 2, x.sq = T)
+  if (is.null(covar)){
+    bp <- vartest(data$Y, x = data$X, type = 1, x.sq = T)
+    bf <- vartest(data$Y, x = data$X, type = 2, x.sq = T)
+  } else {
+    bp <- vartest(data$Y, x = data$X, type = 1, x.sq = T, covar=data %>% dplyr::select(!!covar), covar.var = T)
+    bf <- vartest(data$Y, x = data$X, type = 2, x.sq = T, covar=data %>% dplyr::select(!!covar), covar.var = T)
+  }
   bp$coef <- rbind(bp$coef, c(NA, NA, NA, NA))
   bf$coef <- rbind(bf$coef, c(NA, NA, NA, NA))
   res_r_bp <- data.frame(BETA_x.r_bp = bp$coef[2, 1], SE_x.r_bp = bp$coef[2, 2], BETA_xsq.r_bp = bp$coef[3, 1], SE_xsq.r_bp = bp$coef[3, 2], P.r_bp = as.numeric(bp$test[3]))
