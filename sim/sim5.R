@@ -110,13 +110,13 @@ check_second_stage_adjusted <- function(){
         )
         res <- rbind(res, run_models(data, covar=c("C")))
     }
-    results <- rbind(
-        binom.test(sum(res$P.osca_median < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.osca_median"),
-        binom.test(sum(res$P.osca_mean < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.osca_mean"),
-        binom.test(sum(res$P.cpp_bp < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.cpp_bp"),
-        binom.test(sum(res$P.cpp_bf < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.cpp_bf")
-    )
-    return(results)
+    #results <- rbind(
+    #    binom.test(sum(res$P.osca_median < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.osca_median"),
+    #    binom.test(sum(res$P.osca_mean < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.osca_mean"),
+    #    binom.test(sum(res$P.cpp_bp < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.cpp_bp"),
+    #    binom.test(sum(res$P.cpp_bf < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.cpp_bf")
+    #)
+    return(res)
 }
 
 results <- check_second_stage_adjusted()
