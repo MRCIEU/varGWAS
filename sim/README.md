@@ -44,3 +44,9 @@ sbatch runR.sh sim4.R
 ```shell
 sbatch runR.sh sim5.R
 ```
+
+## Sim6 - adjusting the variance effect by interaction term
+
+```shell
+sbatch runR.sh sim6.R
+```
