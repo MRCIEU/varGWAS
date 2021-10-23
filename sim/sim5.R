@@ -120,4 +120,4 @@ check_second_stage_adjusted <- function(){
 }
 
 results <- check_second_stage_adjusted()
-write.csv("data/sim5.csv", results)
+write.csv(results, file="data/sim5.csv")

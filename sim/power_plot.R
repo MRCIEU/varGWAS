@@ -39,32 +39,83 @@ l <- fread(paste0("l/data/power_l.csv"))
 t <- fread(paste0("t/data/power_t.csv"))
 
 # process data
+
+# N
 cpp_bp_n <- calc_power(n, "P.cpp_bp", 200, c("phi", "lambda"))
 cpp_bp_n$dist <- "Normal"
 cpp_bp_n$method <- "Breusch-Pagan"
-osca_n <- calc_power(n, "P.osca", 200, c("phi", "lambda"))
-osca_n$dist <- "Normal"
-osca_n$method <- "Levene"
+
+cpp_bf_n <- calc_power(n, "P.cpp_bf", 200, c("phi", "lambda"))
+cpp_bf_n$dist <- "Normal"
+cpp_bf_n$method <- "Brown-Forsythe (LAD)"
+
+osca_levene_n <- calc_power(n, "P.osca_mean", 200, c("phi", "lambda"))
+osca_levene_n$dist <- "Normal"
+osca_levene_n$method <- "Levene"
+
+osca_bf_n <- calc_power(n, "P.osca_median", 200, c("phi", "lambda"))
+osca_bf_n$dist <- "Normal"
+osca_bf_n$method <- "Brown-Forsythe"
+
+# Mixed N
 cpp_bp_mn <- calc_power(mn, "P.cpp_bp", 200, c("phi", "lambda"))
 cpp_bp_mn$dist <- "Mixed normal"
 cpp_bp_mn$method <- "Breusch-Pagan"
-osca_mn <- calc_power(mn, "P.osca", 200, c("phi", "lambda"))
-osca_mn$dist <- "Mixed normal"
-osca_mn$method <- "Levene"
+
+cpp_bf_mn <- calc_power(mn, "P.cpp_bf", 200, c("phi", "lambda"))
+cpp_bf_mn$dist <- "Mixed normal"
+cpp_bf_mn$method <- "Brown-Forsythe (LAD)"
+
+osca_levene_mn <- calc_power(mn, "P.osca_mean", 200, c("phi", "lambda"))
+osca_levene_mn$dist <- "Mixed normal"
+osca_levene_mn$method <- "Levene"
+
+osca_bf_mn <- calc_power(mn, "P.osca_median", 200, c("phi", "lambda"))
+osca_bf_mn$dist <- "Mixed normal"
+osca_bf_mn$method <- "Brown-Forsythe"
+
+# Lognormal
 cpp_bp_l <- calc_power(l, "P.cpp_bp", 200, c("phi", "lambda"))
 cpp_bp_l$dist <- "Lognormal"
 cpp_bp_l$method <- "Breusch-Pagan"
-osca_l <- calc_power(l, "P.osca", 200, c("phi", "lambda"))
-osca_l$dist <- "Lognormal"
-osca_l$method <- "Levene"
+
+cpp_bf_l <- calc_power(l, "P.cpp_bf", 200, c("phi", "lambda"))
+cpp_bf_l$dist <- "Lognormal"
+cpp_bf_l$method <- "Brown-Forsythe (LAD)"
+
+osca_levene_l <- calc_power(l, "P.osca_mean", 200, c("phi", "lambda"))
+osca_levene_l$dist <- "Lognormal"
+osca_levene_l$method <- "Levene"
+
+osca_bf_l <- calc_power(l, "P.osca_median", 200, c("phi", "lambda"))
+osca_bf_l$dist <- "Lognormal"
+osca_bf_l$method <- "Brown-Forsythe"
+
+# T-dist
 cpp_bp_t <- calc_power(t, "P.cpp_bp", 200, c("phi", "lambda"))
 cpp_bp_t$dist <- "T-dist"
 cpp_bp_t$method <- "Breusch-Pagan"
-osca_t <- calc_power(t, "P.osca", 200, c("phi", "lambda"))
-osca_t$dist <- "T-dist"
-osca_t$method <- "Levene"
-results <- rbind(cpp_bp_n, cpp_bp_mn, cpp_bp_l, cpp_bp_t, osca_n, osca_mn, osca_l, osca_t)
-results$method <- factor(results$method, levels = c("Breusch-Pagan", "Levene"))
+
+cpp_bf_t <- calc_power(t, "P.cpp_bf", 200, c("phi", "lambda"))
+cpp_bf_t$dist <- "T-dist"
+cpp_bf_t$method <- "Brown-Forsythe (LAD)"
+
+osca_levene_t <- calc_power(t, "P.osca_mean", 200, c("phi", "lambda"))
+osca_levene_t$dist <- "T-dist"
+osca_levene_t$method <- "Levene"
+
+osca_bf_t <- calc_power(t, "P.osca_median", 200, c("phi", "lambda"))
+osca_bf_t$dist <- "T-dist"
+osca_bf_t$method <- "Brown-Forsythe"
+
+# combine
+results <- rbind(
+    cpp_bp_n, cpp_bf_n, osca_levene_n, osca_bf_n,
+    cpp_bp_mn, cpp_bf_mn, osca_levene_mn, osca_bf_mn,
+    cpp_bp_l, cpp_bf_l, osca_levene_l, osca_bf_l,
+    cpp_bp_t, cpp_bf_t, osca_levene_t, osca_bf_t
+)
+results$method <- factor(results$method, levels = c("Breusch-Pagan", "Brown-Forsythe (LAD)", "Levene", "Brown-Forsythe"))
 results$dist <- factor(results$dist, levels = c("Normal", "Mixed normal", "Lognormal", "T-dist"))
 results$lambda <- factor(results$lambda, levels = c(1,10,100,1000))
 
