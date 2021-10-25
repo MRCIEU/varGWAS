@@ -95,12 +95,12 @@ check_first_stage_adjusted <- function(){
 
 check_second_stage_adjusted <- function(){
     # check second-stage model is adjusted for covariates
-    res <- data.frame()
+    results <- data.frame()
     for (i in 1:n_sim){
         C <- rnorm(n_obs)
         U <- rnorm(n_obs)
-        X <- sapply(C, function(c) {p <- 1 / (1 + exp(-c)); get_simulated_genotypes(p *.255, 1)})
-        Y <- C*.19 + X*.395 + C*U*0.4 + rnorm(n_obs)
+        X <- sapply(C, function(c) {p <- 1 / (1 + exp(-c)); get_simulated_genotypes(p *.8, 1)})
+        Y <- C*.19 + X*.395 + C*U*1.14 + rnorm(n_obs)
         data <- data.frame(
             S = paste0("S", seq(1, n_obs)),
             X,
@@ -108,9 +108,11 @@ check_second_stage_adjusted <- function(){
             C,
             stringsAsFactors=F
         )
-        res <- rbind(res, run_models(data, covar=c("C")))
+        res <- run_models(data, covar=c("C"))
+        res$rsq.xc <- summary(lm(X ~ C))$r.squared
+        results <- rbind(results, res)
     }
-    return(res)
+    return(results)
 }
 
 results <- check_second_stage_adjusted()
