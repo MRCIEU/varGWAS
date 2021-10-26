@@ -106,9 +106,10 @@ check_second_stage_adjusted <- function(){
             X,
             Y,
             C,
+            CU = C * U,
             stringsAsFactors=F
         )
-        res <- run_models(data, covar=c("C"))
+        res <- run_models(data, covar=c("C", "U", "CU"))
         res$rsq.xc <- summary(lm(X ~ C))$r.squared
         results <- rbind(results, res)
     }
@@ -120,6 +121,8 @@ df <- rbind(
     binom.test(sum(results$P.osca_median < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.osca_median"),
     binom.test(sum(results$P.osca_mean < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.osca_mean"),
     binom.test(sum(results$P.cpp_bp < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.cpp_bp"),
-    binom.test(sum(results$P.cpp_bf < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.cpp_bf")
+    binom.test(sum(results$P.cpp_bf < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.cpp_bf"),
+    binom.test(sum(results$P.r_bf < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.r_bf"),
+    binom.test(sum(results$P.r_bp < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.r_bp")
 )
 write.csv(results, file="data/sim5.csv")

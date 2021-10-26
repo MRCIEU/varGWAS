@@ -24,7 +24,7 @@ Rscript power_plot.R
 ## Sim2 - T1E of B-P and Levene's test under no effect with non-normal/normal dist & increasing MAF
 
 ```shell
-sbatch runR.sh sim2.R
+sbatch runR.sh sim2b.R
 ```
 
 ## Sim3 - T1E of B-P and Levene's test under main effect with non-normal/normal dist transformation
@@ -51,5 +51,5 @@ sbatch runR.sh sim5.R
 sbatch runR.sh sim6.R
 ```
 
-## Sim7 - Variance effect estimate
+## Sim7 - Linear vs noo-linear variance effect estimate
 
