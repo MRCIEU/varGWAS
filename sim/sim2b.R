@@ -10,7 +10,7 @@ set.seed(123)
 # Requires OSCA and QCTOOL on PATH
 
 n_sim <- 1000
-n_obs <- 10000
+n_obs <- 100000
 af <- 0.05
 b <- 0
 
