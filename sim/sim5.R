@@ -106,6 +106,7 @@ check_second_stage_adjusted <- function(){
             X,
             Y,
             C,
+            U,
             CU = C * U,
             stringsAsFactors=F
         )
