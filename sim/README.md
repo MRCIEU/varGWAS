@@ -45,11 +45,5 @@ sbatch runR.sh sim4.R
 sbatch runR.sh sim5.R
 ```
 
-## Sim6 - adjusting the variance effect by interaction term
-
-```shell
-sbatch runR.sh sim6.R
-```
-
-## Sim7 - Linear vs noo-linear variance effect estimate
+## Sim6 - Linear vs non-linear variance effect estimate
 
