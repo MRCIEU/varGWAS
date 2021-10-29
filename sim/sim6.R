@@ -45,10 +45,11 @@ for (b in seq(.5, 5, .5)){
         sigmabeta1 <- glht(model=fit2, linfct=paste("x*1 + xsq*1 == 0")) %>% tidy %>% dplyr::pull(estimate)
         sigmabeta2 <- glht(model=fit2, linfct=paste("x*2 + xsq*4 == 0")) %>% tidy %>% dplyr::pull(estimate)
 
+        int <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% pull(estimate)
         xb <- fit2 %>% tidy %>% dplyr::filter(term == "x") %>% pull(estimate)
         xsqb <- fit2 %>% tidy %>% dplyr::filter(term == "xsq") %>% pull(estimate)
 
-        results <- rbind(results, data.frame(b, m1, m2, v1, v2, s1, s2, mad1, mad2, varbeta1, varbeta2, madbeta1, madbeta2, sigmabeta1, sigmabeta2, xb, xsqb))
+        results <- rbind(results, data.frame(b, m1, m2, v1, v2, s1, s2, mad1, mad2, varbeta1, varbeta2, madbeta1, madbeta2, sigmabeta1, sigmabeta2, int, xb, xsqb))
     }
 }
 

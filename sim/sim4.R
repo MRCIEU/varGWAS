@@ -73,23 +73,34 @@ for (t in c(1,2,4,8)){
 write.table(d, "data/sim4.txt")
 
 # mean and 95% CI of elapsed time
-#results <- data.frame()
-#results <- rbind(results, tidy(t.test(d$elapsed.cpp_bp)))
-#results <- rbind(results, tidy(t.test(d$elapsed.osca_median)))
-#results <- rbind(results, tidy(t.test(d$elapsed.osca_mean)))
-#results <- rbind(results, tidy(t.test(d$elapsed.cpp_bf)))
-#results$method <- factor(c("Breusch-Pagan", "Brown-Forsythe", "Levene", "Brown-Forsythe (LAD)"),
-#    levels=c("Levene", "Breusch-Pagan", "Brown-Forsythe", "Brown-Forsythe (LAD)"))
-#results$location <- factor(c("Mean", "Median", "Mean", "Median"), levels=c("Mean", "Median"))
+results <- data.frame()
+results <- rbind(
+    results,
+    d %>% dplyr::group_by(t) %>% dplyr::summarize(t.test(elapsed.cpp_bp) %>% tidy %>% select(estimate, conf.low, conf.high) %>% dplyr::mutate(model="Breusch-Pagan", location="Mean"))
+)
+results <- rbind(
+    results,
+    d %>% dplyr::group_by(t) %>% dplyr::summarize(t.test(elapsed.cpp_bf) %>% tidy %>% select(estimate, conf.low, conf.high) %>% dplyr::mutate(model="LAD Brown-Forsythe", location="Median"))
+)
+results <- rbind(
+    results,
+    d %>% dplyr::group_by(t) %>% dplyr::summarize(t.test(elapsed.osca_mean) %>% tidy %>% select(estimate, conf.low, conf.high) %>% dplyr::mutate(model="Levene", location="Mean"))
+)
+results <- rbind(
+    results,
+    d %>% dplyr::group_by(t) %>% dplyr::summarize(t.test(elapsed.osca_median) %>% tidy %>% select(estimate, conf.low, conf.high) %>% dplyr::mutate(model="Brown-Forsythe", location="Median"))
+)
+results$t <- factor(results$t)
+results$model <- factor(results$model, levels=c("Breusch-Pagan", "LAD Brown-Forsythe", "Levene", "Brown-Forsythe"))
 
 # barchart
-#pdf("data/sim4a.pdf")
-#ggplot(data=results, aes(x=method, y=estimate, ymin=conf.low, ymax=conf.high, group=location, color=location)) +
-#    geom_point() + 
-#    geom_errorbar(width=.05) +
-#    theme_classic() + 
-#    scale_y_continuous(breaks = scales::pretty_breaks(n = 5)) +
-#    labs(color="Location") +
-#    xlab("Method") +
-#    ylab("Mean runtime (seconds, 95% CI)")
-#dev.off()
+pdf("data/sim4a.pdf")
+ggplot(data=results, aes(x=model, y=estimate, ymin=conf.low, ymax=conf.high, group=t, color=t, shape=location)) +
+    geom_point(position = position_dodge(width = 0.5)) + 
+    geom_errorbar(width=.05, position = position_dodge(width = 0.5)) +
+    theme_classic() + 
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 5)) +
+    labs(color="Location") +
+    xlab("Method") +
+    ylab("Mean runtime (seconds, 95% CI)")
+dev.off()
