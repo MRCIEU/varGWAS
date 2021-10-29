@@ -41,8 +41,9 @@ for (b in seq(.5, 5, .5)){
         vi1_est <- B0+B1*1+B2*0
         vi2_est <- B0+B1*0+B2*1
 
-        # calculate expected variance in each group
+        v1_est <- glht(model=fit2, linfct=paste("x*", (2*b0*b1+b1^2)/(2/pi), " == 0")) %>% tidy %>% dplyr::pull(estimate)
 
+        # calculate expected variance in each groups
         results <- rbind(results, data.frame(b, vi0_est, vi1_est, vi2_est, b0, b1, b2, vi0, vi1, vi2))
     }
 }
