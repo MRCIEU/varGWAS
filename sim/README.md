@@ -47,3 +47,12 @@ sbatch runR.sh sim5.R
 
 ## Sim6 - Linear vs non-linear variance effect estimate
 
+```shell
+sbatch runR.sh sim6.R
+```
+
+## Sim7 - false positive rate for subsampled phenotypes
+
+```shell
+sbatch runR.sh sim7.R
+```

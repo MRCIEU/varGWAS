@@ -1,68 +1,48 @@
-library("dplyr")
 library("broom")
 library("multcomp")
 library("quantreg")
-set.seed(123)
+library("dplyr")
+set.seed(23)
 
-n_obs <- 100000
-n_sim <- 30
+n_obs <- 1000
+n_sim <- 1000
 
 results <- data.frame()
-for (b in seq(.5, 5, .5)){
+for (b in seq(0, 6, .5)){
     for (i in 1:n_sim){
-        x <- rbinom(n_obs, 2, .5)
+        x <- rbinom(n_obs, 2, .6)
         u <- rnorm(n_obs)
         y <- x*u*b + rnorm(n_obs)
 
-        d <- data.frame(x, u, y)
-        r <- d %>% group_by(x) %>% summarize(my=mean(y), vy=var(y), mady=mad(y))
-        m1 <- r$my[2] - r$my[1]
-        m2 <- r$my[3] - r$my[1]
-        v1 <- r$vy[2] - r$vy[1]
-        v2 <- r$vy[3] - r$vy[1]
-        s1 <- sqrt(v1)
-        s2 <- sqrt(v2)
-        mad1 <- r$mady[2] - r$mady[1]
-        mad2 <- r$mady[3] - r$mady[1]
+        fit <- suppressWarnings(rq(y ~ x, tau=0.5))
+        d <- abs(resid(fit))
+        x <- as.factor(x)
+        fit2 <- lm(d ~ x)
+        b0 <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% dplyr::pull("estimate")
+        b1 <- fit2 %>% tidy %>% dplyr::filter(term == "x1") %>% dplyr::pull("estimate")
+        b2 <- fit2 %>% tidy %>% dplyr::filter(term == "x2") %>% dplyr::pull("estimate")
+        s0 <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% dplyr::pull("std.error")
+        s1 <- fit2 %>% tidy %>% dplyr::filter(term == "x1") %>% dplyr::pull("std.error")
+        s2 <- fit2 %>% tidy %>% dplyr::filter(term == "x2") %>% dplyr::pull("std.error")
 
-        # BP
-        fit1 <- lm(y ~ x)
-        dsq <- resid(fit1)^2
-        xsq <- x^2
-        fit2 <- lm(dsq ~ x + xsq)
-        
-        varbeta1 <- glht(model=fit2, linfct=paste("x*1 + xsq*1 == 0")) %>% tidy %>% dplyr::pull(estimate)
-        varbeta2 <- glht(model=fit2, linfct=paste("x*2 + xsq*4 == 0")) %>% tidy %>% dplyr::pull(estimate)
-
-        # BF
-        fit1 <- suppressWarnings(rq(y ~ x, tau=.5))
-        dsq <- abs(resid(fit1))
-        xsq <- x^2
-        fit2 <- lm(dsq ~ x + xsq)
-        
-        madbeta1 <- glht(model=fit2, linfct=paste("x*", 1/sqrt(2/pi), " + xsq*1 == 0")) %>% tidy %>% dplyr::pull(estimate)
-        madbeta2 <- glht(model=fit2, linfct=paste("x*", 2*1/sqrt(2/pi), " + xsq*", 4*1/sqrt(2/pi), " == 0")) %>% tidy %>% dplyr::pull(estimate)
-        sigmabeta1 <- glht(model=fit2, linfct=paste("x*1 + xsq*1 == 0")) %>% tidy %>% dplyr::pull(estimate)
-        sigmabeta2 <- glht(model=fit2, linfct=paste("x*2 + xsq*4 == 0")) %>% tidy %>% dplyr::pull(estimate)
-
-        int <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% pull(estimate)
-        xb <- fit2 %>% tidy %>% dplyr::filter(term == "x") %>% pull(estimate)
-        xsqb <- fit2 %>% tidy %>% dplyr::filter(term == "xsq") %>% pull(estimate)
-
-        results <- rbind(results, data.frame(b, m1, m2, v1, v2, s1, s2, mad1, mad2, varbeta1, varbeta2, madbeta1, madbeta2, sigmabeta1, sigmabeta2, int, xb, xsqb))
+        results <- rbind(results, data.frame(
+            v1=var(y[x==1]),
+            v2=var(y[x==2]),
+            e1=b0^2/(2/pi) + (2*b0*b1+b1^2)/(2/pi),
+            e2=b0^2/(2/pi) + (2*b0*b2+b2^2)/(2/pi),
+            se1=s0^2/(2/pi) + (2*s0*s1+s1^2)/(2/pi),
+            se2=s0^2/(2/pi) + (2*s0*s2+s2^2)/(2/pi),
+            b
+        ))
     }
 }
 
-# BP
-v1 <- results %>% dplyr::group_by(b) %>% dplyr::summarize(t.test(v1) %>% tidy)
-v2 <- results %>% dplyr::group_by(b) %>% dplyr::summarize(t.test(v2) %>% tidy)
-varbeta1 <- results %>% dplyr::group_by(b) %>% dplyr::summarize(t.test(varbeta1) %>% tidy)
-varbeta2 <- results %>% dplyr::group_by(b) %>% dplyr::summarize(t.test(varbeta2) %>% tidy)
-
-# BF
-mad1 <- results %>% dplyr::group_by(b) %>% dplyr::summarize(t.test(mad1) %>% tidy)
-mad2 <- results %>% dplyr::group_by(b) %>% dplyr::summarize(t.test(mad2) %>% tidy)
-madbeta1 <- results %>% dplyr::group_by(b) %>% dplyr::summarize(t.test(madbeta1) %>% tidy)
-madbeta2 <- results %>% dplyr::group_by(b) %>% dplyr::summarize(t.test(madbeta2) %>% tidy)
-sigmabeta1 <- results %>% dplyr::group_by(b) %>% dplyr::summarize(t.test(sigmabeta1) %>% tidy)
-sigmabeta2 <- results %>% dplyr::group_by(b) %>% dplyr::summarize(t.test(sigmabeta2) %>% tidy)
+# check for coverage
+results$l1 <- results$e1 - (1.96 * results$se1)
+results$u1 <- results$e1 + (1.96 * results$se1)
+results$l2 <- results$e2 - (1.96 * results$se2)
+results$u2 <- results$e2 + (1.96 * results$se2)
+results$h1 <- (results$v1 >= results$l1 & results$v1 <= results$u1)
+results$h2 <- (results$v2 >= results$l2 & results$v2 <= results$u2)
+binom.test(sum(results$h1), nrow(results))
+binom.test(sum(results$h2), nrow(results))
