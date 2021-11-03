@@ -1,11 +1,11 @@
 library("broom")
-library("multcomp")
 library("quantreg")
 library("dplyr")
+library("car")
 set.seed(23)
 
 n_obs <- 1000
-n_sim <- 1000
+n_sim <- 200
 
 results <- data.frame()
 for (b in seq(0, 6, .5)){
@@ -18,31 +18,31 @@ for (b in seq(0, 6, .5)){
         d <- abs(resid(fit))
         x <- as.factor(x)
         fit2 <- lm(d ~ x)
-        b0 <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% dplyr::pull("estimate")
-        b1 <- fit2 %>% tidy %>% dplyr::filter(term == "x1") %>% dplyr::pull("estimate")
-        b2 <- fit2 %>% tidy %>% dplyr::filter(term == "x2") %>% dplyr::pull("estimate")
-        s0 <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% dplyr::pull("std.error")
-        s1 <- fit2 %>% tidy %>% dplyr::filter(term == "x1") %>% dplyr::pull("std.error")
-        s2 <- fit2 %>% tidy %>% dplyr::filter(term == "x2") %>% dplyr::pull("std.error")
+        d1 <- deltaMethod(fit2, "(Intercept)^2/(2/pi) + (2*(Intercept)*x1+x1^2)/(2/pi)", vcov=hccm)
+        d2 <- deltaMethod(fit2, "(Intercept)^2/(2/pi) + (2*(Intercept)*x2+x2^2)/(2/pi)", vcov=hccm)
+        e1 <- d1 %>% dplyr::pull("Estimate")
+        e2 <- d2 %>% dplyr::pull("Estimate")
+        se1 <- d1 %>% dplyr::pull("SE")
+        se2 <- d2 %>% dplyr::pull("SE")
+        lci1 <- d1 %>% dplyr::pull("2.5 %")
+        uci1 <- d1 %>% dplyr::pull("97.5 %")
+        lci2 <- d2 %>% dplyr::pull("2.5 %")
+        uci2 <- d2 %>% dplyr::pull("97.5 %")
 
         results <- rbind(results, data.frame(
             v1=var(y[x==1]),
             v2=var(y[x==2]),
-            e1=b0^2/(2/pi) + (2*b0*b1+b1^2)/(2/pi),
-            e2=b0^2/(2/pi) + (2*b0*b2+b2^2)/(2/pi),
-            se1=s0^2/(2/pi) + (2*s0*s1+s1^2)/(2/pi),
-            se2=s0^2/(2/pi) + (2*s0*s2+s2^2)/(2/pi),
+            e1, e2, se1, se2,
+            lci1, uci1,
+            lci2, uci2,
             b
         ))
     }
 }
 
-# check for coverage
-results$l1 <- results$e1 - (1.96 * results$se1)
-results$u1 <- results$e1 + (1.96 * results$se1)
-results$l2 <- results$e2 - (1.96 * results$se2)
-results$u2 <- results$e2 + (1.96 * results$se2)
-results$h1 <- (results$v1 >= results$l1 & results$v1 <= results$u1)
-results$h2 <- (results$v2 >= results$l2 & results$v2 <= results$u2)
-binom.test(sum(results$h1), nrow(results))
-binom.test(sum(results$h2), nrow(results))
+# check for coverage of CI
+results %>% dplyr::group_by(b) %>%
+    dplyr::summarize(tidy(binom.test(sum(v1 >= lci1 & v1 <= uci1), n())))
+
+results %>% dplyr::group_by(b) %>%
+    dplyr::summarize(tidy(binom.test(sum(v2 >= lci2 & v2 <= uci2), n())))
