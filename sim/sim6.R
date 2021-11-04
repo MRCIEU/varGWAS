@@ -1,5 +1,5 @@
 library("broom")
-library("quantreg")
+library("cqrReg")
 library("dplyr")
 library("boot")
 library("car")
@@ -8,11 +8,26 @@ set.seed(23)
 n_obs <- 1000
 n_sim <- 200
 
+get_residual <- function(x, y, covar=NULL){
+    if (!is.null(covar)){
+        X <- as.matrix(cbind(x, covar))
+    } else {
+        X <- as.matrix(data.frame(x))
+    }
+    # betas
+    fit <- qrfit(X=X, y=y, tau=.5, method="mm")
+    b <- rbind(fit$b, fit$beta)
+    # predicted
+    X <- cbind(rep(1, nrow(X)), X)
+    fitted <- X %*% b
+    # residual
+    d <- y - fitted
+    return(as.vector(d))
+}
+
 model <- function(x, y){
-    # LAD regression
-    fit <- suppressWarnings(rq(y ~ x, tau=0.5))
     # absresi
-    d <- abs(resid(fit))
+    d <- abs(get_residual(x, y))
     # dummy SNP
     x <- as.factor(x)
     # second-stage model
@@ -36,8 +51,9 @@ get_est2 <- function(d, i){
 }
 
 results <- data.frame()
-for (b in seq(2)){
+for (b in seq(2, 2)){
     for (i in 1:n_sim){
+        message(paste0("b:",b, " i:", i))
         # SNP
         x <- rbinom(n_obs, 2, .6)
         # modifier
@@ -45,9 +61,9 @@ for (b in seq(2)){
         # outcome
         y <- x*u*b + rnorm(n_obs)
         # estimate variance for SNP=1 and boostrap SE
-        bs1 <- boot(data.frame(x, y), get_est1, R=1000, stype="i") %>% tidy
+        bs1 <- boot(data.frame(x, y), get_est1, R=500, stype="i") %>% tidy
         # estimate variance for SNP=2 and boostrap SE
-        bs2 <- boot(data.frame(x, y), get_est2, R=1000, stype="i") %>% tidy
+        bs2 <- boot(data.frame(x, y), get_est2, R=500, stype="i") %>% tidy
         # extract parameters
         e1 <- bs1$statistic
         se1 <- bs1$std.error
@@ -71,7 +87,7 @@ for (b in seq(2)){
 
 # check for coverage of CI
 results %>% dplyr::group_by(b) %>%
-    dplyr::summarize(tidy(binom.test(sum(v1 >= lci1 & v1 <= uci1), n()))) # count number of times variance of Y is within 95% CI
+    dplyr::summarize(tidy(binom.test(sum(v1 >= lci1 & v1 <= uci1), n_sim))) # count number of times variance of Y is within 95% CI
 
 results %>% dplyr::group_by(b) %>%
-    dplyr::summarize(tidy(binom.test(sum(v2 >= lci2 & v2 <= uci2), n()))) # count number of times variance of Y is within 95% CI
+    dplyr::summarize(tidy(binom.test(sum(v2 >= lci2 & v2 <= uci2), n_sim))) # count number of times variance of Y is within 95% CI
