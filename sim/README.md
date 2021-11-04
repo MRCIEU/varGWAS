@@ -39,7 +39,7 @@ sbatch runR.sh sim3.R
 sbatch runR.sh sim4.R
 ```
 
-## Sim5 - confounding of the mean and variance effect
+## Sim5 - confounding of the mean and variance effect (not working)
 
 ```shell
 sbatch runR.sh sim5.R

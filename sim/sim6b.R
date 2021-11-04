@@ -7,7 +7,7 @@ n_obs <- 1000
 n_sim <- 200
 
 results <- data.frame()
-for (b in seq(0, 6, .5)){
+for (b in seq(2,2)){
     for (i in 1:n_sim){
         # SNP
         x <- rbinom(n_obs, 2, .6)
@@ -24,8 +24,14 @@ for (b in seq(0, 6, .5)){
             stringsAsFactors=F
         ))
         # estimate var(Y|G==1)
-        e1 <- 
-        "BETA_x.osca_median", "SE_x.osca_median"
+        e1 <- 1 * res$BETA_x.osca_median
+        e2 <- 2 * res$BETA_x.osca_median
+        se1 <- 1 * res$SE_x.osca_median
+        se2 <- 2 * res$SE_x.osca_median
+        lci1 <- e1 - (1.96 * se1)
+        uci1 <- e1 + (1.96 * se1)
+        lci2 <- e2 - (1.96 * se2)
+        uci2 <- e2 + (1.96 * se2)
         # estimate var(Y|G==2)
         # store results
         results <- rbind(results, data.frame(
@@ -45,3 +51,6 @@ results %>% dplyr::group_by(b) %>%
 
 results %>% dplyr::group_by(b) %>%
     dplyr::summarize(tidy(binom.test(sum(v2 >= lci2 & v2 <= uci2), n()))) # count number of times variance of Y is within 95% CI
+
+# write out results
+write.table(file="osca-effects.txt", results)
