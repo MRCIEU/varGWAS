@@ -14,7 +14,7 @@ opt <- parse_args(opt_parser);
 
 # read in emperical distribution
 d <- fread(paste0("data/", opt$t, ".txt"))
-n_sim <- 1000
+n_sim <- 10000
 n_obs <- 100000
 af <- 0.05
 
