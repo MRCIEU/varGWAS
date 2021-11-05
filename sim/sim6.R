@@ -57,7 +57,7 @@ model <- function(data, indices){
 
 results <- data.frame()
 for (j in 1:opt$n){
-    message(paste0("b:", opt$b, " i:", opt$i, " n:", opt$n))
+    message(paste0("b:", opt$b, " i:", opt$i, " n:", opt$n, " j:", opt$j))
     # SNP
     x <- rbinom(n_obs, 2, .5)
     # modifier
