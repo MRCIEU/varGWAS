@@ -14,7 +14,7 @@ option_list <- list(
 opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
 
-n_obs <- 1000
+n_obs <- 10000
 
 get_residual <- function(x, y, covar=NULL){
     if (!is.null(covar)){
@@ -57,7 +57,7 @@ model <- function(data, indices){
 
 results <- data.frame()
 for (j in 1:opt$n){
-    message(paste0("b:", opt$b, " i:", opt$i, " n:", opt$n, " j:", opt$j))
+    message(paste0("b:", opt$b, " i:", opt$i, " n:", opt$n, " j:", j))
     # SNP
     x <- rbinom(n_obs, 2, .5)
     # modifier
