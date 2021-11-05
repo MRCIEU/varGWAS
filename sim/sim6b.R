@@ -35,8 +35,8 @@ for (b in seq(2,2)){
         # estimate var(Y|G==2)
         # store results
         results <- rbind(results, data.frame(
-            v1=var(y[x==1]), # true variance of SNP=1 group
-            v2=var(y[x==2]), # true variance of SNP=2 group
+            v1=var(y[x==1]) - var(y[x==0]), # true SNP=0 vs SNP=1 variance
+            v2=var(y[x==2]) - var(y[x==0]), # true SNP=0 vs SNP=2 variance
             e1, e2, se1, se2,
             lci1, uci1,
             lci2, uci2,
