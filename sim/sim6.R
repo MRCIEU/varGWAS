@@ -65,18 +65,16 @@ for (j in 1:opt$n){
     # outcome
     y <- x*u*opt$b + rnorm(n_obs)
     # estimate variance effects and boostrap CI
-    bs <- boot(data.frame(x, y), model, R=1000, stype="i")
-    ci1 <- boot.ci(bs, type="bca", index=1)
-    ci2 <- boot.ci(bs, type="bca", index=2)
+    bs <- boot(data.frame(x, y), model, R=500, stype="i")
     # extract parameters
     e1 <- bs %>% tidy %>% dplyr::pull("statistic") %>% dplyr::nth(1)
     se1 <- bs %>% tidy %>% dplyr::pull("std.error") %>% dplyr::nth(1)
     e2 <- bs %>% tidy %>% dplyr::pull("statistic") %>% dplyr::nth(2)
     se2 <- bs %>% tidy %>% dplyr::pull("std.error") %>% dplyr::nth(1)
-    lci1 <- ci1$bca[4]
-    uci1 <- ci1$bca[5]
-    lci2 <- ci2$bca[4]
-    uci2 <- ci2$bca[5]
+    lci1 <- e1 - (se1 * 1.96)
+    uci1 <- e1 + (se1 * 1.96)
+    lci2 <- e2 - (se2 * 1.96)
+    uci2 <- e2 + (se2 * 1.96)
     # store results
     results <- rbind(results, data.frame(
         v1=var(y[x==1]) - var(y[x==0]), # true SNP=0 vs SNP=1 variance

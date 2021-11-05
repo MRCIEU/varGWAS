@@ -48,9 +48,9 @@ sbatch runR.sh sim5.R
 ## Sim6 - Variance effect estimate using LAD-BF and OSCA
 
 ```shell
-# perfom 20 * 20 reps of sim6
-for i in {1..20}; do
-    sbatch runR.sh sim6.R -b 2 -i "$i" -n 20
+# perfom reps of sim6
+for i in {1..30}; do
+    sbatch runR.sh sim6.R -b 2 -i "$i" -n 10
 done
 # pool reps
 echo -n "z " > results_b2.txt; head -n1 results_i1_b2.txt >> results_b2.txt
