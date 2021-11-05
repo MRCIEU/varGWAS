@@ -15,7 +15,6 @@ opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
 
 n_obs <- 1000
-n_sim <- 10
 
 get_residual <- function(x, y, covar=NULL){
     if (!is.null(covar)){
