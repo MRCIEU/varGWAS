@@ -14,7 +14,7 @@ option_list <- list(
 opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
 
-n_obs <- 10000
+n_obs <- 100000
 
 get_residual <- function(x, y, covar=NULL){
     if (!is.null(covar)){
@@ -65,7 +65,7 @@ for (j in 1:opt$n){
     # outcome
     y <- x*u*opt$b + rnorm(n_obs)
     # estimate variance effects and boostrap CI
-    bs <- boot(data.frame(x, y), model, R=500, stype="i")
+    bs <- boot(data.frame(x, y), model, R=10000, stype="i")
     # extract parameters
     e1 <- bs %>% tidy %>% dplyr::pull("statistic") %>% dplyr::nth(1)
     se1 <- bs %>% tidy %>% dplyr::pull("std.error") %>% dplyr::nth(1)
