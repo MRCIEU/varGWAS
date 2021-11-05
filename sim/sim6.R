@@ -4,7 +4,7 @@ library("dplyr")
 library("boot")
 library('optparse')
 library("car")
-set.seed(23)
+#set.seed(23)
 
 option_list <- list(
   make_option(c("-b", "--beta"), type = "numeric", default = NULL, help = "Effect size of interaction"),

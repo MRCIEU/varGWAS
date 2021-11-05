@@ -53,8 +53,8 @@ for i in {1..20}; do
     sbatch runR.sh sim6.R -b 2 -i "$i" -n 20
 done
 # pool reps
-head -n1 results_i1_b2.txt > results_b2.txt
-cat results_i*_b2.txt | grep -v v1 >> results_b2.txt
+echo -n "z " > results_b2.txt; head -n1 results_i1_b2.txt >> results_b2.txt
+cat results_i*_b2.txt | grep -v "v1" >> results_b2.txt 
 ```
 
 ## Sim7 - false positive rate for subsampled phenotypes
