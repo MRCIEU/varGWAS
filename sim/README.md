@@ -48,8 +48,9 @@ sbatch runR.sh sim5.R
 ## Sim6 - Variance effect estimate using LAD-BF and OSCA
 
 ```shell
-sbatch runR.sh sim6.R
-sbatch runR.sh sim6b.R
+for i in {1..200}; do
+    echo sbatch runR.sh sim6.R -i "$i" -b 2
+done
 ```
 
 ## Sim7 - false positive rate for subsampled phenotypes

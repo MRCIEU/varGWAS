@@ -2,11 +2,20 @@ library("broom")
 library("cqrReg")
 library("dplyr")
 library("boot")
+library('optparse')
 library("car")
 set.seed(23)
 
+option_list <- list(
+  make_option(c("-b", "--beta"), type = "numeric", default = NULL, help = "Effect size of interaction"),
+  make_option(c("-i", "--iteration"), type = "numeric", default = NULL, help = "Simulation iteration"),
+  make_option(c("-n", "--n_iter"), type = "numeric", default = NULL, help = "Number of iterations within this sim")
+);
+opt_parser <- OptionParser(option_list = option_list);
+opt <- parse_args(opt_parser);
+
 n_obs <- 1000
-n_sim <- 200
+n_sim <- 10
 
 get_residual <- function(x, y, covar=NULL){
     if (!is.null(covar)){
@@ -48,41 +57,38 @@ model <- function(data, indices){
 }
 
 results <- data.frame()
-for (b in seq(2, 2)){
-    for (i in 1:n_sim){
-        message(paste0("b:", b, " i:", i))
-        # SNP
-        x <- rbinom(n_obs, 2, .5)
-        # modifier
-        u <- rnorm(n_obs)
-        # outcome
-        y <- x*u*b + rnorm(n_obs)
-        # estimate variance effects and boostrap SE
-        bs <- boot(data.frame(x, y), model, R=1000, stype="i")
-        # extract parameters
-        e1 <- bs %>% tidy %>% dplyr::pull("statistic") %>% dplyr::nth(1)
-        se1 <- bs %>% tidy %>% dplyr::pull("std.error") %>% dplyr::nth(1)
-        e2 <- bs %>% tidy %>% dplyr::pull("statistic") %>% dplyr::nth(2)
-        se2 <- bs %>% tidy %>% dplyr::pull("std.error") %>% dplyr::nth(1)
-        lci1 <- e1 - (1.96 * se1)
-        uci1 <- e1 + (1.96 * se1)
-        lci2 <- e2 - (1.96 * se2)
-        uci2 <- e2 + (1.96 * se2)
-        # store results
-        results <- rbind(results, data.frame(
-            v1=var(y[x==1]) - var(y[x==0]), # true SNP=0 vs SNP=1 variance
-            v2=var(y[x==2]) - var(y[x==0]), # true SNP=0 vs SNP=2 variance
-            e1, e2, se1, se2, # estimated SNP=0 vs SNP=1 & 2 variance
-            lci1, uci1,
-            lci2, uci2,
-            b
-        ))
-    }
+for (j in 1:opt$n){
+    message(paste0("b:", opt$b, " i:", opt$i, " n:", opt$n))
+    # SNP
+    x <- rbinom(n_obs, 2, .5)
+    # modifier
+    u <- rnorm(n_obs)
+    # outcome
+    y <- x*u*opt$b + rnorm(n_obs)
+    # estimate variance effects and boostrap CI
+    bs <- boot(data.frame(x, y), model, R=1000, stype="i")
+    ci1 <- boot.ci(bs, type="bca", index=1)
+    ci2 <- boot.ci(bs, type="bca", index=2)
+    # extract parameters
+    e1 <- bs %>% tidy %>% dplyr::pull("statistic") %>% dplyr::nth(1)
+    se1 <- bs %>% tidy %>% dplyr::pull("std.error") %>% dplyr::nth(1)
+    e2 <- bs %>% tidy %>% dplyr::pull("statistic") %>% dplyr::nth(2)
+    se2 <- bs %>% tidy %>% dplyr::pull("std.error") %>% dplyr::nth(1)
+    lci1 <- ci1$bca[4]
+    uci1 <- ci1$bca[5]
+    lci2 <- ci2$bca[4]
+    uci2 <- ci2$bca[5]
+    # store results
+    results <- rbind(results, data.frame(
+        v1=var(y[x==1]) - var(y[x==0]), # true SNP=0 vs SNP=1 variance
+        v2=var(y[x==2]) - var(y[x==0]), # true SNP=0 vs SNP=2 variance
+        e1, e2, se1, se2, # estimated SNP=0 vs SNP=1 & 2 variance
+        lci1, uci1,
+        lci2, uci2,
+        b=opt$b,
+        j,
+        i=opt$i
+    ))
 }
 
-# check for coverage of CI
-results %>% dplyr::group_by(b) %>%
-    dplyr::summarize(tidy(binom.test(sum(v1 >= lci1 && v1 <= uci1), n_sim))) # count number of times variance of Y is within 95% CI
-
-results %>% dplyr::group_by(b) %>%
-    dplyr::summarize(tidy(binom.test(sum(v2 >= lci2 && v2 <= uci2), n_sim))) # count number of times variance of Y is within 95% CI
+write.table(results, file=paste0("results_i",opt$i,"_b",opt$b,".txt"))
