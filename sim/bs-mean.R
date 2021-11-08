@@ -3,7 +3,8 @@ library("cqrReg")
 library("dplyr")
 library("boot")
 library('optparse')
-source("funs.R")
+library("car")
+set.seed(23)
 
 option_list <- list(
   make_option(c("-b", "--beta"), type = "numeric", default = NULL, help = "Effect size of interaction"),
@@ -14,6 +15,10 @@ opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
 
 n_obs <- 1000
+#n_sim <- 200
+#phi <- 2
+#t1 <- 4
+#t2 <- 16
 
 # LAD-BF variance effects
 model <- function(x, y, covar=NULL){
@@ -58,7 +63,7 @@ df <- data.frame()
 for (i in 1:opt$n){
     message(paste0("b:", opt$b, " i:", opt$i, " n:", opt$n, " j:", i))
 
-    x <- get_simulated_genotypes(0.4, n_obs)
+    x <- rbinom(n_obs, 2, .5)
     u <- rnorm(n_obs)
     y <- x*u*opt$b + rnorm(n_obs)
     data <- data.frame(x,y)
@@ -82,3 +87,7 @@ for (i in 1:opt$n){
 }
 
 write.table(df, file=paste0("results_i",opt$i,"_b",opt$b,".txt"))
+
+# check the coverage probability
+#binom.test(sum(df$lci1 <= t1 & df$uci1 >= t1), n_sim)
+#binom.test(sum(df$lci2 <= t2 & df$uci2 >= t2), n_sim)

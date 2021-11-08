@@ -49,12 +49,23 @@ sbatch runR.sh sim5.R
 
 ```shell
 # perfom reps of sim6
-for i in {1..60}; do
-    sbatch runR.sh sim6.R -b 2 -i "$i" -n 5
+for b in $(seq 0 .5 6); do
+    sbatch runR.sh sim6.R -b 2 -i 1 -n 200
 done
 # pool reps
 echo -n "z " > results_b2.txt; head -n1 results_i1_b2.txt >> results_b2.txt
-cat results_i*_b2.txt | grep -v "v1" >> results_b2.txt 
+cat results_i*_b2.txt | grep -v "t1" >> results_b2.txt
+```
+
+```R
+library("broom")
+# read sims
+d <- fread("results_b2.txt")
+# set expect variance for SNP=1 and SNP=2
+t1 <- 4; t2 <- 16
+# check the coverage probability
+binom.test(sum(d$lci1 <= t1 & d$uci1 >= t1), nrow(d)) %>% tidy
+binom.test(sum(d$lci2 <= t2 & d$uci2 >= t2), nrow(d)) %>% tidy
 ```
 
 ## Sim7 - false positive rate for subsampled phenotypes
