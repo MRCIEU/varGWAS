@@ -14,15 +14,20 @@ option_list <- list(
 opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
 
-n_obs <- 100000
+n_obs <- 1000
+#n_sim <- 200
+#phi <- 2
+#t1 <- 4
+#t2 <- 16
 
-get_residual <- function(x, y, covar=NULL){
+# LAD-BF variance effects
+model <- function(x, y, covar=NULL){
     if (!is.null(covar)){
         X <- as.matrix(cbind(x, covar))
     } else {
         X <- as.matrix(data.frame(x))
     }
-    # betas
+    # first-stage fit
     fit <- qrfit(X=X, y=y, tau=.5, method="mm")
     b <- rbind(fit$b, fit$beta)
     # predicted
@@ -30,16 +35,8 @@ get_residual <- function(x, y, covar=NULL){
     fitted <- X %*% b
     # residual
     d <- y - fitted
-    return(as.vector(d))
-}
-
-model <- function(data, indices){
-    # subset vectors
-    data <- data[indices,]
-    x <- data$x
-    y <- data$y
-    # absresi
-    d <- abs(get_residual(x, y))
+    # abs residual
+    d <- abs(as.vector(d))
     # dummy SNP
     x <- as.factor(x)
     # second-stage model
@@ -48,44 +45,49 @@ model <- function(data, indices){
     b0 <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% dplyr::pull("estimate")
     b1 <- fit2 %>% tidy %>% dplyr::filter(term == "x1") %>% dplyr::pull("estimate")
     b2 <- fit2 %>% tidy %>% dplyr::filter(term == "x2") %>% dplyr::pull("estimate")
-    # difference between 0 vs 1 and 0 vs 2
+    # variance betas
     return(c(
-        (2*b0*b1+b1^2)/(2/pi),
-        (2*b0*b2+b2^2)/(2/pi)
+        (2*b0*b1+b1^2)/(2/pi), # SNP=1
+        (2*b0*b2+b2^2)/(2/pi) # SNP=2
     ))
 }
 
-results <- data.frame()
-for (j in 1:opt$n){
-    message(paste0("b:", opt$b, " i:", opt$i, " n:", opt$n, " j:", j))
-    # SNP
+# function to obtain regression weights
+bs <- function(data, indices) {
+  d <- data[indices,] # allows boot to select sample
+  result <- model(d$x, d$y)
+  return(result)
+}
+
+df <- data.frame()
+for (i in 1:opt$n){
+    message(paste0("b:", opt$b, " i:", opt$i, " n:", opt$n, " j:", i))
+
     x <- rbinom(n_obs, 2, .5)
-    # modifier
     u <- rnorm(n_obs)
-    # outcome
     y <- x*u*opt$b + rnorm(n_obs)
-    # estimate variance effects and boostrap CI
-    bs <- boot(data.frame(x, y), model, R=10000, stype="i")
-    # extract parameters
-    e1 <- bs %>% tidy %>% dplyr::pull("statistic") %>% dplyr::nth(1)
-    se1 <- bs %>% tidy %>% dplyr::pull("std.error") %>% dplyr::nth(1)
-    e2 <- bs %>% tidy %>% dplyr::pull("statistic") %>% dplyr::nth(2)
-    se2 <- bs %>% tidy %>% dplyr::pull("std.error") %>% dplyr::nth(1)
-    lci1 <- e1 - (se1 * 1.96)
-    uci1 <- e1 + (se1 * 1.96)
-    lci2 <- e2 - (se2 * 1.96)
-    uci2 <- e2 + (se2 * 1.96)
-    # store results
-    results <- rbind(results, data.frame(
-        v1=var(y[x==1]) - var(y[x==0]), # true SNP=0 vs SNP=1 variance
-        v2=var(y[x==2]) - var(y[x==0]), # true SNP=0 vs SNP=2 variance
-        e1, e2, se1, se2, # estimated SNP=0 vs SNP=1 & 2 variance
-        lci1, uci1,
-        lci2, uci2,
-        b=opt$b,
-        j,
-        i=opt$i
-    ))
+    data <- data.frame(x,y)
+
+    # bootstrapping with 1000 replications
+    results <- boot(data=data, statistic=bs, R=1000)
+
+    # get 95% confidence intervals
+    ci1 <- boot.ci(results, type="bca", index=1)
+    ci2 <- boot.ci(results, type="bca", index=2)
+
+    # estimates
+    b1 <- as.numeric(ci1$t0)
+    lci1 <- ci1$bca[4]
+    uci1 <- ci1$bca[5]
+    b2 <- as.numeric(ci2$t0)
+    lci2 <- ci2$bca[4]
+    uci2 <- ci2$bca[5]
+
+    df <- rbind(df, data.frame(b1, lci1, uci1, b2, lci2, uci2, t1=var(y[x==1]) - var(y[x==0]), t1=var(y[x==2]) - var(y[x==0])))
 }
 
-write.table(results, file=paste0("results_i",opt$i,"_b",opt$b,".txt"))
+write.table(df, file=paste0("results_i",opt$i,"_b",opt$b,".txt"))
+
+# check the coverage probability
+#binom.test(sum(df$lci1 <= t1 & df$uci1 >= t1), n_sim)
+#binom.test(sum(df$lci2 <= t2 & df$uci2 >= t2), n_sim)
