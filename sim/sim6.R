@@ -13,6 +13,7 @@ option_list <- list(
 opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
 
+set.seed(opt$i + round(opt$b + 100))
 n_obs <- 1000
 
 # LAD-BF variance effects

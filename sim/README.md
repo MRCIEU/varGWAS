@@ -50,7 +50,7 @@ sbatch runR.sh sim5.R
 ```shell
 # perfom reps of sim6
 for b in $(seq 0 .5 6); do
-    sbatch runR.sh sim6.R -b 2 -i 1 -n 200
+    sbatch runR.sh sim6.R -b "$b" -i 1 -n 200
 done
 # pool reps
 echo -n "z " > results_b2.txt; head -n1 results_i1_b2.txt >> results_b2.txt
