@@ -79,7 +79,7 @@ for (i in 1:opt$n){
     lci2 <- ci2$bca[4]
     uci2 <- ci2$bca[5]
 
-    df <- rbind(df, data.frame(b1, lci1, uci1, b2, lci2, uci2, t1=var(y[x==1]) - var(y[x==0]), t1=var(y[x==2]) - var(y[x==0])))
+    df <- rbind(df, data.frame(b=opt$b, b1, lci1, uci1, b2, lci2, uci2, t1=var(y[x==1]) - var(y[x==0]), t2=var(y[x==2]) - var(y[x==0])))
 }
 
 write.table(df, file=paste0("results_i",opt$i,"_b",opt$b,".txt"))

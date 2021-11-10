@@ -18,7 +18,7 @@ sbatch runR.sh sim1.R --dist "l"
 Plot
 
 ```shell
-Rscript power_plot.R
+Rscript sim1_plot.R
 ```
 
 ## Sim2 - T1E of B-P and Levene's test under no effect with non-normal/normal dist & increasing MAF
@@ -53,19 +53,9 @@ for b in $(seq 0 .5 6); do
     sbatch runR.sh sim6.R -b "$b" -i 1 -n 200
 done
 # pool reps
-echo -n "z " > results_b2.txt; head -n1 results_i1_b2.txt >> results_b2.txt
-cat results_i*_b2.txt | grep -v "t1" >> results_b2.txt
-```
-
-```R
-library("broom")
-# read sims
-d <- fread("results_b2.txt")
-# set expect variance for SNP=1 and SNP=2
-t1 <- 4; t2 <- 16
-# check the coverage probability
-binom.test(sum(d$lci1 <= t1 & d$uci1 >= t1), nrow(d)) %>% tidy
-binom.test(sum(d$lci2 <= t2 & d$uci2 >= t2), nrow(d)) %>% tidy
+echo -n "z " > results.txt; head -n1 results_i1_b0.txt >> results.txt
+cat results_i1_b*.txt | grep -v "b1" >> results.txt
+sbatch runR.sh sim6b.R
 ```
 
 ## Sim7 - false positive rate for subsampled phenotypes

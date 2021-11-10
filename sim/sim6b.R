@@ -1,56 +1,37 @@
-library("broom")
+library("data.table")
 library("dplyr")
-source("funs.R")
-set.seed(23)
+library("broom")
+library("ggplot2")
+set.seed(13)
 
-n_obs <- 1000
-n_sim <- 200
+# load results
+d <- fread("results.txt")
 
-results <- data.frame()
-for (b in seq(2,2)){
-    for (i in 1:n_sim){
-        # SNP
-        x <- rbinom(n_obs, 2, .6)
-        # modifier
-        u <- rnorm(n_obs)
-        # outcome
-        y <- x*u*b + rnorm(n_obs)
-        # run models
-        res <- run_models(data.frame(
-            S = paste0("S", seq(1, n_obs)),
-            X = x,
-            U = u,
-            Y = y,
-            stringsAsFactors=F
-        ))
-        # estimate var(Y|G==1)
-        e1 <- 1 * res$BETA_x.osca_median
-        e2 <- 2 * res$BETA_x.osca_median
-        se1 <- 1 * res$SE_x.osca_median
-        se2 <- 2 * res$SE_x.osca_median
-        lci1 <- e1 - (1.96 * se1)
-        uci1 <- e1 + (1.96 * se1)
-        lci2 <- e2 - (1.96 * se2)
-        uci2 <- e2 + (1.96 * se2)
-        # estimate var(Y|G==2)
-        # store results
-        results <- rbind(results, data.frame(
-            v1=var(y[x==1]) - var(y[x==0]), # true SNP=0 vs SNP=1 variance
-            v2=var(y[x==2]) - var(y[x==0]), # true SNP=0 vs SNP=2 variance
-            e1, e2, se1, se2,
-            lci1, uci1,
-            lci2, uci2,
-            b
-        ))
-    }
-}
+# calculate expresssion for true variance difference for each value of beta
+t <- d %>% 
+    dplyr::group_by(b) %>%
+    dplyr::summarize(t1_t=mean(t1), t2_t=mean(t2))
+t$t1_t <- 1^2*t$b^2
+t$t2_t <- 2^2*t$b^2
 
-# check for coverage of CI
-results %>% dplyr::group_by(b) %>%
-    dplyr::summarize(tidy(binom.test(sum(v1 >= lci1 & v1 <= uci1), n()))) # count number of times variance of Y is within 95% CI
+# append true variance difference to bs results
+d <- merge(d, t, "b")
 
-results %>% dplyr::group_by(b) %>%
-    dplyr::summarize(tidy(binom.test(sum(v2 >= lci2 & v2 <= uci2), n()))) # count number of times variance of Y is within 95% CI
+# calculate coverage of bootstrap replicates & check CI includes 95%
+r1 <- d %>% 
+    dplyr::group_by(b) %>%
+    dplyr::summarize(binom.test(sum(lci1 <= t1_t & uci1 >= t1_t), n()) %>% tidy)
+r2 <- d %>% 
+    dplyr::group_by(b) %>%
+    dplyr::summarize(binom.test(sum(lci2 <= t2_t & uci2 >= t2_t), n()) %>% tidy)
+r1 %>% dplyr::filter(conf.low > .95 | conf.high < .95)
+r2 %>% dplyr::filter(conf.low > .95 | conf.high < .95)
 
-# write out results
-write.table(file="osca-effects.txt", results)
+# plot expected vs measured variance differences
+ggplot(data=d, aes(x=t2_t, y=b2, ymin=lci2, ymax=uci2)) +
+    geom_point() + 
+    geom_errorbar(width=.05) +
+    theme_classic() + 
+    xlab("True difference in variance between SNP=0 and SNP=2") +
+    ylab("Estimated difference in variance") +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 5))
