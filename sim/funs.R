@@ -46,6 +46,26 @@ write_gen <- function(f, chr, snpid, rsid, pos, A1, A2, x){
   close(fileConn)
 }
 
+run_osca <- function(data){
+  # write out GEN file
+  write_gen("data/genotypes.gen", "01", "SNPID_1", "RSID_1", "1", "A", "G", data$X)
+
+  # write phenotype & sample file
+  write.table(file = "data/phenotypes.txt", sep = "\t", quote = F, row.names = F, col.names = F, data[, c("S", "S", "Y")])
+  fileConn <- file("data/samples.txt")
+  writeLines(c("ID_1 ID_2 missing sex\n0 0 0 D", paste0(data$S, " ", data$S, " ", 0, " ", 1)), fileConn)
+  close(fileConn)
+
+  # convert to plink
+  system("qctool -g data/genotypes.gen -s data/samples.txt -og data/genotypes -ofiletype binary_ped")
+  system("sed 's/^/S/g' data/genotypes.fam > data/genotypes.fam.sed; mv data/genotypes.fam.sed data/genotypes.fam")
+
+  # run OSCA
+  system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-median.txt --vqtl-mtd 2")
+  res_osca_median <- fread("data/osca-median.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca_median", "SE_x.osca_median", "P.osca_median"))
+  return(res_osca_median)
+}
+
 run_models <- function(data, covar=NULL){
   # write out GEN file
   write_gen("data/genotypes.gen", "01", "SNPID_1", "RSID_1", "1", "A", "G", data$X)
@@ -145,4 +165,36 @@ irnt <- function(pheno) {
 	quantilePheno = (rank(pheno, na.last="keep", ties.method="random")-0.5)/numPhenos
 	phenoIRNT = qnorm(quantilePheno)	
 	return(phenoIRNT);
+}
+
+# LAD-BF variance effects
+dummy_model <- function(x, y, covar=NULL){
+    if (!is.null(covar)){
+        X <- as.matrix(cbind(x, covar))
+    } else {
+        X <- as.matrix(data.frame(x))
+    }
+    # first-stage fit
+    fit <- qrfit(X=X, y=y, tau=.5, method="mm")
+    b <- rbind(fit$b, fit$beta)
+    # predicted
+    X <- cbind(rep(1, nrow(X)), X)
+    fitted <- X %*% b
+    # residual
+    d <- y - fitted
+    # abs residual
+    d <- abs(as.vector(d))
+    # dummy SNP
+    x <- as.factor(x)
+    # second-stage model
+    fit2 <- lm(d ~ x)
+    # extract coef
+    b0 <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% dplyr::pull("estimate")
+    b1 <- fit2 %>% tidy %>% dplyr::filter(term == "x1") %>% dplyr::pull("estimate")
+    b2 <- fit2 %>% tidy %>% dplyr::filter(term == "x2") %>% dplyr::pull("estimate")
+    # variance betas
+    return(c(
+        (2*b0*b1+b1^2)/(2/pi), # SNP=1
+        (2*b0*b2+b2^2)/(2/pi) # SNP=2
+    ))
 }

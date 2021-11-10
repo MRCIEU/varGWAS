@@ -16,42 +16,10 @@ opt <- parse_args(opt_parser);
 set.seed(opt$i + round(opt$b + 100))
 n_obs <- 1000
 
-# LAD-BF variance effects
-model <- function(x, y, covar=NULL){
-    if (!is.null(covar)){
-        X <- as.matrix(cbind(x, covar))
-    } else {
-        X <- as.matrix(data.frame(x))
-    }
-    # first-stage fit
-    fit <- qrfit(X=X, y=y, tau=.5, method="mm")
-    b <- rbind(fit$b, fit$beta)
-    # predicted
-    X <- cbind(rep(1, nrow(X)), X)
-    fitted <- X %*% b
-    # residual
-    d <- y - fitted
-    # abs residual
-    d <- abs(as.vector(d))
-    # dummy SNP
-    x <- as.factor(x)
-    # second-stage model
-    fit2 <- lm(d ~ x)
-    # extract coef
-    b0 <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% dplyr::pull("estimate")
-    b1 <- fit2 %>% tidy %>% dplyr::filter(term == "x1") %>% dplyr::pull("estimate")
-    b2 <- fit2 %>% tidy %>% dplyr::filter(term == "x2") %>% dplyr::pull("estimate")
-    # variance betas
-    return(c(
-        (2*b0*b1+b1^2)/(2/pi), # SNP=1
-        (2*b0*b2+b2^2)/(2/pi) # SNP=2
-    ))
-}
-
 # function to obtain regression weights
 bs <- function(data, indices) {
   d <- data[indices,] # allows boot to select sample
-  result <- model(d$x, d$y)
+  result <- dummy_model(d$x, d$y)
   return(result)
 }
 

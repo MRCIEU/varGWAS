@@ -103,8 +103,8 @@ check_second_stage_adjusted <- function(covar=NULL){
         Usq <- U^2
         CU <- C*U
         CUsq <- CU^2
-        X <- sapply(C, function(c) {p <- 1 / (1 + exp(-c)); get_simulated_genotypes(p *.8, 1)})
-        Y <- C*.19 + X*.395 + C*U*1.14 + rnorm(n_obs)
+        X <- sapply(C, function(c) {p <- 1 / (1 + exp(-c)); get_simulated_genotypes(p *.9, 1)})
+        Y <- C*.28 + X*.79 + C*U*1.12 + rnorm(n_obs)
         data <- data.frame(
             S = paste0("S", seq(1, n_obs)),
             X,
@@ -115,8 +115,15 @@ check_second_stage_adjusted <- function(covar=NULL){
             Csq, Usq, CUsq,
             stringsAsFactors=F
         )
-        res <- run_models(data, covar=covar)
-        res$rsq.xc <- summary(lm(X ~ C))$r.squared
+        #res <- run_models(data, covar=covar)
+        #res <- data.frame(
+        #    rsq.xc=summary(lm(X ~ C))$r.squared,
+        #    rsq.yc=summary(lm(Y ~ C))$r.squared,
+        #    rsq.yx=summary(lm(Y ~ X))$r.squared,
+        #    rsq.ycu=summary(lm(Y ~ C*U))$r.squared
+        #)
+        res <- vartest(data$Y, data$X, type=2)$test
+        res <- vartest(data$Y, data$X, covar = NULL, covar.var = FALSE, type = 1, x.sq = F)
         results <- rbind(results, res)
     }
     return(results)
