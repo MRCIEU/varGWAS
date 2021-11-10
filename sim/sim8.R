@@ -31,7 +31,6 @@ for (i in 1:n_sim){
     oe <- get_osca_effect(res$dp,.4,n_obs,-1)
     res$oe_beta <- oe[1]
     res$oe_se <- oe[2]
-
-
+    
     results <- rbind(results, res)
 }
