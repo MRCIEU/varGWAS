@@ -20,17 +20,18 @@ for (i in 1:n_sim){
     
     # run models
     #res <- run_osca(data)
-    res <- cbind(res, data.frame(
+    res <- data.frame(
         v0=var(data$Y[data$X==0]),
         v1=var(data$Y[data$X==1]),
         v2=var(data$Y[data$X==2])
-    ))
+    )
     bf <- dummy_model(data$X, data$Y)
     res$dummy1 <- bf[1]
     res$dummy2 <- bf[2]
-    oe <- get_osca_effect(res$dp,.4,n_obs,-1)
+    dp <- dummy_p(data$X, data$Y)
+    oe <- get_osca_effect(dp,.4,n_obs,-1)
     res$oe_beta <- oe[1]
     res$oe_se <- oe[2]
-    
+
     results <- rbind(results, res)
 }

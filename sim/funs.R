@@ -219,3 +219,54 @@ get_osca_effect <- function(p,freq,N,sign){
   best <- best * sign
   return(c(best, seest))
 }
+
+# get P value using LAD-BF with dummy method
+dummy_p <- function(x, y, covar=NULL){
+    if (!is.null(covar)){
+        X <- as.matrix(cbind(x, covar))
+    } else {
+        X <- as.matrix(data.frame(x))
+    }
+    # first-stage fit
+    fit <- qrfit(X=X, y=y, tau=.5, method="mm")
+    b <- rbind(fit$b, fit$beta)
+    # predicted
+    X <- cbind(rep(1, nrow(X)), X)
+    fitted <- X %*% b
+    # residual
+    d <- y - fitted
+    # abs residual
+    d <- abs(as.vector(d))
+    # dummy SNP
+    x <- as.factor(x)
+    # second-stage model
+    fit2 <- lm(d ~ x)
+    fit_null <- lm(d ~ 1)
+    p <- anova(fit_null, fit2) %>% tidy %>% dplyr::pull(p.value) %>% dplyr::nth(2)
+    return(p)
+}
+
+# get P value using LAD-BF with xsq method
+xsq_p <- function(x, y, covar=NULL){
+    if (!is.null(covar)){
+        X <- as.matrix(cbind(x, covar))
+    } else {
+        X <- as.matrix(data.frame(x))
+    }
+    # first-stage fit
+    fit <- qrfit(X=X, y=y, tau=.5, method="mm")
+    b <- rbind(fit$b, fit$beta)
+    # predicted
+    X <- cbind(rep(1, nrow(X)), X)
+    fitted <- X %*% b
+    # residual
+    d <- y - fitted
+    # abs residual
+    d <- abs(as.vector(d))
+    # second-stage model
+    xsq <- x^2
+    fit2 <- lm(d ~ x + xsq)
+    fit_null <- lm(d ~ 1)
+    p <- anova(fit_null, fit2) %>% tidy %>% dplyr::pull(p.value) %>% dplyr::nth(2)
+    return(p)
+}
