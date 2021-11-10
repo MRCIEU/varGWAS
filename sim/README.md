@@ -67,3 +67,11 @@ sbatch runR.sh sim7.R
 
 ## Sim8 - variance effect estimate
 
+## Sim9 - P value comparison
+
+OSCA - BF, LAD-BF (dummy) and LAD-BF (xsq) give the same P value
+Check the OSCA method to derive the BETA and SE
+
+```shell
+sbatch runR.sh sim9.R
+```

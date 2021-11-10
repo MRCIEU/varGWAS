@@ -4,7 +4,7 @@ source("funs.R")
 set.seed(134)
 
 n_sim <- 200
-n_obs <- 10000
+n_obs <- 20000
 
 results <- data.frame()
 for (i in 1:n_sim){
@@ -16,10 +16,10 @@ for (i in 1:n_sim){
     )
 
     # simulate outcome
-    data$Y <- rnorm(n_obs, sd=sqrt(1 + data$X * 9))
+    data$Y <- rnorm(n_obs, sd=sqrt(2 + data$X * 2))
     
     # run models
-    res <- run_osca(data)
+    #res <- run_osca(data)
     res <- cbind(res, data.frame(
         v0=var(data$Y[data$X==0]),
         v1=var(data$Y[data$X==1]),
@@ -28,6 +28,10 @@ for (i in 1:n_sim){
     bf <- dummy_model(data$X, data$Y)
     res$dummy1 <- bf[1]
     res$dummy2 <- bf[2]
+    oe <- get_osca_effect(res$dp,.4,n_obs,-1)
+    res$oe_beta <- oe[1]
+    res$oe_se <- oe[2]
+
 
     results <- rbind(results, res)
 }

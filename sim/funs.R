@@ -199,3 +199,23 @@ dummy_model <- function(x, y, covar=NULL){
         (2*b0*b2+b2^2)/(2/pi) # SNP=2
     ))
 }
+
+get_osca_effect <- function(p,freq,N,sign){
+  # calculate Wang et al, 2019 effect size from P value
+  # double zest=sqrt(qchisq(p,1));
+  # double domin=sqrt(2*freq*(1-freq)*(N+zest*zest));
+  # double best=zest/domin;
+  # double seest=1/domin;
+  
+  # get Z score from P value
+  zest <- qnorm(p)
+  # denominator from Zhu et al 2016
+  domin <- sqrt(2*freq*(1-freq)*(N+zest*zest))
+  # beta
+  best <- zest/domin
+  # std error
+  seest <- 1/domin
+  # update sign
+  best <- best * sign
+  return(c(best, seest))
+}
