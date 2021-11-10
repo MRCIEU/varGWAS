@@ -1,4 +1,5 @@
 library("pwr")
+library("cqrReg")
 library("jlst")
 
 #' Function to simulate genotypes in HWE

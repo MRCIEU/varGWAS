@@ -1,5 +1,4 @@
 library("broom")
-library("cqrReg")
 library("dplyr")
 library("boot")
 library('optparse')
