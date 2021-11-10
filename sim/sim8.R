@@ -11,7 +11,7 @@ for (i in 1:n_sim){
     # simulate covariates
     data <- data.frame(
         S = paste0("S", seq(1, n_obs)),
-        X = get_simulated_genotypes(af, n_obs),
+        X = get_simulated_genotypes(.4, n_obs),
         stringsAsFactors=F
     )
 
