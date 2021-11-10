@@ -9,7 +9,7 @@ set.seed(123)
 
 # Requires OSCA and QCTOOL on PATH
 
-n_sim <- 1000
+n_sim <- 200
 n_obs <- 1000
 
 set_snp_confounder <- function(){
@@ -93,12 +93,16 @@ check_first_stage_adjusted <- function(){
     )
 }
 
-check_second_stage_adjusted <- function(){
+check_second_stage_adjusted <- function(covar=NULL){
     # check second-stage model is adjusted for covariates
     results <- data.frame()
     for (i in 1:n_sim){
         C <- rnorm(n_obs)
+        Csq <- C^2
         U <- rnorm(n_obs)
+        Usq <- U^2
+        CU <- C*U
+        CUsq <- CU^2
         X <- sapply(C, function(c) {p <- 1 / (1 + exp(-c)); get_simulated_genotypes(p *.8, 1)})
         Y <- C*.19 + X*.395 + C*U*1.14 + rnorm(n_obs)
         data <- data.frame(
@@ -107,23 +111,32 @@ check_second_stage_adjusted <- function(){
             Y,
             C,
             U,
-            CU = C * U,
+            CU,
+            Csq, Usq, CUsq,
             stringsAsFactors=F
         )
-        res <- run_models(data, covar=c("C", "U", "CU"))
+        res <- run_models(data, covar=covar)
         res$rsq.xc <- summary(lm(X ~ C))$r.squared
         results <- rbind(results, res)
     }
     return(results)
 }
 
+power <- function(results){
+    df <- rbind(
+        binom.test(sum(results$P.osca_median < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.osca_median"),
+        binom.test(sum(results$P.osca_mean < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.osca_mean"),
+        binom.test(sum(results$P.cpp_bp < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.cpp_bp"),
+        binom.test(sum(results$P.cpp_bf < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.cpp_bf"),
+        binom.test(sum(results$P.r_bf < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.r_bf"),
+        binom.test(sum(results$P.r_bp < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.r_bp")
+    )
+}
+
 results <- check_second_stage_adjusted()
-df <- rbind(
-    binom.test(sum(results$P.osca_median < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.osca_median"),
-    binom.test(sum(results$P.osca_mean < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.osca_mean"),
-    binom.test(sum(results$P.cpp_bp < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.cpp_bp"),
-    binom.test(sum(results$P.cpp_bf < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.cpp_bf"),
-    binom.test(sum(results$P.r_bf < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.r_bf"),
-    binom.test(sum(results$P.r_bp < .05), n_sim) %>% tidy %>% dplyr::mutate(term="P.r_bp")
-)
-write.csv(results, file="data/sim5.csv")
+results.adj <- check_second_stage_adjusted(covar=c("C", "U", "CU"))
+results.adjsq <- check_second_stage_adjusted(covar=c("C", "U", "CU", "Csq", "Usq", "CUsq"))
+
+df <- power(results)
+df.adj <- power(results.adj)
+df.adjsq <- power(results.adjsq)
