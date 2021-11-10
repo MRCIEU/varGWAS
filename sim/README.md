@@ -45,7 +45,7 @@ sbatch runR.sh sim4.R
 sbatch runR.sh sim5.R
 ```
 
-## Sim6 - Variance effect estimate using LAD-BF and OSCA
+## Sim6 - Variance effect bootstrap
 
 ```shell
 # BF-LAD
@@ -56,9 +56,6 @@ done
 # pool reps
 echo -n "z " > results.txt; head -n1 results_i1_b0.txt >> results.txt
 cat results_i1_b*.txt | grep -v "b1" >> results.txt
-# OSCA
-sbatch runR.sh sim6b.R
-# plot results
 Rscript sim6_plot.R
 ```
 
@@ -67,3 +64,6 @@ Rscript sim6_plot.R
 ```shell
 sbatch runR.sh sim7.R
 ```
+
+## Sim8 - variance effect estimate
+

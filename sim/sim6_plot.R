@@ -28,6 +28,14 @@ r1 %>% dplyr::filter(conf.low > .95 | conf.high < .95)
 r2 %>% dplyr::filter(conf.low > .95 | conf.high < .95)
 
 # plot expected vs measured variance differences
+ggplot(data=d, aes(x=t1_t, y=b1, ymin=lci1, ymax=uci1)) +
+    geom_point() + 
+    geom_errorbar(width=.05) +
+    theme_classic() + 
+    xlab("True difference in variance between SNP=0 and SNP=1") +
+    ylab("Estimated difference in variance") +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 5))
+
 ggplot(data=d, aes(x=t2_t, y=b2, ymin=lci2, ymax=uci2)) +
     geom_point() + 
     geom_errorbar(width=.05) +
