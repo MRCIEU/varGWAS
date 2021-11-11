@@ -62,7 +62,7 @@ Rscript sim6_plot.R
 ## Sim7 - false positive rate for subsampled phenotypes
 
 ```shell
-sbatch runR.sh sim7.R
+sbatch runR.sh sim7.R -t "$trait" -f
 ```
 
 ## Sim8 - variance effect estimate
@@ -81,3 +81,6 @@ sbatch runR.sh sim9.R
 ```shell
 sbatch runR.sh sim10.R
 ```
+
+## Sim11 - X vs x + sq
+
