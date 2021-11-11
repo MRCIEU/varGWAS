@@ -1,0 +1,27 @@
+Analysis started: Thu Nov 11 09:44:56 2021
+ 
+
+Options:
+--vqtl 
+--bfile data/genotypes
+--pheno data/phenotypes.txt
+--out data/osca-median.txt
+--vqtl-mtd 2
+Reserving 1024 MB memory for Reading Buffer.
+Reading data from data/phenotypes.txt ...
+10000 individuals are scanned from file data/phenotypes.txt ...
+10000 individuals have been included from the file data/phenotypes.txt.
+Reading PLINK FAM file from data/genotypes.fam .
+10000 individuals to be included from data/genotypes.fam .
+10000 individuals in common are kept.
+Reading PLINK BIM file from data/genotypes.bim .
+1 SNPs to be included from data/genotypes.bim .
+Reading PLINK BED file from  data/genotypes.bed in SNP-major format ...
+Genotype data for 10000  individuals and 1 SNPs to be included from data/genotypes.bed .
+
+Performing vQTL analysis with Levene’s test (median)...
+vQTL results of 1 SNPs have been saved in file data/osca-median.txt.vqtl.
+
+Analysis finished: Thu Nov 11 09:44:57 2021
+ 
+Computational time: 0:0:1

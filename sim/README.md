@@ -75,3 +75,9 @@ Check the OSCA method to derive the BETA and SE
 ```shell
 sbatch runR.sh sim9.R
 ```
+
+## Sim10 - SE comparison
+
+```shell
+sbatch runR.sh sim10.R
+```
