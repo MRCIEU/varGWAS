@@ -14,6 +14,8 @@ option_list <- list(
 opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
 
+message(paste0("Filter:", opt$f))
+
 # read in emperical distribution
 d <- fread(paste0("data/", opt$t, ".txt"))
 d$z <- d[[opt$t]] - mean(d[[opt$t]]) / sd(d[[opt$t]])
