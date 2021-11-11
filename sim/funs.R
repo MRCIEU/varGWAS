@@ -47,7 +47,7 @@ write_gen <- function(f, chr, snpid, rsid, pos, A1, A2, x){
   close(fileConn)
 }
 
-run_osca <- function(data){
+run_osca <- function(data, output){
   # write out GEN file
   write_gen("data/genotypes.gen", "01", "SNPID_1", "RSID_1", "1", "A", "G", data$X)
 
@@ -58,11 +58,11 @@ run_osca <- function(data){
   close(fileConn)
 
   # convert to plink
-  system("qctool -g data/genotypes.gen -s data/samples.txt -og data/genotypes -ofiletype binary_ped")
-  system("sed 's/^/S/g' data/genotypes.fam > data/genotypes.fam.sed; mv data/genotypes.fam.sed data/genotypes.fam")
+  system("qctool -g data/genotypes.gen -s data/samples.txt -og data/genotypes -ofiletype binary_ped", ignore.stdout = output, ignore.stderr = output)
+  system("sed 's/^/S/g' data/genotypes.fam > data/genotypes.fam.sed; mv data/genotypes.fam.sed data/genotypes.fam", ignore.stdout = output, ignore.stderr = output)
 
   # run OSCA
-  system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-median.txt --vqtl-mtd 2")
+  system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-median.txt --vqtl-mtd 2", ignore.stdout = output, ignore.stderr = output)
   res_osca_median <- fread("data/osca-median.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca_median", "SE_x.osca_median", "P.osca_median"))
   return(res_osca_median)
 }

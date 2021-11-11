@@ -23,13 +23,13 @@ for (b in seq(0, 5, 0.5)){
         data$Y <- rnorm(n_obs, sd=sqrt(1 + data$X * b))
         
         # run models
-        res <- run_osca(data)
+        res <- run_osca(data, F)
 
         # estimate variance effect
-        fit1 <- lm(Y ~ X)
-        d <- resid(fit1)^2
-        fit2 <- lm(d ~ X)
-        fit3 <- lm(d ~ 1)
+        fit1 <- lm(Y ~ X, data=data)
+        data$d <- resid(fit1)^2
+        fit2 <- lm(d ~ X, data=data)
+        fit3 <- lm(d ~ 1, data=data)
         p <- anova(fit2, fit3) %>% tidy %>% dplyr::pull(p.value) %>% dplyr::nth(2)
         b0 <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% dplyr::pull(estimate)
         s0 <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% dplyr::pull(std.error)
