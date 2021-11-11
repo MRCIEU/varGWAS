@@ -18,10 +18,12 @@ message(paste0("Filter:", opt$f))
 
 # read in emperical distribution
 d <- fread(paste0("data/", opt$t, ".txt"))
+message(paste0("N b4 filter:", nrow(d)))
 d$z <- d[[opt$t]] - mean(d[[opt$t]]) / sd(d[[opt$t]])
 if (opt$f){
   d <- d %>% dplyr::filter(abs(z) < 5)
 }
+message(paste0("N after filter:", nrow(d)))
 n_sim <- 10000
 n_obs <- 100000
 af <- 0.05
