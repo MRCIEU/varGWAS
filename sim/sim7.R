@@ -1,5 +1,6 @@
 library("data.table")
 library("jlst")
+library("dplyr")
 library("broom")
 library("moments")
 library("optparse")
@@ -7,13 +8,18 @@ library("GWASTools")
 set.seed(13)
 
 option_list <- list(
-  make_option(c("-t", "--trait"), type = "character", default = "n", help = "Trait", metavar = "character")
+  make_option(c("-t", "--trait"), type = "character", default = "n", help = "Trait", metavar = "character"),
+  make_option(c("-f", "--filter"), action="store_true", default=FALSE, help="Filter outliers")
 );
 opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
 
 # read in emperical distribution
 d <- fread(paste0("data/", opt$t, ".txt"))
+d$z <- d[[opt$t]] - mean(d[[opt$t]]) / sd(d[[opt$t]])
+if (opt$f){
+  d <- d %>% dplyr::filter(abs(z) < 5)
+}
 n_sim <- 10000
 n_obs <- 100000
 af <- 0.05
@@ -31,9 +37,9 @@ for (i in 1:n_sim){
 df <- binom.test(sum(p<0.05), n_sim) %>% tidy
 df <- cbind(df, data.frame(skewness=skewness(s[[opt$t]])))
 df <- cbind(df, data.frame(kurtosis=kurtosis(s[[opt$t]])))
-write.table(df, file=paste0("data/", opt$t, "_t1e.txt"))
+write.table(df, file=paste0("data/", opt$t, "_t1e_", opt$f, ".txt"))
 
 # qqplot
-pdf(paste0("data/", opt$t, ".pdf"))
+pdf(paste0("data/", opt$t, "_", opt$f, ".pdf"))
 qqPlot(p)
 dev.off()
