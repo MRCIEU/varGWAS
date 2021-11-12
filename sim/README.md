@@ -33,13 +33,13 @@ sbatch runR.sh sim2b.R
 sbatch runR.sh sim3.R
 ```
 
-## Sim4 - runtime performance
+## Sim4 - Runtime performance of OSCA & varGWAS
 
 ```shell
 sbatch runR.sh sim4.R
 ```
 
-## Sim5 - confounding of the mean and variance effect (not working)
+## Sim5 - Confounding of the mean and variance effect (TODO)
 
 ```shell
 sbatch runR.sh sim5.R
