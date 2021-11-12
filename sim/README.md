@@ -79,6 +79,8 @@ sbatch runR.sh sim7.R -t "$trait" -f
 
 ## Sim8 - The OSCA effect estimate
 
+The OSCA effect estimate does NOT provide a difference in variace per genotype. This simulation aims to explore why it does not.
+
 OSCA effect estimate:
 
 - Z-score from P value given normal dist
@@ -87,9 +89,11 @@ OSCA effect estimate:
 - Calculate SE with 1/inverse SE
 - Update the direction of the beta by estimating the relationship of Y on X
 
+Scaling the phenotype renders the LAD-BF dummy/x+xsq variance effect estimate invalid.
+
 ## Sim9 - Comparing P-val between OSCA - Levene(median), LAD-BF (dummy) and LAD-BF(x+xsq)
 
-OSCA-Levene(median), LAD-BF (dummy) and LAD-BF (x+xsq) give the same P value
+OSCA-Levene(median), LAD-BF (dummy) and LAD-BF (x+xsq) give the same P value. Note that dummy/x+xsq is better powered than just having X in the second-stage model even when the effect of X on var(Y) is linear (in which case both models give the correct estimate).
 
 ## Sim10 - Variance effect estimate SE comparison between methods
 
