@@ -1,6 +1,6 @@
 # Simulations
 
-## Sim1 - Power of B-P and Levene's test to detect change in variance from interaction effect
+## Sim1 - Power variance tests to detect change in variance from interaction effect
 
 Simulation
 
@@ -21,31 +21,31 @@ Plot
 Rscript sim1_plot.R
 ```
 
-## Sim2 - T1E of B-P and Levene's test under no effect with non-normal/normal dist & increasing MAF
+Similar power for Normal data. Higher power for BF/LAD-BF and Levene(mean) for non-Normal. Same power for BF vs LAD-BF.
 
-```shell
-sbatch runR.sh sim2b.R
-```
+## Sim2 - T1E of variance tests under no effect with non-normal/normal dist & increasing MAF
 
-## Sim3 - T1E of B-P and Levene's test under main effect with non-normal/normal dist transformation
+Elevated T1E for non-Normal using Levene(mean) and BP. BF/LAD-BF equally well controlled.
 
-```shell
-sbatch runR.sh sim3.R
-```
+## Sim3 - T1E of variance tests under main effect with non-normal/normal dist transformation
 
-## Sim4 - Runtime performance of OSCA & varGWAS
+Transformations introduce mean-variance effect casusing T1E.
 
-```shell
-sbatch runR.sh sim4.R
-```
+## Sim4 - Runtime performance of OSCA & varGWAS using 10k SNPs and increasing threads
 
-## Sim5 - Confounding of the mean and variance effect (TODO)
+Regression models take 2x longer than non-parametric models. No strong difference between BP vs LAD-BF and Levene vs BF.
 
-```shell
-sbatch runR.sh sim5.R
-```
+## Sim5 - Confounding of the mean and variance effect and adjustment of the second-stage model
 
-## Sim6 - Variance effect bootstrap
+TODO - ?adjusting second-stage model reduces genetic confounding on variance estimate: population stratificaion, dynastic effects and assortative mating
+
+## Sim6 - Variance effect estimate and SE
+
+### Deltamethod
+
+sim6b - CIs are correct for var(Y|G==1) but not var(Y|G==2). The latter is too narrow. Although the point estimates are correct for both. Use bootstrap method instead.
+
+### Bootstrap
 
 ```shell
 # BF-LAD
@@ -59,28 +59,44 @@ cat results_i1_b*.txt | grep -v "b1" >> results.txt
 Rscript sim6_plot.R
 ```
 
-## Sim7 - false positive rate for subsampled phenotypes
+CIs have correct coverage using the bootstrap method for var(Y|G==1) and var(Y|G==2) using the dummy method
+
+## Sim7 - FPR of LAD-BF applied to biomarker emperical distribution
+
+Sample with replacement from the emperical biomarker distribution and estimate T1E:
+
+Using the whole distribution - some elevate T1E for highly left-skewed traits
+
+```shell
+sbatch runR.sh sim7.R -t "$trait"
+```
+
+Dropping observations > +/- 5SD from the mean
 
 ```shell
 sbatch runR.sh sim7.R -t "$trait" -f
 ```
 
-## Sim8 - variance effect estimate
+## Sim8 - The OSCA effect estimate
 
-## Sim9 - P value comparison
+OSCA effect estimate:
 
-OSCA - BF, LAD-BF (dummy) and LAD-BF (xsq) give the same P value
-Check the OSCA method to derive the BETA and SE
+- Z-score from P value given normal dist
+- Estimate the inverse of the SE given sample size, MAF and Z
+- Calculate beta with Z / inverse SE
+- Calculate SE with 1/inverse SE
+- Update the direction of the beta by estimating the relationship of Y on X
 
-```shell
-sbatch runR.sh sim9.R
-```
+## Sim9 - Comparing P-val between OSCA - Levene(median), LAD-BF (dummy) and LAD-BF(x+xsq)
 
-## Sim10 - SE comparison
+OSCA-Levene(median), LAD-BF (dummy) and LAD-BF (x+xsq) give the same P value
 
-```shell
-sbatch runR.sh sim10.R
-```
+## Sim10 - Variance effect estimate SE comparison between methods
 
-## Sim11 - X vs x + sq
+Simulation of linear effect of X on var(Y) i.e. not using an interaction.
 
+Relationship between OSCA effect estimate and true difference in variance is non-linear. SEs are positively correlated for regression and bootstrap models. OSCA SE is inversely correlated with the regression model.
+
+## Sim11 - Second-stage model: X vs X + X^2
+
+Comparison of including X w/wo X^2 in the second-stage model on the estimate for var(Y|G). Having X in the second-stage model allows estimataion when the relationship between X and var(Y) is linear. But an interaction of XU on Y produces a non-linear variance effect of Y conditional on X. Having x+x^2 in the second-stage model or treating X as a dummy variable models the effect correctly.

@@ -73,3 +73,12 @@ for (b in seq(0, 8, 2)){
         ))
     }
 }
+
+# beta
+plot(results$b, results$b1_main)
+plot(results$b, results$b1_boot)
+plot(results$b, results$b_osca)
+
+# SE
+plot(results$s1_main, results$s1_boot)
+plot(results$s_osca, results$s1_boot)

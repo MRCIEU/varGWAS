@@ -19,7 +19,7 @@ for (i in 1:n_sim){
     data$Y <- rnorm(n_obs, sd=sqrt(2 + data$X * 2))
     
     # run models
-    #res <- run_osca(data)
+    res <- run_osca(data)
     res <- data.frame(
         v0=var(data$Y[data$X==0]),
         v1=var(data$Y[data$X==1]),
