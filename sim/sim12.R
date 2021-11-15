@@ -14,15 +14,15 @@ bs <- function(data, indices) {
 }
 
 n_obs <- 1000
-n_sim <- 30
+n_sim <- 200
 af <- 0.4
 
 # main effect size of X on Y detectable with 80% power
-delta <- 0.13
+delta <- 0.169
 
 # simulate GxE interaction effects and estimate power
 results <- data.frame()
-for (phi in seq(2, 2, 0)){
+for (phi in seq(6, 6, 0)){
     theta <- delta * phi
     for (i in 1:n_sim) {
         message(paste0("phi:", phi, " i:", i))
@@ -40,10 +40,11 @@ for (phi in seq(2, 2, 0)){
         data$Y <- scale(data$Y)
 
         # test for variance effect
-        fit_boot <- boot(data=data, statistic=bs, R=30) %>% tidy
+        fit_boot <- boot(data=data, statistic=bs, R=75) %>% tidy
         fit_osca <- run_osca(data, T)
         fit_osca$BETA_x.osca_median <- fit_osca$BETA_x.osca_median / (2/pi)
         fit_osca$SE_x.osca_median <- fit_osca$SE_x.osca_median / (2/pi)
+        #p <- lm(Y ~ X, data=data) %>% tidy %>% dplyr::filter(term == "X") %>% dplyr::pull(p.value)
 
         res <- data.frame(
             b0_dummy=fit_boot$statistic[1],
@@ -59,6 +60,7 @@ for (phi in seq(2, 2, 0)){
         )
 
         # add params
+        #res <- data.frame(p)
         res$v0 <- var(data$Y[data$X==0])
         res$v1 <- var(data$Y[data$X==1])
         res$v2 <- var(data$Y[data$X==2])
