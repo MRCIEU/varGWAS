@@ -106,3 +106,7 @@ Relationship between OSCA effect estimate and true difference in variance is non
 ## Sim11 - Second-stage model: X vs X + X^2
 
 Comparison of including X w/wo X^2 in the second-stage model on the estimate for var(Y|G). Having X in the second-stage model allows estimataion when the relationship between X and var(Y) is linear. But an interaction of XU on Y produces a non-linear variance effect of Y conditional on X. Having x+x^2 in the second-stage model or treating X as a dummy variable models the effect correctly.
+
+## Sim12 - Per-genotype effect on var(Y) under interaction
+
+what is var(Y|G==0, G==1, G==2) with both methods? And do the SEs give correct coverage? Also compare with bootstrap

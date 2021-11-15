@@ -195,6 +195,7 @@ dummy_model <- function(x, y, covar=NULL){
     b2 <- fit2 %>% tidy %>% dplyr::filter(term == "x2") %>% dplyr::pull("estimate")
     # variance betas
     return(c(
+        b0/(2/pi), # SNP=0
         (2*b0*b1+b1^2)/(2/pi), # SNP=1
         (2*b0*b2+b2^2)/(2/pi) # SNP=2
     ))
