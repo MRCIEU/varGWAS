@@ -35,9 +35,9 @@ Transformations introduce mean-variance effect casusing T1E.
 
 Regression models take 2x longer than non-parametric models. No strong difference between BP vs LAD-BF and Levene vs BF.
 
-## Sim5 - Confounding of the mean and variance effect and adjustment of the second-stage model
+## Sim5 - Confounding of the mean and variance effect and adjustment
 
-TODO - ?adjusting second-stage model reduces genetic confounding on variance estimate: population stratificaion, dynastic effects and assortative mating
+Adjusting second-stage model for the square of the first-stage model covariates reduces genetic confounding on variance estimate: an example of this - ancestry x SES on T2DM in https://www.thelancet.com/journals/eclinm/article/PIIS2589-5370(21)00240-6/fulltext
 
 ## Sim6 - Variance effect estimate and SE
 
