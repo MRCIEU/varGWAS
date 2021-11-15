@@ -1,9 +1,10 @@
 library("dplyr")
 library("broom")
+library("boot")
 source("funs.R")
 set.seed(134)
 
-n_sim <- 30
+n_sim <- 200
 n_obs <- 1000
 q <- 0.4
 
@@ -41,6 +42,13 @@ bp_x_model <- function(data){
     ))
 }
 
+# function to obtain regression weights
+bs <- function(data, indices) {
+  d <- data[indices,] # allows boot to select sample
+  result <- bp_x_model(d)
+  return(result)
+}
+
 bp_xabs_model <- function(data){
     fit1 <- suppressWarnings(rq(Y ~ X, data=data))
     data$d <- abs(resid(fit1))
@@ -74,7 +82,7 @@ bp_xsq_model <- function(data){
 }
 
 results <- data.frame()
-for (b in seq(0, 8, 2)){
+for (b in seq(2,2)){
     for (i in 1:n_sim){
         message(paste0("b:", b, " i:", i))
         # simulate covariates
@@ -98,6 +106,7 @@ for (b in seq(0, 8, 2)){
         fit_xsq <- bp_xsq_model(data)
         fit_x <- bp_x_model(data)
         fit_xabs <- bp_xabs_model(data)
+        fit_boot <- boot(data=data, statistic=bs, R=75) %>% tidy
 
         results <- rbind(results, data.frame(
             b,
@@ -120,6 +129,8 @@ for (b in seq(0, 8, 2)){
             b1_x=fit_x[3],
             s1_x=fit_x[4],
             p_x=fit_x[5],
+            b1_x_boot=fit_boot$statistic[3],
+            s1_x_boot=fit_boot$std.error[3],
             b0_xabs=fit_xabs[1],
             s0_xabs=fit_xabs[2],
             b1_xabs=fit_xabs[3],
@@ -139,3 +150,28 @@ for (b in seq(0, 8, 2)){
 
     }
 }
+
+# estimate expected variance effect
+expected <- results %>% dplyr::group_by(b) %>% dplyr::summarize(mb=mean((v2-v0)*.5), sb=sd((v2-v0)*.5))
+results <- merge(results, expected, "b")
+
+# check coverage for X model
+results$lci_x <- results$b1_x - (results$s1_x * 1.96)
+results$uci_x <- results$b1_x + (results$s1_x * 1.96)
+results %>% 
+    dplyr::group_by(b) %>%
+    dplyr::summarize(binom.test(sum(lci_x <= mb & uci_x >= mb), n()) %>% tidy)
+results$lci_x_boot <- results$b1_x - (results$s1_x_boot * 1.96)
+results$uci_x_boot <- results$b1_x + (results$s1_x_boot * 1.96)
+results %>% 
+    dplyr::group_by(b) %>%
+    dplyr::summarize(binom.test(sum(lci_x_boot <= mb & uci_x_boot >= mb), n()) %>% tidy)
+
+# check coverage for OSCA
+results$b_osca_var <- results$b_osca / (2/pi)
+results$s_osca_var <- results$s_osca / (2/pi)
+results$lci_b_osca <- results$b_osca_var - (results$s_osca_var * 1.96)
+results$uci_b_osca <- results$b_osca_var + (results$s_osca_var * 1.96)
+results %>% 
+    dplyr::group_by(b) %>%
+    dplyr::summarize(binom.test(sum(lci_b_osca <= mb & uci_b_osca >= mb), n()) %>% tidy)
