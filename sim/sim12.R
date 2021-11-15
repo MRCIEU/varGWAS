@@ -37,11 +37,12 @@ for (phi in seq(6, 6, 0)){
 
         # simulate outcome
         data$Y <- data$X * delta + data$U * delta + data$X * data$U * theta + rnorm(n_obs)
-        data$Y <- scale(data$Y)
+        data_s <- data
+        data_s$Y <- scale(data_s$Y)
 
         # test for variance effect
-        fit_boot <- boot(data=data, statistic=bs, R=75) %>% tidy
-        fit_osca <- run_osca(data, T)
+        fit_boot <- boot(data=data, statistic=bs, R=30) %>% tidy
+        fit_osca <- run_osca(data_s, T)
         fit_osca$BETA_x.osca_median <- fit_osca$BETA_x.osca_median / (2/pi)
         fit_osca$SE_x.osca_median <- fit_osca$SE_x.osca_median / (2/pi)
         #p <- lm(Y ~ X, data=data) %>% tidy %>% dplyr::filter(term == "X") %>% dplyr::pull(p.value)
@@ -64,6 +65,9 @@ for (phi in seq(6, 6, 0)){
         res$v0 <- var(data$Y[data$X==0])
         res$v1 <- var(data$Y[data$X==1])
         res$v2 <- var(data$Y[data$X==2])
+        res$v0_s <- var(data_s$Y[data_s$X==0])
+        res$v1_s <- var(data_s$Y[data_s$X==1])
+        res$v2_s <- var(data_s$Y[data_s$X==2])
         res$phi <- phi
 
         # store result
