@@ -1,10 +1,13 @@
-FROM gcc:6.5
+FROM gcc:9.4
 
 # install cmake
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.19.6/cmake-3.19.6-Linux-x86_64.tar.gz && \
     tar -xvf cmake-3.19.6-Linux-x86_64.tar.gz
 ENV PATH=$PATH:/cmake-3.19.6-Linux-x86_64/bin
 ENV CMAKE_ROOT=/cmake-3.19.6-Linux-x86_64
+
+# install BLAS and lapack
+RUN apt-get update && apt-get install -y libopenblas-dev liblapack-dev libarpack2-dev libsuperlu-dev
 
 # copy repo to container
 COPY . /app

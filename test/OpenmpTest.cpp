@@ -33,7 +33,7 @@ TEST(OpenMPTest, process_variants) {
   std::string rsid;
   std::vector<std::string> alleles;
   std::vector<std::vector<double>> probs;
-  genfile::bgen::BgenParser bgen_parser("/Users/ml18692/projects/vargwas/lib/bgen/example/example.v11.bgen");
+  genfile::bgen::BgenParser bgen_parser("../../lib/bgen/example/example.v11.bgen");
   std::stringstream buf;
   unsigned i = 0;
 

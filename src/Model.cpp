@@ -8,12 +8,13 @@
 #include <Eigen/Dense>
 #include <utility>
 #include <vector>
+#include <math.h>
 #include <boost/math/distributions/fisher_f.hpp>
 #include <boost/math/distributions/students_t.hpp>
 #include "Model.h"
 #include "PhenotypeFile.h"
 #include "Result.h"
-#include "libscl.h"
+#include "cqrReg.h"
 #include "spdlog/spdlog.h"
 
 /*
@@ -59,7 +60,8 @@ void Model::run() {
   // open output file
   std::ofstream file(_output_file);
   if (file.is_open()) {
-    file << "chr\tpos\trsid\toa\tea\tbeta\tse\tt\tp\tphi_x\tse_x\tphi_xsq\tse_xsq\tphi_f\tphi_p\tn\teaf" << std::endl;
+    file << "chr\tpos\trsid\toa\tea\tbeta\tbeta_lad\tse\tt\tp\tphi_x\tse_x\tphi_xsq\tse_xsq\tphi_f\tphi_p\tn\teaf"
+         << std::endl;
     file.flush();
 #pragma omp parallel default(none) shared(file, X1, X2, y) private(chromosome, position, rsid, alleles, probs, dosages)
     {
@@ -111,15 +113,30 @@ void Model::run() {
         {
           spdlog::debug("rsid = {}, thread = {}", rsid, omp_get_thread_num());
           Result
-              res = fit(chromosome, position, rsid, alleles[0], alleles[1], dosages, _non_null_idx, X1, X2, y, _robust);
+              res = fit(chromosome,
+                        position,
+                        rsid,
+                        alleles[0],
+                        alleles[1],
+                        dosages,
+                        _non_null_idx,
+                        X1,
+                        X2,
+                        y,
+                        _robust,
+                        _maf_threshold);
+          if (!isnan(res.phi_pval)) {
 #pragma omp critical
-          {
-            // TODO implement file buffer to improve performance
-            file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
-                 << res.effect_allele << "\t" << res.beta << "\t" << res.se << "\t" << res.t << "\t"
-                 << res.pval << "\t" << res.phi_x << "\t" << res.se_x << "\t" << res.phi_xsq << "\t"
-                 << res.se_xsq << "\t" << res.phi_f << "\t" << res.phi_pval << "\t" << res.n << "\t" << res.eaf << "\n";
-            file.flush();
+            {
+              // TODO implement file buffer to improve performance
+              file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
+                   << res.effect_allele << "\t" << res.beta << "\t" << res.beta_lad << "\t" << res.se << "\t" << res.t
+                   << "\t"
+                   << res.pval << "\t" << res.phi_x << "\t" << res.se_x << "\t" << res.phi_xsq << "\t"
+                   << res.se_xsq << "\t" << res.phi_f << "\t" << res.phi_pval << "\t" << res.n << "\t" << res.eaf
+                   << "\n";
+              file.flush();
+            }
           }
         }
       }
@@ -143,7 +160,8 @@ Result Model::fit(std::string &chromosome,
                   Eigen::MatrixXd X1,
                   Eigen::MatrixXd X2,
                   Eigen::VectorXd y,
-                  bool robust) {
+                  bool robust,
+                  double maf_threshold) {
   Result res;
   res.chromosome = chromosome;
   res.position = position;
@@ -153,6 +171,7 @@ Result Model::fit(std::string &chromosome,
   res.eaf = NAN;
   res.n = -1;
   res.beta = NAN;
+  res.beta_lad = NAN;
   res.se = NAN;
   res.t = NAN;
   res.pval = NAN;
@@ -194,51 +213,23 @@ Result Model::fit(std::string &chromosome,
   Eigen::VectorXd y_complete = y(non_null_idx_vec, Eigen::all).eval();
   int n = X_complete1.rows();
 
-  // first stage model
-  Eigen::MatrixXd fs_fit;
-  if (!robust) {
-    spdlog::debug("Checking for rank deficiency for first fit");
-    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr1(X_complete1);
-    if (qr1.rank() < X_complete1.cols()) {
-      return res;
-    }
-    spdlog::debug("Estimating first stage model using OLS regression");
-    fs_fit = qr1.solve(y_complete);
-  } else {
-    spdlog::debug("Mapping Eigen matrix to SCL");
-    // map eigen matrix to scl
-    scl::realmat scl_X(X_complete1.rows(), X_complete1.cols());
-    scl::realmat scl_y(X_complete1.rows(), 1);
-    for (int i = 0; i < X_complete1.rows(); i++) {
-      scl_y[i + 1] = y_complete(i, 0);
-      for (int k = 0; k < X_complete1.cols(); k++) {
-        scl_X(i + 1, k + 1) = X_complete1(i, k);
-      }
-    }
-    // model
-    spdlog::debug("Creating SCL matrix");
-    scl::realmat b(X_complete1.cols(), 1);
-    REAL tau = 0.5;
-    spdlog::debug("Estimating first stage model using quantile regression");
-    b = scl::quantreg(scl_y, scl_X, tau);
-    spdlog::debug("Fit complete");
-
-    //map betas from scl to eigen
-    spdlog::debug("Mapping SCL betas to Eigen matrix");
-    fs_fit.resize(X_complete1.cols(), 1);
-    for (int i = 0; i < X_complete1.cols(); i++) {
-      fs_fit(i, 0) = b[i + 1];
-    }
+  // filter out low MAF
+  res.eaf = X_complete1.col(1).mean() * 0.5;
+  if (res.eaf < maf_threshold || (1 - res.eaf) < maf_threshold) {
+    spdlog::warn("Skipping variant " + res.rsid + " with EAF of " + std::to_string(res.eaf));
+    return res;
   }
+
+  // first stage model
+  spdlog::debug("Checking for rank deficiency for first fit");
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr1(X_complete1);
+  if (qr1.rank() < X_complete1.cols()) {
+    return res;
+  }
+  spdlog::debug("Estimating first stage model using OLS regression");
+  Eigen::VectorXd fs_fit = qr1.solve(y_complete);
   Eigen::VectorXd fs_fitted = X_complete1 * fs_fit;
   Eigen::VectorXd fs_resid = y_complete - fs_fitted;
-  Eigen::VectorXd fs_resid2;
-
-  if (robust) {
-    fs_resid2 = fs_resid.array().abs();
-  } else {
-    fs_resid2 = fs_resid.array().square();
-  }
 
   // se
   spdlog::debug("Estimating SE");
@@ -254,13 +245,28 @@ Result Model::fit(std::string &chromosome,
   boost::math::students_t t_dist(fs_df);
   double pval = 2.0 * boost::math::cdf(boost::math::complement(t_dist, fabs(t_stat)));
 
+  // LAD regression
+  Eigen::VectorXd fs_fitr;
+  Eigen::VectorXd fs_resid2;
+  if (robust) {
+    spdlog::debug("Fitting quantile model");
+    fs_fitr = cqrReg::cqrReg::qrmm(X_complete1, y_complete, fs_fit, 0.001, 200, 0.5);
+    fs_fitted = X_complete1 * fs_fitr;
+    fs_resid = y_complete - fs_fitted;
+    // estimate absolute residuals
+    fs_resid2 = fs_resid.array().abs();
+  } else {
+    // estimate squared residuals
+    fs_resid2 = fs_resid.array().square();
+  }
+
   // second stage model
   spdlog::debug("Estimating second stage model");
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr2(X_complete2);
   if (qr2.rank() < X_complete2.cols()) {
     return res;
   }
-  Eigen::MatrixXd ss_fit = qr2.solve(fs_resid2);
+  Eigen::VectorXd ss_fit = qr2.solve(fs_resid2);
   Eigen::VectorXd ss_fitted = X_complete2 * ss_fit;
   Eigen::VectorXd ss_resid = fs_resid2 - ss_fitted;
   Eigen::VectorXd ss_resid2 = ss_resid.array().square();
@@ -288,7 +294,7 @@ Result Model::fit(std::string &chromosome,
   if (qr3.rank() < X_complete3.cols()) {
     return res;
   }
-  Eigen::MatrixXd null_fit = qr3.solve(fs_resid2);
+  Eigen::VectorXd null_fit = qr3.solve(fs_resid2);
   Eigen::VectorXd null_fitted = X_complete3 * null_fit;
   Eigen::VectorXd null_resid = fs_resid2 - null_fitted;
   Eigen::VectorXd null_resid2 = null_resid.array().square();
@@ -311,10 +317,11 @@ Result Model::fit(std::string &chromosome,
 
   // set results
   res.beta = fs_fit(1, 0);
-  if (!robust) {
-    res.se = fs_se(1, 0);
-    res.t = t_stat;
-    res.pval = pval;
+  res.se = fs_se(1, 0);
+  res.t = t_stat;
+  res.pval = pval;
+  if (robust) {
+    res.beta_lad = fs_fitr(1, 0);
   }
   res.phi_x = ss_fit(1, 0);
   res.phi_xsq = ss_fit(2, 0);
@@ -323,7 +330,6 @@ Result Model::fit(std::string &chromosome,
   res.phi_f = f;
   res.phi_pval = phi_pval;
   res.n = n;
-  res.eaf = X_complete1.col(1).mean() * 0.5;
 
   return res;
 }

@@ -13,10 +13,10 @@ target_link_libraries(
         ${SQLITE_LIB_PATH}
         ${DB_LIB_PATH}
         ${BGEN_LIB_PATH}
-        ${LIBSCL_LIB_PATH}
         ${GLOG_LIB_PATH}
         OpenMP::OpenMP_CXX
         ${CMAKE_THREAD_LIBS_INIT}
+        ${ARMADILLO_LIBRARIES}
 )
 
 add_library(${BINARY}_lib STATIC ${SOURCES})

@@ -28,13 +28,15 @@ class Model {
         std::set<unsigned> &non_null_idx,
         std::string &output_file,
         int threads,
-        bool robust)
+        bool robust,
+        double maf_threshold)
       : _phenotype_file(phenotype_file),
         _bgen_parser(bgen_parser),
         _non_null_idx(non_null_idx),
         _output_file(output_file),
         _threads(threads),
-        _robust(robust) {}
+        _robust(robust),
+        _maf_threshold(maf_threshold) {}
   void run();
   static Result fit(std::string &chromosome,
                     uint32_t position,
@@ -46,13 +48,15 @@ class Model {
                     Eigen::MatrixXd X1,
                     Eigen::MatrixXd X2,
                     Eigen::VectorXd y,
-                    bool robust);
+                    bool robust,
+                    double maf_threshold);
  private:
   vargwas::PhenotypeFile &_phenotype_file;
   genfile::bgen::BgenParser &_bgen_parser;
   std::set<unsigned> &_non_null_idx;
   int _threads;
   bool _robust;
+  double _maf_threshold;
   std::string &_output_file;
 };
 }

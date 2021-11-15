@@ -14,7 +14,7 @@ n_obs <- 1000
 b <- 0
 
 results <- data.frame()
-for (af in c(0.01, 0.05, 0.1, 0.2)){
+for (af in c(0.05, 0.1, 0.15, 0.2)){
     for (dist in c("Normal", "T", "Lognormal", "Mixed Normal")){
         for (i in 1:n_sim){
             # simulate covariates
@@ -86,9 +86,9 @@ warnings()
 # save results for plotting
 write.csv(results, file = paste0("data/sim2.csv"))
 
-p1 <- qqgplot(results, 0.01, "P.cpp_bp")
-p2 <- qqgplot(results, 0.05, "P.cpp_bp")
-p3 <- qqgplot(results, 0.1, "P.cpp_bp")
+p1 <- qqgplot(results, 0.05, "P.cpp_bp")
+p2 <- qqgplot(results, 0.1, "P.cpp_bp")
+p3 <- qqgplot(results, 0.15, "P.cpp_bp")
 p4 <- qqgplot(results, 0.2, "P.cpp_bp")
 
 p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
@@ -96,9 +96,9 @@ pdf("data/maf_t1e_bp.pdf")
 print(p)
 dev.off()
 
-p1 <- qqgplot(results, 0.01, "P.cpp_bf")
-p2 <- qqgplot(results, 0.05, "P.cpp_bf")
-p3 <- qqgplot(results, 0.1, "P.cpp_bf")
+p1 <- qqgplot(results, 0.05, "P.cpp_bf")
+p2 <- qqgplot(results, 0.1, "P.cpp_bf")
+p3 <- qqgplot(results, 0.15, "P.cpp_bf")
 p4 <- qqgplot(results, 0.2, "P.cpp_bf")
 
 p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
@@ -106,9 +106,9 @@ pdf("data/maf_t1e_bf.pdf")
 print(p)
 dev.off()
 
-p1 <- qqgplot(results, 0.01, "P.osca_mean")
-p2 <- qqgplot(results, 0.05, "P.osca_mean")
-p3 <- qqgplot(results, 0.1, "P.osca_mean")
+p1 <- qqgplot(results, 0.05, "P.osca_mean")
+p2 <- qqgplot(results, 0.1, "P.osca_mean")
+p3 <- qqgplot(results, 0.15, "P.osca_mean")
 p4 <- qqgplot(results, 0.2, "P.osca_mean")
 
 p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
@@ -116,9 +116,9 @@ pdf("data/maf_t1e_osca_mean.pdf")
 print(p)
 dev.off()
 
-p1 <- qqgplot(results, 0.01, "P.osca_median")
-p2 <- qqgplot(results, 0.05, "P.osca_median")
-p3 <- qqgplot(results, 0.1, "P.osca_median")
+p1 <- qqgplot(results, 0.05, "P.osca_median")
+p2 <- qqgplot(results, 0.1, "P.osca_median")
+p3 <- qqgplot(results, 0.15, "P.osca_median")
 p4 <- qqgplot(results, 0.2, "P.osca_median")
 
 p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
