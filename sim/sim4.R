@@ -100,7 +100,7 @@ ggplot(data=results, aes(x=model, y=estimate, ymin=conf.low, ymax=conf.high, gro
     geom_errorbar(width=.05, position = position_dodge(width = 0.5)) +
     theme_classic() + 
     scale_y_continuous(breaks = scales::pretty_breaks(n = 5)) +
-    labs(color="Location") +
+    labs(color="Threads", shape="Location") +
     xlab("Method") +
     ylab("Mean runtime (seconds, 95% CI)")
 dev.off()

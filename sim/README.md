@@ -77,9 +77,9 @@ Dropping observations > +/- 5SD from the mean
 sbatch runR.sh sim7.R -t "$trait" -f
 ```
 
-## Sim8 - The OSCA effect estimate
+Dropping Z >=/- 5SD gave well controlled T1E for all phenotypes
 
-The OSCA effect estimate does NOT provide a difference in variace per genotype. This simulation aims to explore why it does not.
+## Sim8 - The OSCA effect estimate
 
 OSCA effect estimate:
 
@@ -89,7 +89,9 @@ OSCA effect estimate:
 - Calculate SE with 1/inverse SE
 - Update the direction of the beta by estimating the relationship of Y on X
 
-Scaling the phenotype renders the LAD-BF dummy/x+xsq variance effect estimate invalid.
+When the outcome is scaled the OSCA effect estimate is ```var(Y)=b/(2/pi)``` a linear relationship between X and var(Y).
+
+Note - scaling the phenotype renders the LAD-BF dummy/x+xsq variance effect estimate invalid.
 
 ## Sim9 - Comparing P-val between OSCA - Levene(median), LAD-BF (dummy) and LAD-BF(x+xsq)
 

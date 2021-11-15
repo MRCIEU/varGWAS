@@ -41,6 +41,20 @@ bp_x_model <- function(data){
     ))
 }
 
+bp_xabs_model <- function(data){
+    fit1 <- suppressWarnings(rq(Y ~ X, data=data))
+    data$d <- abs(resid(fit1))
+    fit2 <- lm(d ~ X, data=data)
+    b0 <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% dplyr::pull(estimate)
+    s0 <- fit2 %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% dplyr::pull(std.error)
+    b1 <- fit2 %>% tidy %>% dplyr::filter(term == "X") %>% dplyr::pull(estimate)
+    s1 <- fit2 %>% tidy %>% dplyr::filter(term == "X") %>% dplyr::pull(std.error)
+    p1 <- fit2 %>% tidy %>% dplyr::filter(term == "X") %>% dplyr::pull(p.value)
+    return(c(
+        b0,s0,b1,s1,p1
+    ))
+}
+
 bp_xsq_model <- function(data){
     data$xsq <- data$X^2
     fit1 <- lm(Y ~ X, data=data)
@@ -67,11 +81,13 @@ for (b in seq(0, 8, 2)){
         data <- data.frame(
             S = paste0("S", seq(1, n_obs)),
             X = get_simulated_genotypes(q, n_obs),
+            U = rnorm(n_obs),
             stringsAsFactors=F
         )
 
         # simulate outcome
         data$Y <- rnorm(n_obs, sd=sqrt(1 + data$X * b))
+        #data$Y <- data$X * data$U * b + rnorm(n_obs)
 
         # standardise trait
         data$Y <- scale(data$Y)
@@ -81,6 +97,7 @@ for (b in seq(0, 8, 2)){
         fit_xd <- bp_x_dummy_model(data)
         fit_xsq <- bp_xsq_model(data)
         fit_x <- bp_x_model(data)
+        fit_xabs <- bp_xabs_model(data)
 
         results <- rbind(results, data.frame(
             b,
@@ -103,6 +120,11 @@ for (b in seq(0, 8, 2)){
             b1_x=fit_x[3],
             s1_x=fit_x[4],
             p_x=fit_x[5],
+            b0_xabs=fit_xabs[1],
+            s0_xabs=fit_xabs[2],
+            b1_xabs=fit_xabs[3],
+            s1_xabs=fit_xabs[4],
+            p_xabs=fit_xabs[5],
             v0=var(data$Y[data$X==0]),
             v1=var(data$Y[data$X==1]),
             v2=var(data$Y[data$X==2]),
@@ -117,12 +139,3 @@ for (b in seq(0, 8, 2)){
 
     }
 }
-
-# get Z score from P value
-results$zest <- qnorm(results$p_x)
-# denominator from Zhu et al 2016
-results$domin <- sqrt(2*results$q*(1-results$q)*(results$n_obs+results$zest*results$zest))
-# beta
-results$best <- results$zest/results$domin
-# std error
-results$seest <- 1/results$domin
