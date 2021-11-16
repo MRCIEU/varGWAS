@@ -36,7 +36,8 @@ for (phi in seq(6, 6, 0)){
         )
 
         # simulate outcome
-        data$Y <- data$X * delta + data$U * delta + data$X * data$U * theta + rnorm(n_obs)
+        #data$Y <- data$X * 0 + data$U * 0 + data$X * data$U * theta + rnorm(n_obs)
+        data$Y <- rnorm(n_obs, sd=(1 + data$X * theta))
         data_s <- data
         data_s$Y <- scale(data_s$Y)
 
