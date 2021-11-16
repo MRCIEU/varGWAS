@@ -21,7 +21,7 @@ bs <- function(data, indices) {
 }
 
 n_obs <- 1000
-n_sim <- 200
+n_sim <- 500
 af <- 0.4
 
 # main effect size of X on Y detectable with 95% power
@@ -46,7 +46,7 @@ for (i in 1:n_sim) {
     data$Y <- scale(data$Y)
 
     # test for variance effect
-    fit_boot <- boot(data=data, statistic=bs, R=200) %>% tidy
+    fit_boot <- boot(data=data, statistic=bs, R=500) %>% tidy
     fit_osca <- run_osca(data, T)
     fit_osca$BETA_x.osca_median <- fit_osca$BETA_x.osca_median / (2/pi)
     fit_osca$SE_x.osca_median <- fit_osca$SE_x.osca_median / (2/pi)
