@@ -9,5 +9,7 @@ test/data/*
 !test/data/CMakeLists.txt
 !test/data/test.bgen
 !test/data/test.bgen.bgi
+!test/data/data-outlier.csv
+!test/data/data.csv
 sim/data
 .Rapp.history
