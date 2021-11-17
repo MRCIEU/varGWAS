@@ -12,21 +12,6 @@ cd bgen
 ./waf configure
 ./waf
 
-# boost
-cd "$LIB_DIR"
-curl -L https://boostorg.jfrog.io/artifactory/main/release/1.77.0/source/boost_1_77_0.tar.bz2 > boost_1_77_0.tar.bz2
-tar --bzip2 -xf boost_1_77_0.tar.bz2
-
-# zstd
-cd "$LIB_DIR"
-curl -L https://github.com/facebook/zstd/archive/v1.1.0.tar.gz > zstd-1.1.0.tar.gz
-tar -xf zstd-1.1.0.tar.gz
-cd zstd-1.1.0/build/cmake
-mkdir build
-cd build
-cmake ..
-make
-
 # armadillo
 cd "$LIB_DIR"
 curl --insecure -L http://sourceforge.net/projects/arma/files/armadillo-10.7.1.tar.xz >armadillo-10.7.1.tar.xz

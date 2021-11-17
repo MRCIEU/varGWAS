@@ -30,7 +30,7 @@ mkdir -p build
 cd build
 
 # use default compiler path
-cmake .. -DCMAKE_BUILD_TYPE=Release
+m
 
 ### OR ###
 
