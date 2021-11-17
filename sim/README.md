@@ -110,3 +110,10 @@ Comparison of including X w/wo X^2 in the second-stage model on the estimate for
 ## Sim12 - Per-genotype effect on var(Y) under interaction
 
 what is var(Y|G==0, G==1, G==2) with both methods? And do the SEs give correct coverage? Also compare with bootstrap
+
+```shell
+head -n1 0/sim12_0.csv > results.csv
+cat */sim12_*.csv | grep -v b0_dummy >> results.csv
+head -n1 0/sim12_0.csv > results.csv
+cat */sim12_*.csv | grep -v b0_dummy >> results.csv
+```

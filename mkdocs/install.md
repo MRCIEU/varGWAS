@@ -39,8 +39,8 @@ CC=/mnt/storage/software/languages/gcc-7.2.0/bin/gcc \
 CXX=/mnt/storage/software/languages/gcc-7.2.0/bin/g++ \
 cmake .. -DCMAKE_BUILD_TYPE=Release
 
-
-
+# build
+make
 ```
 
 # Docker

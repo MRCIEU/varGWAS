@@ -28,7 +28,7 @@ find_library(BGEN_LIB_PATH NAMES libbgen.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib
 find_library(ZSTD_LIB_PATH NAMES libzstd.so libzstd.a libzstd.dylib HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/zstd-1.1.0/build/cmake/build/lib)
 find_library(SQLITE_LIB_PATH NAMES libsqlite3.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/3rd_party/sqlite3)
 find_library(DB_LIB_PATH NAMES libdb.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db)
-find_library(SPDLOG_LIB_PATH NAMES libglog.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build)
+find_library(SPDLOG_LIB_PATH NAMES libspdlog.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build)
 find_library(ARMADILLO_LIBRARIES NAMES libarmadillo.so libarmadillo.10.7.1.dylib HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/armadillo-10.7.1/build/lib64 ${CMAKE_CURRENT_SOURCE_DIR}/lib/armadillo-10.7.1/build/lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/armadillo-10.7.1/build)
 
 # src
