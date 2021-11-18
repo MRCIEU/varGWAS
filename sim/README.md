@@ -117,3 +117,6 @@ cat */sim12_*.csv | grep -v b0_dummy >> results.csv
 head -n1 0/sim12_0.csv > results.csv
 cat */sim12_*.csv | grep -v b0_dummy >> results.csv
 ```
+
+## Sim13 - Adjusting the variance effect for the interaction
+

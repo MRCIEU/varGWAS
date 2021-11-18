@@ -43,7 +43,7 @@ dummy_model_delta <- function(x, y, covar=NULL){
     ))
 }
 
-n_obs <- 1000
+n_obs <- 10000
 n_sim <- 500
 af <- 0.4
 
@@ -89,13 +89,13 @@ for (phi in seq(0, 6, .5)){
 # mean variance effect
 v0_mean <- results %>%
     dplyr::group_by(phi) %>%
-    dplyr::summarize(v0=mean(v0))
+    dplyr::summarize(v0_mean=mean(v0))
 v1_mean <- results %>%
     dplyr::group_by(phi) %>%
-    dplyr::summarize(v1=mean(v1))
+    dplyr::summarize(v1_mean=mean(v1))
 v2_mean <- results %>%
     dplyr::group_by(phi) %>%
-    dplyr::summarize(v2=mean(v2))
+    dplyr::summarize(v2_mean=mean(v2))
 results <- merge(results, v0_mean, "phi")
 results <- merge(results, v1_mean, "phi")
 results <- merge(results, v2_mean, "phi")
@@ -111,19 +111,19 @@ results$b2_dummy_uci <- results$b2_dummy + (results$s2_dummy * 1.96)
 # coverage
 b0_dummy <- results %>% 
     dplyr::group_by(phi) %>%
-    dplyr::summarize(binom.test(sum(b0_dummy_lci <= v0 & b0_dummy_uci >= v0), n()) %>% tidy) %>%
+    dplyr::summarize(binom.test(sum(b0_dummy_lci <= v0_mean & b0_dummy_uci >= v0_mean), n()) %>% tidy) %>%
     dplyr::select(phi, estimate, conf.low, conf.high) %>%
     dplyr::mutate(genotype="SNP=0", method="Dummy-delta")
 
 b1_dummy <- results %>% 
     dplyr::group_by(phi) %>%
-    dplyr::summarize(binom.test(sum(b1_dummy_lci <= v1 & b1_dummy_uci >= v1), n()) %>% tidy) %>%
+    dplyr::summarize(binom.test(sum(b1_dummy_lci <= v1_mean & b1_dummy_uci >= v1_mean), n()) %>% tidy) %>%
     dplyr::select(phi, estimate, conf.low, conf.high) %>%
     dplyr::mutate(genotype="SNP=1", method="Dummy-delta")
 
 b2_dummy <- results %>% 
     dplyr::group_by(phi) %>%
-    dplyr::summarize(binom.test(sum(b2_dummy_lci <= v2 & b2_dummy_uci >= v2), n()) %>% tidy) %>%
+    dplyr::summarize(binom.test(sum(b2_dummy_lci <= v2_mean & b2_dummy_uci >= v2_mean), n()) %>% tidy) %>%
     dplyr::select(phi, estimate, conf.low, conf.high) %>%
     dplyr::mutate(genotype="SNP=2", method="Dummy-delta")
   
