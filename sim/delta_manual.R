@@ -1,7 +1,7 @@
 library("car")
 set.seed(123)
 
-n_obs <- 1000000
+n_obs <- 100000
 n_sim <- 200
 
 get_se <- function(grad, fit){
