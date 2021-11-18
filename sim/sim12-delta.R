@@ -2,7 +2,10 @@ library("data.table")
 library("broom")
 library("boot")
 library('optparse')
+library("lmtest")
+library("sandwich")
 library('car')
+library('cqrReg')
 library('cqrReg')
 source("funs.R")
 set.seed(12345)
@@ -28,10 +31,11 @@ dummy_model_delta <- function(x, y, covar=NULL){
     x <- as.factor(x)
     # second-stage model
     fit2 <- lm(d ~ x)
+    fit2_hc <- coeftest(fit2, vcov = vcovHC(fit2, type = "HC0"))
     # delta
-    b0 <- deltaMethod(fit2, "b0^2/(2/pi)", parameterNames=c("b0", "b1", "b2"))
-    b1 <- deltaMethod(fit2, "b0^2/(2/pi) + (2*b0*b1+b1^2)/(2/pi)", parameterNames=c("b0", "b1", "b2"))
-    b2 <- deltaMethod(fit2, "b0^2/(2/pi) + (2*b0*b2+b2^2)/(2/pi)", parameterNames=c("b0", "b1", "b2")) 
+    b0 <- deltaMethod(fit2, "b0^2/(2/pi)", parameterNames=c("b0", "b1", "b2"), vcov=vcovHC(fit2, type = "HC0"))
+    b1 <- deltaMethod(fit2, "b0^2/(2/pi) + (2*b0*b1+b1^2)/(2/pi)", parameterNames=c("b0", "b1", "b2"), vcov=vcovHC(fit2, type = "HC0"))
+    b2 <- deltaMethod(fit2, "b0^2/(2/pi) + (2*b0*b2+b2^2)/(2/pi)", parameterNames=c("b0", "b1", "b2"), vcov=vcovHC(fit2, type = "HC0"))
     # variance betas
     return(data.frame(
       b0_dummy=b0$Estimate,
@@ -43,8 +47,8 @@ dummy_model_delta <- function(x, y, covar=NULL){
     ))
 }
 
-n_obs <- 10000
-n_sim <- 500
+n_obs <- 1000
+n_sim <- 200
 af <- 0.4
 
 # main effect size of X on Y detectable with 95% power
