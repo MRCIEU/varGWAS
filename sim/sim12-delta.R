@@ -109,7 +109,7 @@ dummy_model_delta_manual <- function(x, y, covar=NULL){
 }
 
 n_obs <- 1000
-n_sim <- 200
+n_sim <- 1000
 af <- 0.4
 
 # main effect size of X on Y detectable with 95% power
@@ -136,7 +136,7 @@ for (phi in seq(0, 6, .5)){
     data$Y <- scale(data$Y)
 
     # test for variance effect
-    res <- dummy_model_delta_manual(data$X, data$Y)
+    res <- dummy_model_delta(data$X, data$Y)
 
     # add params
     res$v0 <- var(data$Y[data$X==0])

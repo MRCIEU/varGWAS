@@ -15,7 +15,7 @@ n_obs <- 1000
 b <- 0.2125
 
 results <- data.frame()
-for (trans in c("log", "sqrt", "irnt", "cube_root")){
+for (trans in c("log", "sqrt", "irnt", "cube_root", "none")){
     for (dist in c("Normal", "T", "Lognormal", "Mixed Normal")){
         for (i in 1:n_sim){
             # simulate covariates
