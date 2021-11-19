@@ -140,7 +140,7 @@ results <- data.frame()
 
     # simulate outcome
     data$Y <- data$X * delta + data$U * delta + data$X * data$U * theta + rnorm(n_obs)
-    data$Y <- scale(data$Y)
+    #data$Y <- scale(data$Y)
 
     # test for variance effect
     res <- dummy_model_delta_manual(data$X, data$Y)
