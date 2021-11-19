@@ -401,3 +401,49 @@ TEST(LinRegTest, xsq) {
   ASSERT_NEAR(pval, 0.970, 0.970 * .001);
 
 }
+
+TEST(LinRegTest, robust_vcov) {
+  const double intercept = 1.0;
+  double x_f;
+  double y_f;
+  int n = 100;
+  int p = 2;
+  int df = n - p;
+
+  Eigen::MatrixXd X = Eigen::MatrixXd(n, p);
+  Eigen::VectorXd y = Eigen::VectorXd(n);
+
+  // get data (see data/data.R)
+  io::CSVReader<2> in("data-outlier.csv");
+  in.read_header(io::ignore_extra_column, "x", "y");
+  int t = 0;
+  while (in.read_row(x_f, y_f)) {
+    X(t, 0) = intercept;
+    X(t, 1) = x_f;
+    y(t, 0) = y_f;
+    t++;
+  }
+
+  Eigen::MatrixXd betahat = Eigen::MatrixXd(2, 1);
+  betahat(0, 0) = 0.317;
+  betahat(1, 0) = 0.730;
+
+  Eigen::VectorXd fitted = X * betahat;
+  Eigen::VectorXd resid = y - fitted;
+
+  // HC White vcov
+  Eigen::MatrixXd vcov = (X.transpose() * X) * X.transpose() * resid.cwiseProduct(resid).asDiagonal() * X * (X.transpose() * X);
+
+  // vcov
+  std::cout << "Here is the matrix m:\n" << vcov << std::endl;
+
+
+  // ehat = residuals(m)
+  // vcov.HC = solve(t(X)%*%X) %*% t(X)%*%diag(ehat^2)%*%X %*% solve(t(X)%*%X)
+  //Eigen::VectorXd se = (vcov * (sig2 / df)).diagonal().cwiseSqrt();
+
+  ASSERT_NEAR(vcov(0, 0), 0.09670957, 0.09670957 * .001);
+  ASSERT_NEAR(vcov(1, 0), -0.06414901, -0.06414901 * .001);
+  ASSERT_NEAR(vcov(0, 1), -0.06414901, -0.06414901 * .001);
+  ASSERT_NEAR(vcov(1, 1), 0.04978368, 0.04978368 * .001);
+}

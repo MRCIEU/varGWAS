@@ -64,7 +64,7 @@ dummy_model_delta <- function(x, y, covar=NULL){
 
 n_obs <- 100000
 n_sim <- 2000
-af <- 0.2
+af <- 0.05
 
 # main effect size of X on Y detectable with 95% power
 delta <- 0.33
