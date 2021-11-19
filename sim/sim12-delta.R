@@ -48,12 +48,12 @@ dummy_model_delta <- function(x, y, covar=NULL){
         0,
         (2 * b0 + 2 * b1)/(2/pi),
         0
-    ), vcovHC(fit2, type = "HC3"))
+    ), vcovHC(fit2, type = "HC0"))
     s2_dummy <- get_se(c(
         0,
         0,
         (2 * b0 + 2 * b2)/(2/pi)
-    ), vcovHC(fit2, type = "HC3"))
+    ), vcovHC(fit2, type = "HC0"))
     return(data.frame(
       b1_dummy=(2*b0*b1+b1^2)/(2/pi),
       s1_dummy,
