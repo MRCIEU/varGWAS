@@ -115,8 +115,8 @@ dummy_model_delta_manual <- function(x, y, covar=NULL){
     ))
 }
 
-n_obs <- 10000
-n_sim <- 5000
+n_obs <- 100000
+n_sim <- 1000
 af <- 0.4
 
 # main effect size of X on Y detectable with 95% power
