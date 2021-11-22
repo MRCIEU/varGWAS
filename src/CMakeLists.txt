@@ -8,14 +8,8 @@ add_executable(${BINARY} ${SOURCES})
 
 target_link_libraries(
         ${BINARY}
-        ${BGEN_LIB_PATH}
-        ZLIB::ZLIB
-        OpenMP::OpenMP_CXX
-        ${ZSTD_LIB_PATH}
-        ${SQLITE_LIB_PATH}
-        ${DB_LIB_PATH}
-        ${SPDLOG_LIB_PATH}
-        ${ARMADILLO_LIBRARIES}
+        ${LIBS}
+        ${LIBS}
 )
 
 add_library(${BINARY}_lib STATIC ${SOURCES})

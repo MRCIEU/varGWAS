@@ -12,13 +12,7 @@ target_link_libraries(
         PUBLIC
         ${CMAKE_PROJECT_NAME}_lib
         gtest
-        ${BGEN_LIB_PATH}
-        ZLIB::ZLIB
-        OpenMP::OpenMP_CXX
-        ${ZSTD_LIB_PATH}
-        ${SQLITE_LIB_PATH}
-        ${DB_LIB_PATH}
-        ${SPDLOG_LIB_PATH}
-        ${ARMADILLO_LIBRARIES})
-
+        ${LIBS}
+        ${LIBS}
+)
 add_subdirectory(data)

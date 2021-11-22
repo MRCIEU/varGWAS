@@ -31,6 +31,16 @@ find_library(SQLITE_LIB_PATH NAMES libsqlite3.a HINTS ${CMAKE_CURRENT_SOURCE_DIR
 find_library(DB_LIB_PATH NAMES libdb.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/build/db)
 find_library(SPDLOG_LIB_PATH NAMES libspdlog.a HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/spdlog/build)
 find_library(ARMADILLO_LIBRARIES NAMES libarmadillo.so libarmadillo.10.7.1.dylib HINTS ${CMAKE_CURRENT_SOURCE_DIR}/lib/armadillo-10.7.1/build/lib64 ${CMAKE_CURRENT_SOURCE_DIR}/lib/armadillo-10.7.1/build/lib ${CMAKE_CURRENT_SOURCE_DIR}/lib/armadillo-10.7.1/build)
+set(LIBS
+    ${BGEN_LIB_PATH}
+    ZLIB::ZLIB
+    OpenMP::OpenMP_CXX
+    ${ZSTD_LIB_PATH}
+    ${SQLITE_LIB_PATH}
+    ${DB_LIB_PATH}
+    ${SPDLOG_LIB_PATH}
+    ${ARMADILLO_LIBRARIES}
+)
 
 # src
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
