@@ -8,7 +8,7 @@ add_executable(${BINARY} ${SOURCES})
 
 target_link_libraries(
         ${BINARY}
-        z
+        ZLIB::ZLIB
         ${ZSTD_LIB_PATH}
         ${SQLITE_LIB_PATH}
         ${DB_LIB_PATH}

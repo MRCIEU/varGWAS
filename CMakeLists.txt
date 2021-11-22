@@ -7,8 +7,9 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(DEBUG ${CMAKE_BUILD_TYPE} STREQUAL Debug)
 
-# OpenMP
+# packages
 find_package(OpenMP REQUIRED)
+find_package(ZLIB)
 
 # include
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/bgen/genfile/include)

@@ -12,7 +12,7 @@ target_link_libraries(
         PUBLIC
         ${CMAKE_PROJECT_NAME}_lib
         gtest
-        z
+        ZLIB::ZLIB
         ${ZSTD_LIB_PATH}
         ${SQLITE_LIB_PATH}
         ${DB_LIB_PATH}
