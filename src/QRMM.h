@@ -12,14 +12,14 @@
 #define VARGWAS_SRC_CQRREG_H_
 
 namespace CqrReg {
-class CqrReg {
+class QRMM {
  public:
-  static Eigen::VectorXd qrmm(Eigen::MatrixXd X,
-                              Eigen::VectorXd Y,
-                              Eigen::VectorXd init,
-                              double toler,
-                              int maxit,
-                              double tau
+  static Eigen::VectorXd fit(Eigen::MatrixXd X,
+                             Eigen::VectorXd Y,
+                             Eigen::VectorXd init,
+                             double toler,
+                             int maxit,
+                             double tau
   );
 };
 }

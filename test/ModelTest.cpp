@@ -55,49 +55,6 @@ static std::vector<double> PHENO = {
     1.28624046292148
 };
 
-TEST(ModelTest, bp) {
-  std::vector<double> pheno = PHENO;
-  std::vector<double> dosages = DOSAGES;
-  assert(dosages.size() == pheno.size());
-  int n = pheno.size();
-  int p = 1; // n of covariates
-  Eigen::MatrixXd X1 = Eigen::MatrixXd(n, p + 1); // add 1 for intercept
-  Eigen::MatrixXd X2 = Eigen::MatrixXd(n, p * 2 + 1); // added xsq and intercept
-  Eigen::VectorXd y = Eigen::VectorXd(n);
-
-  // initialise empty matrix
-  for (unsigned i = 0; i < n; ++i) {
-    X1(i, 0) = 1; // intercept
-    X1(i, 1) = 0; // X
-    X2(i, 0) = 1; // intercept
-    X2(i, 1) = 0; // X
-    X2(i, 2) = 0; // Xsq
-    y(i, 0) = pheno[i];
-  }
-
-  // fit B-P model
-  std::string chr = "01";
-  std::string rsid = "rs1";
-  std::string allele = "A";
-  std::set<unsigned> non_nulls_idx;
-  for (unsigned i = 0; i < dosages.size(); i++) {
-    non_nulls_idx.insert(i);
-  }
-  vargwas::Result result = vargwas::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, 0);
-
-  // check estimate and SE are similar to R
-  ASSERT_NEAR(result.beta, 0.262569, 0.01);
-  ASSERT_NEAR(result.se, 0.301703, 0.01);
-  ASSERT_NEAR(result.pval, 0.385, 0.01);
-  ASSERT_NEAR(result.t, 0.870, 0.01);
-  ASSERT_NEAR(result.phi_x1, 3.743, 0.01);
-  ASSERT_NEAR(result.se_x1, 6.797, 0.01);
-  ASSERT_NEAR(result.phi_x2, 4.956, 0.01);
-  ASSERT_NEAR(result.se_x2, 3.504, 0.01);
-  ASSERT_NEAR(result.phi_pval, 2.225e-07, 0.01);
-  ASSERT_NEAR(result.phi_f, 16.573, 0.01);
-}
-
 TEST(ModelTest, bf) {
   std::vector<double> pheno = PHENO;
   std::vector<double> dosages = DOSAGES;
@@ -113,8 +70,8 @@ TEST(ModelTest, bf) {
     X1(i, 0) = 1; // intercept
     X1(i, 1) = 0; // X
     X2(i, 0) = 1; // intercept
-    X2(i, 1) = 0; // X
-    X2(i, 2) = 0; // Xsq
+    X2(i, 1) = 0; // G==1
+    X2(i, 2) = 0; // G==2
     y(i, 0) = pheno[i];
   }
 
@@ -131,10 +88,10 @@ TEST(ModelTest, bf) {
   // check estimate and SE are similar to R
   ASSERT_NEAR(result.beta, 0.262569, 0.01);
   ASSERT_NEAR(result.theta, -0.01690149, 0.001);
-  ASSERT_NEAR(result.phi_x1, 1.53599923, 0.1);
-  ASSERT_NEAR(result.se_x1, 0.5782677, 0.1);
-  ASSERT_NEAR(result.phi_x2, 0.06555196, 0.1);
-  ASSERT_NEAR(result.se_x2, 0.2981007, 0.1);
+  ASSERT_NEAR(result.phi_x1, 7.969378, 0.01);
+  ASSERT_NEAR(result.se_x1, 1.709661, 0.01);
+  ASSERT_NEAR(result.phi_x2, 25.68066, 0.01);
+  ASSERT_NEAR(result.se_x2, 7.451827, 0.01);
   ASSERT_NEAR(result.phi_pval, 4.5195e-14, 0.001);
   ASSERT_NEAR(result.phi_f, 36.06049, 0.5);
 }
@@ -155,8 +112,8 @@ TEST(ModelTest, fit_missing_vals) {
     X1(i, 0) = 1; // intercept
     X1(i, 1) = 0; // X
     X2(i, 0) = 1; // intercept
-    X2(i, 1) = 0; // X
-    X2(i, 2) = 0; // Xsq
+    X2(i, 1) = 0; // G==1
+    X2(i, 2) = 0; // G==2
     y(i, 0) = pheno[i];
   }
 

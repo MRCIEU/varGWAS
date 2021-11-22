@@ -3,15 +3,15 @@
 
 #include <armadillo>
 #include <Eigen/Core>
-#include "CqrReg.h"
+#include "QRMM.h"
 
 namespace CqrReg {
-Eigen::VectorXd CqrReg::qrmm(Eigen::MatrixXd X,
-                             Eigen::VectorXd Y,
-                             Eigen::VectorXd init,
-                             double toler,
-                             int maxit,
-                             double tau) {
+Eigen::VectorXd QRMM::fit(Eigen::MatrixXd X,
+                          Eigen::VectorXd Y,
+                          Eigen::VectorXd init,
+                          double toler,
+                          int maxit,
+                          double tau) {
   int n = X.rows();
   int p = X.cols();
   arma::mat x = arma::mat(X.data(), X.rows(), X.cols(), false, false);

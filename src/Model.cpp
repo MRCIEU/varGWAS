@@ -14,7 +14,7 @@
 #include "Model.h"
 #include "PhenotypeFile.h"
 #include "Result.h"
-#include "CqrReg.h"
+#include "QRMM.h"
 #include "spdlog/spdlog.h"
 
 /*
@@ -255,7 +255,7 @@ Result Model::fit(std::string &chromosome,
 
   // LAD regression
   spdlog::debug("Fitting quantile model");
-  Eigen::VectorXd fs_fit_lad = CqrReg::CqrReg::qrmm(X_complete1, y_complete, fs_fit, 0.001, 200, 0.5);
+  Eigen::VectorXd fs_fit_lad = CqrReg::QRMM::fit(X_complete1, y_complete, fs_fit, 0.001, 200, 0.5);
   fs_fitted = X_complete1 * fs_fit_lad;
   fs_resid = y_complete - fs_fitted;
   // estimate absolute residuals
@@ -278,27 +278,23 @@ Result Model::fit(std::string &chromosome,
   long ss_df = X_complete2.rows() - X_complete2.cols();
   Eigen::MatrixXd hc_vcov = (X_complete2.transpose() * X_complete2).inverse() * X_complete2.transpose()
       * ss_resid.cwiseProduct(ss_resid).asDiagonal() * X_complete2 * (X_complete2.transpose() * X_complete2).inverse();
-  Eigen::VectorXd ss_se = (hc_vcov * (ss_sig2 / ss_df)).diagonal().cwiseSqrt();
 
   // transform MAD estimates to variance effects (assuming normality)
   double b1_dummy = (2 * ss_fit(0, 0) * ss_fit(1, 0) + pow (ss_fit(1, 0), 2.0)) / (2 / pi);
   double b2_dummy = (2 * ss_fit(0, 0) * ss_fit(2, 0) + pow (ss_fit(2, 0), 2.0)) / (2 / pi);
 
   // deltamethod to obtain the variance SE
-  Eigen::MatrixXd grad1;
+  Eigen::MatrixXd grad1 = Eigen::MatrixXd(3, 1);
   grad1(0, 0) = 0;
   grad1(1, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(1, 0))/(2/pi);
   grad1(2, 0) = 0;
-  Eigen::MatrixXd grad2;
+  Eigen::MatrixXd grad2 = Eigen::MatrixXd(3, 1);
   grad2(0, 0) = 0;
-  grad2(1, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(2, 0))/(2/pi);
-  grad2(2, 0) = 0;
+  grad2(1, 0) = 0;
+  grad2(2, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(2, 0))/(2/pi);
 
-  //double s1_dummy = grad1.transpose() * hc_vcov * grad1;
-  //s1_dummy = sqrt(s1_dummy);
-  //double s2_dummy = grad2.transpose() * hc_vcov * grad2;
-  //s2_dummy = sqrt(s2_dummy);
-  double s1_dummy = 0; double s2_dummy = 0;
+  double s1_dummy = sqrt((grad1.transpose() * hc_vcov * grad1)(0,0));
+  double s2_dummy = sqrt((grad2.transpose() * hc_vcov * grad2)(0,0));
 
   // null model (intercept & covariates)
   std::vector<unsigned> covariates_to_keep;
