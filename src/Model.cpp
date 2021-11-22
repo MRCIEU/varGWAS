@@ -14,7 +14,7 @@
 #include "Model.h"
 #include "PhenotypeFile.h"
 #include "Result.h"
-#include "cqrReg.h"
+#include "QRMM.h"
 #include "spdlog/spdlog.h"
 
 /*
@@ -60,7 +60,7 @@ void Model::run() {
   // open output file
   std::ofstream file(_output_file);
   if (file.is_open()) {
-    file << "chr\tpos\trsid\toa\tea\tbeta\tbeta_lad\tse\tt\tp\tphi_x\tse_x\tphi_xsq\tse_xsq\tphi_f\tphi_p\tn\teaf"
+    file << "chr\tpos\trsid\toa\tea\tn\teaf\tbeta\tse\tt\tp\ttheta\tphi_x1\tse_x1\tphi_x2\tse_x2\tphi_f\tphi_p"
          << std::endl;
     file.flush();
 #pragma omp parallel default(none) shared(file, X1, X2, y) private(chromosome, position, rsid, alleles, probs, dosages)
@@ -123,18 +123,15 @@ void Model::run() {
                         X1,
                         X2,
                         y,
-                        _robust,
                         _maf_threshold);
           if (!isnan(res.phi_pval)) {
 #pragma omp critical
             {
               // TODO implement file buffer to improve performance
               file << res.chromosome << "\t" << res.position << "\t" << res.rsid << "\t" << res.other_allele << "\t"
-                   << res.effect_allele << "\t" << res.beta << "\t" << res.beta_lad << "\t" << res.se << "\t" << res.t
-                   << "\t"
-                   << res.pval << "\t" << res.phi_x << "\t" << res.se_x << "\t" << res.phi_xsq << "\t"
-                   << res.se_xsq << "\t" << res.phi_f << "\t" << res.phi_pval << "\t" << res.n << "\t" << res.eaf
-                   << "\n";
+                   << res.effect_allele << "\t" << res.n << "\t" << res.eaf << "\t" << res.beta << "\t" << res.se
+                   << "\t" << res.t << "\t" << res.pval << "\t" << res.theta << "\t" << res.phi_x1 << "\t" << res.se_x1
+                   << "\t" << res.phi_x2 << "\t" << res.se_x2 << "\t" << res.phi_f << "\t" << res.phi_pval << "\n";
               file.flush();
             }
           }
@@ -160,7 +157,6 @@ Result Model::fit(std::string &chromosome,
                   Eigen::MatrixXd X1,
                   Eigen::MatrixXd X2,
                   Eigen::VectorXd y,
-                  bool robust,
                   double maf_threshold) {
   Result res;
   res.chromosome = chromosome;
@@ -171,16 +167,17 @@ Result Model::fit(std::string &chromosome,
   res.eaf = NAN;
   res.n = -1;
   res.beta = NAN;
-  res.beta_lad = NAN;
+  res.theta = NAN;
   res.se = NAN;
   res.t = NAN;
   res.pval = NAN;
-  res.phi_x = NAN;
-  res.se_x = NAN;
-  res.phi_xsq = NAN;
-  res.se_xsq = NAN;
+  res.phi_x1 = NAN;
+  res.se_x1 = NAN;
+  res.phi_x2 = NAN;
+  res.se_x2 = NAN;
   res.phi_f = NAN;
   res.phi_pval = NAN;
+  const double pi = boost::math::constants::pi<double>();
 
   // set dosage values
   // X is passed without reference to allow for modification on each thread
@@ -198,9 +195,21 @@ Result Model::fit(std::string &chromosome,
       j++;
       non_null_idx.erase(i);
     } else {
-      X1(i, 1) = dosages[i];
-      X2(i, 1) = dosages[i];
-      X2(i, 2) = pow(dosages[i], 2.0); // xsq
+      int g = int(round(dosages[i]));
+      X1(i, 1) = dosages[i]; // dosage as continuous value
+      if (g == 0) {
+        X2(i, 1) = 0; // Dummy G==1
+        X2(i, 2) = 0; // Dummy G==2
+      } else if (g == 1) {
+        X2(i, 1) = 1; // Dummy G==1
+        X2(i, 2) = 0; // Dummy G==2
+      } else if (g == 2) {
+        X2(i, 1) = 0; // Dummy G==1
+        X2(i, 2) = 1; // Dummy G==2
+      } else {
+        throw std::runtime_error("Rounded dosage value: " + std::to_string(g));
+      }
+
     }
   }
   spdlog::debug("Found {} null values", j);
@@ -235,8 +244,7 @@ Result Model::fit(std::string &chromosome,
   spdlog::debug("Estimating SE");
   double fs_sig2 = fs_resid.squaredNorm();
   long fs_df = X_complete1.rows() - X_complete1.cols();
-  Eigen::MatrixXd fs_XtX = (X_complete1.transpose() * X_complete1);
-  Eigen::MatrixXd fs_vcov = fs_XtX.inverse();
+  Eigen::MatrixXd fs_vcov = (X_complete1.transpose() * X_complete1).inverse();
   Eigen::VectorXd fs_se = (fs_vcov * (fs_sig2 / fs_df)).diagonal().cwiseSqrt();
 
   // pval
@@ -246,19 +254,12 @@ Result Model::fit(std::string &chromosome,
   double pval = 2.0 * boost::math::cdf(boost::math::complement(t_dist, fabs(t_stat)));
 
   // LAD regression
-  Eigen::VectorXd fs_fitr;
-  Eigen::VectorXd fs_resid2;
-  if (robust) {
-    spdlog::debug("Fitting quantile model");
-    fs_fitr = cqrReg::cqrReg::qrmm(X_complete1, y_complete, fs_fit, 0.001, 200, 0.5);
-    fs_fitted = X_complete1 * fs_fitr;
-    fs_resid = y_complete - fs_fitted;
-    // estimate absolute residuals
-    fs_resid2 = fs_resid.array().abs();
-  } else {
-    // estimate squared residuals
-    fs_resid2 = fs_resid.array().square();
-  }
+  spdlog::debug("Fitting quantile model");
+  Eigen::VectorXd fs_fit_lad = CqrReg::QRMM::fit(X_complete1, y_complete, fs_fit, 0.001, 200, 0.5);
+  fs_fitted = X_complete1 * fs_fit_lad;
+  fs_resid = y_complete - fs_fitted;
+  // estimate absolute residuals
+  Eigen::VectorXd fs_resid2 = fs_resid.array().abs();
 
   // second stage model
   spdlog::debug("Estimating second stage model");
@@ -271,18 +272,34 @@ Result Model::fit(std::string &chromosome,
   Eigen::VectorXd ss_resid = fs_resid2 - ss_fitted;
   Eigen::VectorXd ss_resid2 = ss_resid.array().square();
 
-  // se
-  spdlog::debug("Estimating SE");
+  // HC0 White SE for second-stage estimates
+  spdlog::debug("Estimating robust SE");
   double ss_sig2 = ss_resid.squaredNorm();
   long ss_df = X_complete2.rows() - X_complete2.cols();
-  Eigen::MatrixXd ss_XtX = (X_complete2.transpose() * X_complete2);
-  Eigen::MatrixXd ss_vcov = ss_XtX.inverse();
-  Eigen::VectorXd ss_se = (ss_vcov * (ss_sig2 / ss_df)).diagonal().cwiseSqrt();
+  Eigen::MatrixXd hc_vcov = (X_complete2.transpose() * X_complete2).inverse() * X_complete2.transpose()
+      * ss_resid.cwiseProduct(ss_resid).asDiagonal() * X_complete2 * (X_complete2.transpose() * X_complete2).inverse();
+
+  // transform MAD estimates to variance effects (assuming normality)
+  double b1_dummy = (2 * ss_fit(0, 0) * ss_fit(1, 0) + pow (ss_fit(1, 0), 2.0)) / (2 / pi);
+  double b2_dummy = (2 * ss_fit(0, 0) * ss_fit(2, 0) + pow (ss_fit(2, 0), 2.0)) / (2 / pi);
+
+  // deltamethod to obtain the variance SE
+  Eigen::MatrixXd grad1 = Eigen::MatrixXd(3, 1);
+  grad1(0, 0) = 0;
+  grad1(1, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(1, 0))/(2/pi);
+  grad1(2, 0) = 0;
+  Eigen::MatrixXd grad2 = Eigen::MatrixXd(3, 1);
+  grad2(0, 0) = 0;
+  grad2(1, 0) = 0;
+  grad2(2, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(2, 0))/(2/pi);
+
+  double s1_dummy = sqrt((grad1.transpose() * hc_vcov * grad1)(0,0));
+  double s2_dummy = sqrt((grad2.transpose() * hc_vcov * grad2)(0,0));
 
   // null model (intercept & covariates)
   std::vector<unsigned> covariates_to_keep;
   for (unsigned i = 0; i < X_complete2.cols(); ++i) {
-    // drop x and xsq but keep intercept & all covariates
+    // drop x==1 and x==2 but keep intercept & all covariates
     if (i == 1 || i == 2) {
       continue;
     } else {
@@ -320,13 +337,11 @@ Result Model::fit(std::string &chromosome,
   res.se = fs_se(1, 0);
   res.t = t_stat;
   res.pval = pval;
-  if (robust) {
-    res.beta_lad = fs_fitr(1, 0);
-  }
-  res.phi_x = ss_fit(1, 0);
-  res.phi_xsq = ss_fit(2, 0);
-  res.se_x = ss_se(1, 0);
-  res.se_xsq = ss_se(2, 0);
+  res.theta = fs_fit_lad(1, 0);
+  res.phi_x1 = b1_dummy;
+  res.phi_x2 = b2_dummy;
+  res.se_x1 = s1_dummy;
+  res.se_x2 = s2_dummy;
   res.phi_f = f;
   res.phi_pval = phi_pval;
   res.n = n;

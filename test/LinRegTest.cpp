@@ -401,3 +401,87 @@ TEST(LinRegTest, xsq) {
   ASSERT_NEAR(pval, 0.970, 0.970 * .001);
 
 }
+
+TEST(LinRegTest, robust_vcov) {
+  const double intercept = 1.0;
+  double x_f;
+  double y_f;
+  int n = 100;
+  int p = 2;
+
+  Eigen::MatrixXd X = Eigen::MatrixXd(n, p);
+  Eigen::VectorXd y = Eigen::VectorXd(n);
+
+  // get data (see data/data.R)
+  io::CSVReader<2> in("data-outlier.csv");
+  in.read_header(io::ignore_extra_column, "x", "y");
+  int t = 0;
+  while (in.read_row(x_f, y_f)) {
+    X(t, 0) = intercept;
+    X(t, 1) = x_f;
+    y(t, 0) = y_f;
+    t++;
+  }
+
+  // fit model
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr1(X);
+  if (qr1.rank() < X.cols()) {
+    throw std::runtime_error("rank-deficient matrix");
+  }
+  Eigen::MatrixXd betahat = qr1.solve(y);
+  Eigen::VectorXd fitted = X * betahat;
+  Eigen::VectorXd resid = y - fitted;
+
+  // HC White vcov
+  Eigen::MatrixXd vcov = (X.transpose() * X).inverse() * X.transpose() * resid.cwiseProduct(resid).asDiagonal() * X
+      * (X.transpose() * X).inverse();
+
+  ASSERT_NEAR(vcov(0, 0), 0.09670957, 0.09670957 * .001);
+  ASSERT_NEAR(vcov(1, 0), -0.06414901, 0.06414901 * .001);
+  ASSERT_NEAR(vcov(0, 1), -0.06414901, 0.06414901 * .001);
+  ASSERT_NEAR(vcov(1, 1), 0.04978368, 0.04978368 * .001);
+}
+
+TEST(LinRegTest, delta_method) {
+  const double intercept = 1.0;
+  double x_f;
+  double y_f;
+  int n = 100;
+  int p = 2;
+
+  Eigen::MatrixXd X = Eigen::MatrixXd(n, p);
+  Eigen::VectorXd y = Eigen::VectorXd(n);
+
+  // get data (see data/data.R)
+  io::CSVReader<2> in("data-outlier.csv");
+  in.read_header(io::ignore_extra_column, "x", "y");
+  int t = 0;
+  while (in.read_row(x_f, y_f)) {
+    X(t, 0) = intercept;
+    X(t, 1) = x_f;
+    y(t, 0) = y_f;
+    t++;
+  }
+
+  // fit model
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr1(X);
+  if (qr1.rank() < X.cols()) {
+    throw std::runtime_error("rank-deficient matrix");
+  }
+  Eigen::MatrixXd betahat = qr1.solve(y);
+  Eigen::VectorXd fitted = X * betahat;
+  Eigen::VectorXd resid = y - fitted;
+
+  // HC White vcov
+  Eigen::MatrixXd vcov = (X.transpose() * X).inverse() * X.transpose() * resid.cwiseProduct(resid).asDiagonal() * X
+      * (X.transpose() * X).inverse();
+
+  const double pi = boost::math::constants::pi<double>();
+  Eigen::MatrixXd grad1 = Eigen::MatrixXd(2, 1);
+  grad1(0, 0) = 0;
+  grad1(1, 0) = (2 * betahat(0, 0) + 2 * betahat(1, 0)) / (2 / pi);
+  Eigen::MatrixXd res = grad1.transpose() * vcov * grad1;
+  double d = sqrt(res(0,0));
+
+  ASSERT_NEAR(d, 0.7343819, 0.7343819 * .001);
+}

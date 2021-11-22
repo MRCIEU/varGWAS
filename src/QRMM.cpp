@@ -1,23 +1,22 @@
-//
-// Created by Matt Lyon on 20/10/2021.
-//
+// Taken from https://raw.githubusercontent.com/cran/cqrReg/master/src/QRMM.cpp
+// Pietrosanu, M., Gao, J., Kong, L., Jiang, B., and Niu, D. (2020). Advanced algorithms for penalized quantile and composite quantile regression. Comput. Stat. 2020 361 36, 333–346.
 
 #include <armadillo>
 #include <Eigen/Core>
-#include "cqrReg.h"
+#include "QRMM.h"
 
-namespace cqrReg {
-Eigen::VectorXd cqrReg::qrmm(Eigen::MatrixXd X,
-                             Eigen::VectorXd Y,
-                             Eigen::VectorXd ols_beta,
-                             double toler,
-                             int maxit,
-                             double tau) {
+namespace CqrReg {
+Eigen::VectorXd QRMM::fit(Eigen::MatrixXd X,
+                          Eigen::VectorXd Y,
+                          Eigen::VectorXd init,
+                          double toler,
+                          int maxit,
+                          double tau) {
   int n = X.rows();
   int p = X.cols();
   arma::mat x = arma::mat(X.data(), X.rows(), X.cols(), false, false);
   arma::vec y = arma::vec(Y.data(), Y.rows(), false, false);
-  arma::vec beta = arma::vec(ols_beta.data(), ols_beta.rows(), false, false);
+  arma::vec beta = arma::vec(init.data(), init.rows(), false, false);
   arma::mat product, xt;
   arma::vec W, newX, z, signw, v, r;
   arma::vec delta;
