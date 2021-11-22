@@ -51,6 +51,7 @@ if (${DEBUG})
 
     # adding test libs
     message("Building tests")
+    enable_testing()
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/test)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/googletest-release-1.10.0)
 
