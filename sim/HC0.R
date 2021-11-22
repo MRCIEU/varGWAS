@@ -1,13 +1,12 @@
 set.seed(12)
 
-# taken from https://stats.stackexchange.com/questions/110091/how-to-calculate-the-robust-standard-error-of-predicted-y-from-a-linear-regressi
+# adapted from https://stats.stackexchange.com/questions/110091/how-to-calculate-the-robust-standard-error-of-predicted-y-from-a-linear-regressi
 
-#Fake data
-x1 = rnorm(100)
-x2 = rnorm(100)
-e = x1*rnorm(100)
-y = 10+x1-x2+e
-X = cbind(1,x1,x2)
+# test data
+d <- fread("../test/data/data-outlier.csv")
+x <- d$x
+y = d$y
+X = cbind(1,x)
 
 #Linear model
 m = lm(y~X-1)

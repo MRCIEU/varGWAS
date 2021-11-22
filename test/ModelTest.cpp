@@ -83,17 +83,17 @@ TEST(ModelTest, bp) {
   for (unsigned i = 0; i < dosages.size(); i++) {
     non_nulls_idx.insert(i);
   }
-  vargwas::Result result = vargwas::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, false, 0);
+  vargwas::Result result = vargwas::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, 0);
 
   // check estimate and SE are similar to R
   ASSERT_NEAR(result.beta, 0.262569, 0.01);
   ASSERT_NEAR(result.se, 0.301703, 0.01);
   ASSERT_NEAR(result.pval, 0.385, 0.01);
   ASSERT_NEAR(result.t, 0.870, 0.01);
-  ASSERT_NEAR(result.phi_x, 3.743, 0.01);
-  ASSERT_NEAR(result.se_x, 6.797, 0.01);
-  ASSERT_NEAR(result.phi_xsq, 4.956, 0.01);
-  ASSERT_NEAR(result.se_xsq, 3.504, 0.01);
+  ASSERT_NEAR(result.phi_x1, 3.743, 0.01);
+  ASSERT_NEAR(result.se_x1, 6.797, 0.01);
+  ASSERT_NEAR(result.phi_x2, 4.956, 0.01);
+  ASSERT_NEAR(result.se_x2, 3.504, 0.01);
   ASSERT_NEAR(result.phi_pval, 2.225e-07, 0.01);
   ASSERT_NEAR(result.phi_f, 16.573, 0.01);
 }
@@ -126,15 +126,15 @@ TEST(ModelTest, bf) {
   for (unsigned i = 0; i < dosages.size(); i++) {
     non_nulls_idx.insert(i);
   }
-  vargwas::Result result = vargwas::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, true, 0);
+  vargwas::Result result = vargwas::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, 0);
 
   // check estimate and SE are similar to R
   ASSERT_NEAR(result.beta, 0.262569, 0.01);
-  ASSERT_NEAR(result.beta_lad, -0.01690149, 0.001);
-  ASSERT_NEAR(result.phi_x, 1.53599923, 0.1);
-  ASSERT_NEAR(result.se_x, 0.5782677, 0.1);
-  ASSERT_NEAR(result.phi_xsq, 0.06555196, 0.1);
-  ASSERT_NEAR(result.se_xsq, 0.2981007, 0.1);
+  ASSERT_NEAR(result.theta, -0.01690149, 0.001);
+  ASSERT_NEAR(result.phi_x1, 1.53599923, 0.1);
+  ASSERT_NEAR(result.se_x1, 0.5782677, 0.1);
+  ASSERT_NEAR(result.phi_x2, 0.06555196, 0.1);
+  ASSERT_NEAR(result.se_x2, 0.2981007, 0.1);
   ASSERT_NEAR(result.phi_pval, 4.5195e-14, 0.001);
   ASSERT_NEAR(result.phi_f, 36.06049, 0.5);
 }
@@ -169,7 +169,7 @@ TEST(ModelTest, fit_missing_vals) {
     non_nulls_idx.insert(i);
   }
   non_nulls_idx.erase(1);
-  vargwas::Result result = vargwas::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y, false, 0);
+  vargwas::Result result = vargwas::Model::fit(chr, 1, rsid, allele, allele, dosages, non_nulls_idx, X1, X2, y,0);
   ASSERT_EQ(result.n, dosages.size() - 2);
 }
 

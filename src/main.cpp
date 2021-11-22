@@ -18,7 +18,7 @@ bool file_exists(const std::string &name) {
 }
 
 int main(int argc, char **argv) {
-  static std::string VERSION = "v1.1.0";
+  static std::string VERSION = "v1.2.0";
   static std::string PROGRAM_NAME = "varGWAS";
   spdlog::cfg::load_env_levels();
   static bool no_args = (argc == 1);
@@ -38,7 +38,6 @@ int main(int argc, char **argv) {
       ("p,phenotype", "Column name for phenotype", cxxopts::value<std::string>())
       ("i,id", "Column name for genotype identifier", cxxopts::value<std::string>())
       ("m,maf", "Filter out variants with a MAF below this threshold", cxxopts::value<double>())
-      ("r,robust", "Robust method using median value (Brown-Forsythe)")
       ("h,help", "Print usage")
       ("t,threads",
        "Number of threads",
@@ -112,10 +111,6 @@ int main(int argc, char **argv) {
     maf_threshold = result["maf"].as<double>();
   }
   spdlog::debug("MAF threshold {}", maf_threshold);
-  bool robust = result.count("robust") == 1;
-  if (robust) {
-    spdlog::info("Using robust mode");
-  }
 
   // check files exist
   if (!file_exists(variable_file)) {
@@ -146,7 +141,7 @@ int main(int argc, char **argv) {
     std::set<unsigned> non_null_idx = phenotype_file.join(samples);
 
     // Perform locus association tests & write to file
-    vargwas::Model model(phenotype_file, bgen_parser, non_null_idx, output_file, threads, robust, maf_threshold);
+    vargwas::Model model(phenotype_file, bgen_parser, non_null_idx, output_file, threads, maf_threshold);
     model.run();
 
     spdlog::info("Analysis complete!");

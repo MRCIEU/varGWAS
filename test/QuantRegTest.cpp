@@ -2,7 +2,7 @@
 #include <Eigen/Core>
 #include <Eigen/QR>
 #include "gtest/gtest.h"
-#include "cqrReg.h"
+#include "CqrReg.h"
 
 /*
  * Test for performing quantile regression
@@ -38,7 +38,7 @@ TEST(QuantRegTest, slope_residual) {
 
   // model
   double b1 = betahat(0, 0); // check that qrmm does not modify the vector which happens when pass by reference
-  Eigen::VectorXd b = cqrReg::cqrReg::qrmm(X, y, betahat, 0.001, 200, 0.5);
+  Eigen::VectorXd b = CqrReg::CqrReg::qrmm(X, y, betahat, 0.001, 200, 0.5);
 
   ASSERT_NEAR(b(0, 0), 4, 0.1);
   ASSERT_NEAR(b(1, 0), 0.6, 0.05);
@@ -72,7 +72,7 @@ TEST(QuantRegTest, slope_residual_outlier) {
   Eigen::VectorXd betahat = qr.solve(y);
 
   // model
-  Eigen::VectorXd b = cqrReg::cqrReg::qrmm(X, y, betahat, 0.001, 200, 0.5);
+  Eigen::VectorXd b = CqrReg::CqrReg::qrmm(X, y, betahat, 0.001, 200, 0.5);
 
   ASSERT_NEAR(b(0, 0), 0, 0.1);
   ASSERT_NEAR(b(1, 0), 1, 0.1);

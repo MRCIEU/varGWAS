@@ -1,6 +1,5 @@
-//
-// Created by Matt Lyon on 20/10/2021.
-//
+// Taken from https://raw.githubusercontent.com/cran/cqrReg/master/src/QRMM.cpp
+// Pietrosanu, M., Gao, J., Kong, L., Jiang, B., and Niu, D. (2020). Advanced algorithms for penalized quantile and composite quantile regression. Comput. Stat. 2020 361 36, 333–346.
 
 #include <armadillo>
 #include <Eigen/Core>
@@ -12,12 +11,12 @@
 #ifndef VARGWAS_SRC_CQRREG_H_
 #define VARGWAS_SRC_CQRREG_H_
 
-namespace cqrReg {
-class cqrReg {
+namespace CqrReg {
+class CqrReg {
  public:
   static Eigen::VectorXd qrmm(Eigen::MatrixXd X,
                               Eigen::VectorXd Y,
-                              Eigen::VectorXd ols_beta,
+                              Eigen::VectorXd init,
                               double toler,
                               int maxit,
                               double tau
