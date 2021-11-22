@@ -13,6 +13,7 @@ cd bgen
 ./waf
 
 # armadillo
+# TODO replace with Eigen
 cd "$LIB_DIR"
 curl --insecure -L http://sourceforge.net/projects/arma/files/armadillo-10.7.1.tar.xz >armadillo-10.7.1.tar.xz
 tar -xf armadillo-10.7.1.tar.xz
@@ -24,6 +25,7 @@ make
 make install
 
 # csv reader
+# TODO replace with Boost
 cd "$LIB_DIR"
 curl -L https://github.com/ben-strasser/fast-cpp-csv-parser/archive/master.zip >fast-cpp-csv-parser.zip
 unzip fast-cpp-csv-parser.zip
