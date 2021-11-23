@@ -10,8 +10,8 @@ set.seed(123)
 n_sim <- 200
 n_obs <- 1000
 
-# get P value using LAD-BF with xsq method
-xsq_p <- function(x, y, covar1=NULL, covar2=NULL){
+# get P value using LAD-BF
+get_p <- function(x, y, covar1=NULL, covar2=NULL){
     if (!is.null(covar1)){
         X <- as.matrix(cbind(x, covar1))
     } else {
@@ -28,13 +28,13 @@ xsq_p <- function(x, y, covar1=NULL, covar2=NULL){
     # abs residual
     d <- abs(as.vector(d))
     # second-stage model
-    xsq <- x^2
+    x <- as.factor(x)
     if (!is.null(covar2)){
-        X <- data.frame(x, xsq)
+        X <- data.frame(x)
         X <- cbind(X, covar2)
         fit_null <- lm(d ~ ., data=covar2)
     } else {
-        X <- data.frame(x, xsq)
+        X <- data.frame(x)
         fit_null <- lm(d ~ 1)
     }
     fit2 <- lm(d ~ ., data=X)
@@ -72,13 +72,11 @@ for (i in 1:n_sim){
     res <- data.frame(
         rsq.yx=summary(lm(Y ~ X))$r.squared,
         rsq.yxu=summary(lm(Y ~ X*U))$r.squared,
-        p_adj1=xsq_p(data$X, data$Y, covar1 = NULL, covar2 = NULL),
-        p_adj2=xsq_p(data$X, data$Y, covar1 = data %>% dplyr::select("U", "XU"), covar2 = NULL)
+        p_adj1=get_p(data$X, data$Y, covar1 = NULL, covar2 = NULL),
+        p_adj2=get_p(data$X, data$Y, covar1 = data %>% dplyr::select("U", "XU"), covar2 = NULL)
     )
 
     results <- rbind(results, res)
 }
 
-# test power w/wo adjustment
-binom.test(sum(results$p_adj1 < .05), n_sim) %>% tidy
-binom.test(sum(results$p_adj2 < .05), n_sim) %>% tidy
+write.csv(file="sim13.csv", results)
