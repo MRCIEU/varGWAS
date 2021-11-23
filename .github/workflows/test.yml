@@ -12,7 +12,15 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y libopenblas-dev liblapack-dev libarpack2-dev libsuperlu-dev
-        bash lib.sh
+    - name: Cache libraries
+      id: cache-libs
+      uses: actions/cache@v2
+      with:
+        path: lib
+        key: ${{ runner.os }}-${{ hashFiles('lib.sh') }}
+    - name: Build libraries
+      if: steps.cache-libs.outputs.cache-hit != 'true'
+      run: bash lib.sh
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
     - name: Build
