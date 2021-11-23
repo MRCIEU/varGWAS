@@ -82,12 +82,10 @@ qqgplot <- function(data, af, pcol, ci = 0.95) {
 # print warnings
 warnings()
 
-p1 <- qqgplot(results, 0.05, "P.cpp_bp")
 p2 <- qqgplot(results, 0.05, "P.cpp_bf")
-p3 <- qqgplot(results, 0.05, "P.osca_mean")
 p4 <- qqgplot(results, 0.05, "P.osca_median")
 
-p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
+p <- ggarrange(p2, p4, labels = c("A", "B"), ncol = 2, nrow = 1)
 pdf("data/t1e_10k.pdf")
 print(p)
 dev.off()
