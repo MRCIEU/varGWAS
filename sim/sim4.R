@@ -45,25 +45,17 @@ for (t in c(1,2,4,8)){
         system("sed 's/^/S/g' data/genotypes.fam > data/genotypes.fam.sed; mv data/genotypes.fam.sed data/genotypes.fam")
 
         # run vGWAS
-        bp.time <- system.time(system(paste0("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bp.txt -b data/genotypes.bgen -p Y -i S -t ", t)))
         bf.time <- system.time(system(paste0("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -r -t ", t)))
-        osca_mean.time <- system.time(system(paste0("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-mean.txt --vqtl-mtd 1 --thread-num ", t)))
         osca_median.time <- system.time(system(paste0("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-median.txt --vqtl-mtd 2 --thread-num ", t)))
-        bp.time <- t(data.matrix(bp.time)) %>% as.data.frame
         bf.time <- t(data.matrix(bf.time)) %>% as.data.frame
-        osca_mean.time <- t(data.matrix(osca_mean.time)) %>% as.data.frame
         osca_median.time <- t(data.matrix(osca_median.time)) %>% as.data.frame
-        names(bp.time) <- paste0(names(bp.time), ".cpp_bp")
         names(bf.time) <- paste0(names(bf.time), ".cpp_bf")
-        names(osca_mean.time) <- paste0(names(osca_mean.time), ".osca_mean")
         names(osca_median.time) <- paste0(names(osca_median.time), ".osca_median")
 
         # store result
         d <- rbind(d, cbind(
             t,
-            bp.time,
             bf.time,
-            osca_mean.time,
             osca_median.time
         ))
     }
@@ -76,22 +68,14 @@ write.table(d, "data/sim4.txt")
 results <- data.frame()
 results <- rbind(
     results,
-    d %>% dplyr::group_by(t) %>% dplyr::summarize(t.test(elapsed.cpp_bp) %>% tidy %>% select(estimate, conf.low, conf.high) %>% dplyr::mutate(model="Breusch-Pagan", location="Mean"))
-)
-results <- rbind(
-    results,
     d %>% dplyr::group_by(t) %>% dplyr::summarize(t.test(elapsed.cpp_bf) %>% tidy %>% select(estimate, conf.low, conf.high) %>% dplyr::mutate(model="LAD Brown-Forsythe", location="Median"))
-)
-results <- rbind(
-    results,
-    d %>% dplyr::group_by(t) %>% dplyr::summarize(t.test(elapsed.osca_mean) %>% tidy %>% select(estimate, conf.low, conf.high) %>% dplyr::mutate(model="Levene", location="Mean"))
 )
 results <- rbind(
     results,
     d %>% dplyr::group_by(t) %>% dplyr::summarize(t.test(elapsed.osca_median) %>% tidy %>% select(estimate, conf.low, conf.high) %>% dplyr::mutate(model="Brown-Forsythe", location="Median"))
 )
 results$t <- factor(results$t)
-results$model <- factor(results$model, levels=c("Breusch-Pagan", "LAD Brown-Forsythe", "Levene", "Brown-Forsythe"))
+results$model <- factor(results$model, levels=c("LAD Brown-Forsythe", "Brown-Forsythe"))
 
 # barchart
 pdf("data/sim4a.pdf")
