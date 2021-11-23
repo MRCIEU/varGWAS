@@ -45,7 +45,7 @@ for (t in c(1,2,4,8)){
         system("sed 's/^/S/g' data/genotypes.fam > data/genotypes.fam.sed; mv data/genotypes.fam.sed data/genotypes.fam")
 
         # run vGWAS
-        bf.time <- system.time(system(paste0("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -r -t ", t)))
+        bf.time <- system.time(system(paste0("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t ", t)))
         osca_median.time <- system.time(system(paste0("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-median.txt --vqtl-mtd 2 --thread-num ", t)))
         bf.time <- t(data.matrix(bf.time)) %>% as.data.frame
         osca_median.time <- t(data.matrix(osca_median.time)) %>% as.data.frame
