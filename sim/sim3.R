@@ -106,16 +106,6 @@ warnings()
 # save results for plotting
 write.csv(results, file = paste0("data/sim3.csv"))
 
-p1 <- qqgplot(results, "log", "P.cpp_bp")
-p2 <- qqgplot(results, "sqrt", "P.cpp_bp")
-p3 <- qqgplot(results, "irnt", "P.cpp_bp")
-p4 <- qqgplot(results, "cube_root", "P.cpp_bp")
-
-p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
-pdf("data/trans_t1e_bp.pdf")
-print(p)
-dev.off()
-
 p1 <- qqgplot(results, "log", "P.cpp_bf")
 p2 <- qqgplot(results, "sqrt", "P.cpp_bf")
 p3 <- qqgplot(results, "irnt", "P.cpp_bf")
@@ -123,16 +113,6 @@ p4 <- qqgplot(results, "cube_root", "P.cpp_bf")
 
 p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
 pdf("data/trans_t1e_bf.pdf")
-print(p)
-dev.off()
-
-p1 <- qqgplot(results, "log", "P.osca_mean")
-p2 <- qqgplot(results, "sqrt", "P.osca_mean")
-p3 <- qqgplot(results, "irnt", "P.osca_mean")
-p4 <- qqgplot(results, "cube_root", "P.osca_mean")
-
-p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
-pdf("data/trans_t1e_osca_mean.pdf")
 print(p)
 dev.off()
 
