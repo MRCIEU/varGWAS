@@ -1,49 +1,44 @@
-// Taken from https://raw.githubusercontent.com/cran/cqrReg/master/src/QRMM.cpp
+// Adapted from https://raw.githubusercontent.com/cran/cqrReg/master/src/QRMM.cpp
 // Pietrosanu, M., Gao, J., Kong, L., Jiang, B., and Niu, D. (2020). Advanced algorithms for penalized quantile and composite quantile regression. Comput. Stat. 2020 361 36, 333–346.
 
-#include <armadillo>
 #include <Eigen/Core>
+#include <Eigen/QR>
 #include "QRMM.h"
 
 namespace CqrReg {
-Eigen::VectorXd QRMM::fit(Eigen::MatrixXd X,
-                          Eigen::VectorXd Y,
-                          Eigen::VectorXd init,
-                          double toler,
-                          int maxit,
-                          double tau) {
-  int n = X.rows();
-  int p = X.cols();
-  arma::mat x = arma::mat(X.data(), X.rows(), X.cols(), false, false);
-  arma::vec y = arma::vec(Y.data(), Y.rows(), false, false);
-  arma::vec beta = arma::vec(init.data(), init.rows(), false, false);
-  arma::mat product, xt;
-  arma::vec W, newX, z, signw, v, r;
-  arma::vec delta;
-  arma::uvec order, index;
+Eigen::VectorXd QRMM::fit(
+    const Eigen::MatrixXd &X,
+    const Eigen::VectorXd &y,
+    const Eigen::VectorXd &init,
+    double toler,
+    int maxit,
+    double tau) {
+  Eigen::VectorXd beta = init;
+  Eigen::MatrixXd xt = X.transpose();
 
   double error = 10000, epsilon = 0.9999;
   int iteration = 1;
-  product.ones(p, n);
-  xt = x.t();
 
   while (iteration <= maxit && error > toler) {
-    r = y - x * beta;
-    v = 1 - 2 * tau - r / (arma::abs(r) + epsilon);
+    Eigen::VectorXd fitted = X * beta;
+    Eigen::VectorXd r = y - fitted;
+    Eigen::VectorXd v = 1 - 2 * tau - r.array() / (r.array().abs() + epsilon);
 
-    W = 1 / (epsilon + arma::abs(r));
+    Eigen::VectorXd W = 1 / (epsilon + r.array().abs());
+    Eigen::MatrixXd product = xt.array().rowwise() * W.transpose().array();
+    Eigen::MatrixXd pX = product * X;
 
-    for (int i = 0; i < n; i++) { product.col(i) = xt.col(i) * W(i); }
-
-    delta = arma::solve(product * x, xt * v);
+    Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(pX);
+    if (qr.rank() < pX.cols()) {
+      throw std::runtime_error("rank-deficient matrix");
+    }
+    Eigen::VectorXd delta = qr.solve(xt * v);
     beta = beta - delta;
 
-    error = sum(abs(delta));
+    error = delta.cwiseAbs().sum();
     iteration++;
   }
 
-  Eigen::VectorXd res = Eigen::Map<Eigen::VectorXd>(beta.memptr(), beta.n_rows, beta.n_cols);
-
-  return(res);
+  return (beta);
 }
 }
