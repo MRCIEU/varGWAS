@@ -53,10 +53,10 @@ for (i in 1:n_sim) {
         s1_dummy=fit$se_x1,
         b2_dummy=fit$phi_x2,
         s2_dummy=fit$se_x2,
-        b1_osca=fit_osca$BETA_x.osca_median * 1,
-        s1_osca=fit_osca$SE_x.osca_median * 1,
-        b2_osca=fit_osca$BETA_x.osca_median * 2,
-        s2_osca=fit_osca$SE_x.osca_median * 2
+        b1_osca=fit$BETA_x.osca_median * 1,
+        s1_osca=fit$SE_x.osca_median * 1,
+        b2_osca=fit$BETA_x.osca_median * 2,
+        s2_osca=fit$SE_x.osca_median * 2
     )
 
     # add params
