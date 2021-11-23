@@ -49,10 +49,10 @@ for (i in 1:n_sim) {
     fit$SE_x.osca_median <- fit$SE_x.osca_median / (2/pi)
 
     res <- data.frame(
-        b1_dummy=fit$phi_x1,
-        s1_dummy=fit$se_x1,
-        b2_dummy=fit$phi_x2,
-        s2_dummy=fit$se_x2,
+        b1_dummy=fit$BETA_x1.cpp_bf,
+        s1_dummy=fit$SE_x1.cpp_bf,
+        b2_dummy=fit$BETA_x2.cpp_bf,
+        s2_dummy=fit$SE_x2.cpp_bf,
         b1_osca=fit$BETA_x.osca_median * 1,
         s1_osca=fit$SE_x.osca_median * 1,
         b2_osca=fit$BETA_x.osca_median * 2,

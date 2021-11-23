@@ -106,11 +106,11 @@ run_models <- function(data, covar=NULL){
   res_r_bf <- data.frame(BETA_x.r_bf = bf$coef[2, 1], SE_x.r_bf = bf$coef[2, 2], BETA_xsq.r_bf = bf$coef[3, 1], SE_xsq.r_bf = bf$coef[3, 2], P.r_bf = as.numeric(bf$test[3]))
 
   # C++
-  res_cpp_bf <- fread("data/gwas-bf.txt", select = c("beta", "theta", "se", "p", "phi_x1", "se_x1", "phi_x2", "se_x2", "phi_p"), col.names = c("BETA_mu.cpp_bf", "BETA_lad.cpp_bf", "SE_mu.cpp_bf", "P_mu.cpp_bf", "BETA_x.cpp_bf", "SE_x.cpp_bf", "BETA_xsq.cpp_bf", "SE_xsq.cpp_bf", "P.cpp_bf"))
+  res_cpp_bf <- fread("data/gwas-bf.txt", select = c("beta", "theta", "se", "p", "phi_x1", "se_x1", "phi_x2", "se_x2", "phi_p"), col.names = c("BETA_mu.cpp_bf", "BETA_lad.cpp_bf", "SE_mu.cpp_bf", "P_mu.cpp_bf", "BETA_x1.cpp_bf", "SE_x1.cpp_bf", "BETA_x2.cpp_bf", "SE_x2.cpp_bf", "P.cpp_bf"))
 
   if (nrow(res_cpp_bf) == 0){
     res_cpp_bf <- data.frame(
-      BETA_mu.cpp_bf=NA, BETA_lad.cpp_bf=NA, SE_mu.cpp_bf=NA, P_mu.cpp_bf=NA, BETA_x.cpp_bf=NA, SE_x.cpp_bf=NA, BETA_xsq.cpp_bf=NA, SE_xsq.cpp_bf=NA, P.cpp_bf=NA
+      BETA_mu.cpp_bf=NA, BETA_lad.cpp_bf=NA, SE_mu.cpp_bf=NA, P_mu.cpp_bf=NA, BETA_x1.cpp_bf=NA, SE_x1.cpp_bf=NA, BETA_x2.cpp_bf=NA, SE_x2.cpp_bf=NA, P.cpp_bf=NA
     )
   }
 
