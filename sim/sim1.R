@@ -58,10 +58,6 @@ for (phi in seq(0, 6, 0.5)) {
       # run models
       res <- run_models(data)
 
-      # add expected variance parameters
-      res$EXP_x <- 2 * delta * theta
-      res$EXP_xsq <- theta * theta
-
       # add params
       res$phi <- phi
       res$af <- af
