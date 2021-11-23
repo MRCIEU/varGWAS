@@ -7,11 +7,11 @@ source("funs.R")
 library("data.table")
 set.seed(123)
 
-n_sim <- 200
+n_sim <- 1000
 n_obs <- 10000
 
-# get P value using LAD-BF with xsq method
-xsq_p <- function(x, y, covar1=NULL, covar2=NULL){
+# get P value using LAD-BF
+get_p <- function(x, y, covar1=NULL, covar2=NULL){
     if (!is.null(covar1)){
         X <- as.matrix(cbind(x, covar1))
     } else {
@@ -28,13 +28,13 @@ xsq_p <- function(x, y, covar1=NULL, covar2=NULL){
     # abs residual
     d <- abs(as.vector(d))
     # second-stage model
-    xsq <- x^2
+    x <- as.factor(x)
     if (!is.null(covar2)){
-        X <- data.frame(x, xsq)
+        X <- data.frame(x)
         X <- cbind(X, covar2)
         fit_null <- lm(d ~ ., data=covar2)
     } else {
-        X <- data.frame(x, xsq)
+        X <- data.frame(x)
         fit_null <- lm(d ~ 1)
     }
     fit2 <- lm(d ~ ., data=X)
@@ -83,14 +83,14 @@ for (i in 1:n_sim){
         beta.yxc=lm(Y ~ X + C) %>% tidy %>% dplyr::filter(term=="X") %>% dplyr::pull("estimate"),
         beta.yxcsq=lm(Y ~ X + Csq) %>% tidy %>% dplyr::filter(term=="X") %>% dplyr::pull("estimate"),
         MAF=mean(data$X * .5),
-        p_adj1=xsq_p(data$X, data$Y, covar1 = data %>% dplyr::select("C") %>% as.data.frame, covar2 = NULL),
-        p_adj2=xsq_p(data$X, data$Y, covar1 = data %>% dplyr::select("C") %>% as.data.frame, covar2 = data %>% dplyr::select("C") %>% as.data.frame),
-        p_adj3=xsq_p(data$X, data$Y, covar1 = data %>% dplyr::select("C") %>% as.data.frame, covar2 = data %>% dplyr::select("Csq") %>% as.data.frame),
-        p_adj4=xsq_p(data$X, data$Y, covar1 = data %>% dplyr::select("C") %>% as.data.frame, covar2 = data %>% dplyr::select("C", "Csq") %>% as.data.frame),
-        p_adj5=xsq_p(data$X, data$Y, covar1 = data %>% dplyr::select("C", "Csq") %>% as.data.frame, covar2 = NULL),
-        p_adj6=xsq_p(data$X, data$Y, covar1 = data %>% dplyr::select("C", "Csq") %>% as.data.frame, covar2 = data %>% dplyr::select("C") %>% as.data.frame),
-        p_adj7=xsq_p(data$X, data$Y, covar1 = data %>% dplyr::select("C", "Csq") %>% as.data.frame, covar2 = data %>% dplyr::select("Csq") %>% as.data.frame),
-        p_adj8=xsq_p(data$X, data$Y, covar1 = data %>% dplyr::select("C", "Csq") %>% as.data.frame, covar2 = data %>% dplyr::select("C", "Csq") %>% as.data.frame)
+        p_adj1=get_p(data$X, data$Y, covar1 = data %>% dplyr::select("C") %>% as.data.frame, covar2 = NULL),
+        p_adj2=get_p(data$X, data$Y, covar1 = data %>% dplyr::select("C") %>% as.data.frame, covar2 = data %>% dplyr::select("C") %>% as.data.frame),
+        p_adj3=get_p(data$X, data$Y, covar1 = data %>% dplyr::select("C") %>% as.data.frame, covar2 = data %>% dplyr::select("Csq") %>% as.data.frame),
+        p_adj4=get_p(data$X, data$Y, covar1 = data %>% dplyr::select("C") %>% as.data.frame, covar2 = data %>% dplyr::select("C", "Csq") %>% as.data.frame),
+        p_adj5=get_p(data$X, data$Y, covar1 = data %>% dplyr::select("C", "Csq") %>% as.data.frame, covar2 = NULL),
+        p_adj6=get_p(data$X, data$Y, covar1 = data %>% dplyr::select("C", "Csq") %>% as.data.frame, covar2 = data %>% dplyr::select("C") %>% as.data.frame),
+        p_adj7=get_p(data$X, data$Y, covar1 = data %>% dplyr::select("C", "Csq") %>% as.data.frame, covar2 = data %>% dplyr::select("Csq") %>% as.data.frame),
+        p_adj8=get_p(data$X, data$Y, covar1 = data %>% dplyr::select("C", "Csq") %>% as.data.frame, covar2 = data %>% dplyr::select("C", "Csq") %>% as.data.frame)
 
     )
 
@@ -98,11 +98,4 @@ for (i in 1:n_sim){
 }
 
 # test power w/wo adjustment
-binom.test(sum(results$p_adj1 < .05), n_sim) %>% tidy
-binom.test(sum(results$p_adj2 < .05), n_sim) %>% tidy
-binom.test(sum(results$p_adj3 < .05), n_sim) %>% tidy
-binom.test(sum(results$p_adj4 < .05), n_sim) %>% tidy
-binom.test(sum(results$p_adj5 < .05), n_sim) %>% tidy
-binom.test(sum(results$p_adj6 < .05), n_sim) %>% tidy
-binom.test(sum(results$p_adj7 < .05), n_sim) %>% tidy
-binom.test(sum(results$p_adj8 < .05), n_sim) %>% tidy
+write.csv(results, file="sim5.csv")
