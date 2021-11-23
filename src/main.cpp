@@ -18,7 +18,7 @@ bool file_exists(const std::string &name) {
 }
 
 int main(int argc, char **argv) {
-  static std::string VERSION = "v1.2.0";
+  static std::string VERSION = "v1.2.1";
   static std::string PROGRAM_NAME = "varGWAS";
   spdlog::cfg::load_env_levels();
   static bool no_args = (argc == 1);
