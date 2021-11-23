@@ -112,6 +112,15 @@ Comparison of including X w/wo X^2 in the second-stage model on the estimate for
 what is var(Y|G==0, G==1, G==2) with both methods? And do the SEs give correct coverage? Also compare with bootstrap
 
 ```shell
+for p in $(seq 0 0.5 6); do
+    mkdir -p "$p"
+    cd "$p"
+    ln -s ../../funs.R
+    ln -s ../../runR.sh
+    ln -s ../../sim12.R
+    sbatch runR.sh sim12.R -p "$p" -i <i>
+    cd ..
+done
 head -n1 0/sim12_0.csv > results.csv
 cat */sim12_*.csv | grep -v b0_dummy >> results.csv
 head -n1 0/sim12_0.csv > results.csv
