@@ -6,7 +6,7 @@ The outcome is ```Y = X + U + X*U + E``` where ```X``` is a genotype, ```U``` is
 
 ## Simulate
 
-The script below will simulate the data and requires [qctool]() and [bgenix]() on the PATH.
+The script below will simulate the data and requires [qctool](https://www.well.ox.ac.uk/~gav/qctool_v2/) on the PATH.
 
 ```shell
 Rscript test/data/example.R
@@ -43,4 +43,4 @@ The effect of the SNP on outcome variance is non-linear so the genotype is treat
 - ```phi_x1``` and ```phi_x2``` is the average change in variance from ```SNP=0``` to ```SNP=1``` and ```SNP=2```. ```se_x1``` and ```se_x2``` are the standard errors of these statistics.
 - ```phi_f``` and ```phi_p``` are the F-statistic and P-value for the effect of the SNP on outcome variance
 
-The trait was standardised (see ```test/data/example.R```) so the units are ```sigma^2```. ```var(Y)``` was 0.489 when SNP=1 and 1.856 when SNP=2.  
+The trait was standardised (see ```test/data/example.R```) so the units are ```sigma^2```, SNP=1 was associated with an increase of 0.489 and 1.856 for SNP=2.  
