@@ -5,7 +5,3 @@
 <!-- badges: end -->
 
 Software to perform genome-wide association study of SNP effects on trait variance
-
-## Citation
-
-TODO
