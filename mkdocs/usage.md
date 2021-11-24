@@ -30,7 +30,7 @@ Usage:
 
 ## Output
 
-See description of GWAS summary stats [here](tutorial.md#Output)~~~~ 
+See description of GWAS summary stats [here](tutorial.md#Output) 
 
 # Logging
 
