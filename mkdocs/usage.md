@@ -1,5 +1,7 @@
 # Usage
 
+Requires UNIX environment. Use [Docker](install.md#Docker) for Windows.
+
 ```shell
 ./varGWAS
 
@@ -19,16 +21,16 @@ Usage:
   -t, --threads arg        Number of threads
 ```
 
-- Unordered categorical variables should be one-hot encoded.
+## Phenotypes
+
 - Do not provide null values in the phenotype file - these should be filtered out.
+- Unordered categorical variables should be one-hot encoded (dummy variables).
+- Include the square of continuous/ordinal phenotypes to adjust the variance effect.
+- The variance effect size is a unitless measure; standardise the outcome beforehand by dividing the trait by its SD.
 
-# Covariates
+## Output
 
-In addition to standard covariates, also include the square of continuous/ordinal phenotypes to adjust the variance effect. 
-
-# Simulations
-
-See [README](https://github.com/MRCIEU/varGWAS/blob/master/sim/README.md)
+See description of GWAS summary stats [here](tutorial.md#Output)~~~~ 
 
 # Logging
 
@@ -53,3 +55,11 @@ make
 # run tests
 ./bin/varGWAS_test
 ```
+
+# Simulations
+
+See [README](https://github.com/MRCIEU/varGWAS/blob/master/sim/README.md) for simulations of test power, type 1 error, accuracy and coverage etc.
+
+# Issues
+
+Report issues [here](https://github.com/MRCIEU/varGWAS/issues)

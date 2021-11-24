@@ -11,5 +11,9 @@ test/data/*
 !test/data/test.bgen.bgi
 !test/data/data-outlier.csv
 !test/data/data.csv
+!test/data/example.csv
+!test/data/example.bgen
+!test/data/example.bgen.bgi
+!test/data/example.R
 sim/data
 .Rapp.history

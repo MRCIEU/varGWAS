@@ -6,4 +6,5 @@ nav:
     - Home: index.md
     - Install: install.md
     - Usage: usage.md
+    - Tutorial: tutorial.md
 theme: readthedocs
