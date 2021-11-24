@@ -62,8 +62,8 @@ dev.off()
 # coverage
 results <- merge(results, v1_mean, "phi")
 results <- merge(results, v2_mean, "phi")
-names(results)[17] <- "v1_mean"
-names(results)[18] <- "v2_mean"
+names(results)[15] <- "v1_mean"
+names(results)[16] <- "v2_mean"
 results$b1_dummy_lci <- results$b1_dummy - (1.96 * results$s1_dummy)
 results$b1_dummy_uci <- results$b1_dummy + (1.96 * results$s1_dummy)
 results$b2_dummy_lci <- results$b2_dummy - (1.96 * results$s2_dummy)

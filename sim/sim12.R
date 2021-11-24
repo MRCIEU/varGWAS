@@ -18,8 +18,8 @@ n_obs <- 10000
 n_sim <- 1000
 af <- 0.4
 
-# main effect size of X on Y explaining 5% variance
-delta <- 0.33
+# main effect size of X on Y detectable with 95% CI
+delta <- 0.0525
 theta <- delta * opt$phi
 
 # simulate GxE interaction effects and estimate power

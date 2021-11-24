@@ -3,9 +3,9 @@
 ```shell
 ./varGWAS
 
-Program to perform vGWAS of trait against variants in the BGEN format
+Program to perform GWAS of trait variability against variants in the BGEN format
 Usage:
-  varGWAS C++ v1.0.0 [OPTION...]
+  varGWAS v1.2.1 [OPTION...]
 
   -v, --variable_file arg  Path to phenotype file
   -s, --sep arg            File separator
@@ -14,45 +14,19 @@ Usage:
   -b, --bgen_file arg      Path to BGEN file
   -p, --phenotype arg      Column name for phenotype
   -i, --id arg             Column name for genotype identifier
-  -r, --robust             Robust method using median value (Brown-Forsythe)
+  -m, --maf arg            Filter out variants with a MAF below this threshold
   -h, --help               Print usage
-  -t, --threads arg        Number of threads (default: 8)
+  -t, --threads arg        Number of threads
 ```
 
 - Unordered categorical variables should be one-hot encoded.
 - Do not provide null values in the phenotype file - these should be filtered out.
 
-# Docker
+# Covariates
 
-Perform GWAS
+In addition to standard covariates, also include the square of continuous/ordinal phenotypes to adjust the variance effect. 
 
-```shell
-docker run \
--v /Users/ml18692/projects/varGWAS/test/data:/data \
--e SPDLOG_LEVEL=debug \
--it vargwas \
--v /data/phenotypes.csv \
--s , \
--c sex,age,PC.1,PC.2,PC.3,PC.4,PC.5,PC.6,PC.7,PC.8,PC.9,PC.10 \
--o /data/output.txt \
--b /data/genotypes.bgen \
--p Y \
--i S \
--t 1
-```
-
-# Unit tests
-
-Run unit tests
-
-```shell
-mkdir -p build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug
-make
-```
-
-# Simulation
+# Simulations
 
 See [README](https://github.com/MRCIEU/varGWAS/blob/master/sim/README.md)
 
@@ -64,4 +38,18 @@ the [spdlog](https://github.com/gabime/spdlog#load-log-levels-from-env-variable-
 ```shell
 export SPDLOG_LEVEL=debug
 ./varGWAS
+```
+
+# Unit tests
+
+Run unit tests
+
+```shell
+# build debug release
+mkdir -p build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+make
+# run tests
+./bin/varGWAS_test
 ```

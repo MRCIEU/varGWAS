@@ -121,10 +121,10 @@ for p in $(seq 0 0.5 6); do
     sbatch runR.sh sim12.R -p "$p" -i <i>
     cd ..
 done
-head -n1 0/sim12_0.csv > results.csv
-cat */sim12_*.csv | grep -v b0_dummy >> results.csv
-head -n1 0/sim12_0.csv > results.csv
-cat */sim12_*.csv | grep -v b0_dummy >> results.csv
+head -n1 0.0/sim12_0_0.csv > results.csv
+cat */sim12_*csv | grep -v b1_dummy >> results.csv
+head -n1 0.0/sim12_0_1.csv > results.csv
+cat */sim12_*csv | grep -v b1_dummy >> results.csv
 ```
 
 ## Sim13 - Adjusting the variance effect for the interaction
