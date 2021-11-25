@@ -327,9 +327,9 @@ Result Model::fit(std::string &chromosome,
   // adapted from http://people.reed.edu/~jones/Courses/P24.pdf
   spdlog::debug("F-test, thread = {}", omp_get_thread_num());
   int df_f = n - X_complete2.cols();
-  spdlog::debug("DF full model " + std::to_string(df_f) + ", thread = {}\", omp_get_thread_num());
+  spdlog::debug("DF full model " + std::to_string(df_f) + ", thread = {}", omp_get_thread_num());
   int df_r = n - X_complete3.cols();
-  spdlog::debug("DF restricted model " + std::to_string(df_r) + ", thread = {}\", omp_get_thread_num());
+  spdlog::debug("DF restricted model " + std::to_string(df_r) + ", thread = {}", omp_get_thread_num());
   int df_n = df_r - df_f;
   double rss_f = ss_resid.squaredNorm();
   double rss_r = null_resid.squaredNorm();
