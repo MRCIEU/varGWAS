@@ -296,9 +296,14 @@ Result Model::fit(std::string &chromosome,
   grad2(1, 0) = 0;
   grad2(2, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(2, 0))/(2/pi);
 
-  spdlog::debug("Estimating SEs using the deltamethod, thread = {}", omp_get_thread_num());
-  double s1_dummy = sqrt((grad1.transpose() * hc_vcov * grad1)(0,0));
-  double s2_dummy = sqrt((grad2.transpose() * hc_vcov * grad2)(0,0));
+  spdlog::debug("Estimating HC SE_1 using the deltamethod, thread = {}", omp_get_thread_num());
+  Eigen::MatrixXd s1_hc0 = grad1.transpose() * hc_vcov * grad1;
+  spdlog::debug("Estimating s1_dummy, thread = {}", omp_get_thread_num());
+  double s1_dummy = sqrt(s1_hc0(0,0));
+  spdlog::debug("Estimating HC SE_2 using the deltamethod, thread = {}", omp_get_thread_num());
+  Eigen::MatrixXd s2_hc0 = grad2.transpose() * hc_vcov * grad2;
+  spdlog::debug("Estimating s2_dummy, thread = {}", omp_get_thread_num());
+  double s2_dummy = sqrt(s2_hc0(0,0));
 
   // null model (intercept & covariates)
   spdlog::debug("Preparing null model, thread = {}", omp_get_thread_num());

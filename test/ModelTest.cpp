@@ -150,3 +150,9 @@ TEST(ModelTest, ttest) {
   double pval = 2.0 * boost::math::cdf(boost::math::complement(t_dist, fabs(t)));
   ASSERT_NEAR(pval, p, p * .001);
 }
+
+TEST(ModelTest, round) {
+  ASSERT_EQ(int(round(0.01)), 0);
+  ASSERT_EQ(int(round(0.99)), 1);
+  ASSERT_EQ(int(round(1.99)), 2);
+}
