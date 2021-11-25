@@ -80,3 +80,13 @@ for (i in 1:n_sim){
 }
 
 write.csv(file="sim13.csv", results)
+
+# adjusted for C in the first-stage model only 
+pdf("data/unadj.pdf")
+GWASTools::qqPlot(results$p_adj1,main="First-stage model unadjusted")
+dev.off()
+
+# adjusted for C in the first-stage model + C & C^2 in the second-stage
+pdf("data/adj.pdf")
+GWASTools::qqPlot(results$p_adj2,main="First-stage model adjusted X + XU")
+dev.off()

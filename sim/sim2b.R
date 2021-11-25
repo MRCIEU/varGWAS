@@ -86,6 +86,6 @@ p2 <- qqgplot(results, 0.05, "P.cpp_bf")
 p4 <- qqgplot(results, 0.05, "P.osca_median")
 
 p <- ggarrange(p2, p4, labels = c("A", "B"), ncol = 2, nrow = 1)
-pdf("data/t1e_10k.pdf")
+pdf("data/t1e_10k.pdf", height=7, width=14)
 print(p)
 dev.off()

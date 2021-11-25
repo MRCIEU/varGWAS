@@ -2,6 +2,7 @@ library("dplyr")
 library("broom")
 library("tidyr")
 library("cqrReg")
+library("GWASTools")
 library("jlst")
 source("funs.R")
 library("data.table")
@@ -99,3 +100,13 @@ for (i in 1:n_sim){
 
 # test power w/wo adjustment
 write.csv(results, file="sim5.csv")
+
+# adjusted for C in the first-stage model only 
+pdf("data/fs_adj.pdf")
+GWASTools::qqPlot(results$p_adj1,main="First-stage model adjusted for C")
+dev.off()
+
+# adjusted for C in the first-stage model + C & C^2 in the second-stage
+pdf("data/ss_adj.pdf")
+GWASTools::qqPlot(results$p_adj4,main="First-stage model adjusted for C & second-stage adjusted for C + C^2")
+dev.off()
