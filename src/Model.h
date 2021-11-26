@@ -54,6 +54,36 @@ class Model {
   int _threads;
   double _maf_threshold;
   std::string &_output_file;
+  static void first_stage_ols(
+      const Eigen::MatrixXd &X_complete1,
+      const Eigen::VectorXd &y_complete,
+      Eigen::VectorXd &fs_se, Eigen::VectorXd &fs_fit,
+      double &pval, double &t_stat
+  );
+  static void first_stage_lad(
+      const Eigen::MatrixXd &X_complete1,
+      const Eigen::VectorXd &y_complete,
+      const Eigen::VectorXd &fs_fit,
+      Eigen::VectorXd &fs_resid2,
+      double &theta
+  );
+  static void second_stage(
+      const Eigen::MatrixXd &X_complete2,
+      const Eigen::VectorXd &fs_resid2,
+      Eigen::VectorXd &ss_resid,
+      Eigen::VectorXd &ss_fit
+  );
+  static Eigen::MatrixXd white_vcov(const Eigen::MatrixXd &X_complete2, const Eigen::VectorXd &ss_resid);
+  static void delta_method(const Eigen::VectorXd &ss_fit,
+                           const Eigen::MatrixXd &hc_vcov,
+                           double &s1_dummy,
+                           double &s2_dummy);
+  static void null_fit(const Eigen::MatrixXd &X_complete2,
+                       const Eigen::VectorXd &fs_resid2,
+                       double &phi_pval,
+                       double &f,
+                       int n,
+                       const Eigen::VectorXd &ss_resid);
 };
 }
 

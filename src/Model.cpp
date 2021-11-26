@@ -23,13 +23,6 @@
 namespace vargwas {
 
 void Model::run() {
-  std::string chromosome;
-  uint32_t position;
-  std::string rsid;
-  std::vector<std::string> alleles;
-  std::vector<std::vector<double>> probs;
-  std::vector<double> dosages;
-
   spdlog::info("Using {} thread(s)", _threads);
   omp_set_num_threads(_threads);
 
@@ -63,9 +56,16 @@ void Model::run() {
     file << "chr\tpos\trsid\toa\tea\tn\teaf\tbeta\tse\tt\tp\ttheta\tphi_x1\tse_x1\tphi_x2\tse_x2\tphi_f\tphi_p"
          << std::endl;
     file.flush();
-#pragma omp parallel default(none) shared(file, X1, X2, y) private(chromosome, position, rsid, alleles, probs, dosages)
+#pragma omp parallel default(none) shared(file, X1, X2, y)
     {
 #pragma omp master
+      std::string chromosome;
+      uint32_t position;
+      std::string rsid;
+      std::vector<std::string> alleles;
+      std::vector<std::vector<double>> probs;
+      std::vector<double> dosages;
+
       // Read variant-by-variant
       while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
 
@@ -147,6 +147,142 @@ void Model::run() {
 
 }
 
+void Model::first_stage_ols(
+    const Eigen::MatrixXd &X_complete1,
+    const Eigen::VectorXd &y_complete,
+    Eigen::VectorXd &fs_se, Eigen::VectorXd &fs_fit,
+    double &pval, double &t_stat
+) {
+
+  spdlog::debug("Checking for rank deficiency for first fit, thread = {}", omp_get_thread_num());
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr1(X_complete1);
+  if (qr1.rank() < X_complete1.cols()) {
+    throw std::runtime_error("Rank deficiency");
+  }
+  spdlog::debug("Estimating first stage model using OLS regression, thread = {}", omp_get_thread_num());
+  fs_fit = qr1.solve(y_complete);
+  Eigen::VectorXd fs_fitted = X_complete1 * fs_fit;
+  Eigen::VectorXd fs_resid = y_complete - fs_fitted;
+
+  // se
+  spdlog::debug("Estimating SE, thread = {}", omp_get_thread_num());
+  double fs_sig2 = fs_resid.squaredNorm();
+  long fs_df = X_complete1.rows() - X_complete1.cols();
+  Eigen::MatrixXd fs_vcov = (X_complete1.transpose() * X_complete1).inverse();
+  fs_se = (fs_vcov * (fs_sig2 / fs_df)).diagonal().cwiseSqrt();
+
+  // pval
+  spdlog::debug("Estimating P, thread = {}", omp_get_thread_num());
+  t_stat = fs_fit(1, 0) / fs_se(1, 0);
+  boost::math::students_t t_dist(fs_df);
+  pval = 2.0 * boost::math::cdf(boost::math::complement(t_dist, fabs(t_stat)));
+}
+void Model::first_stage_lad(
+    const Eigen::MatrixXd &X_complete1,
+    const Eigen::VectorXd &y_complete,
+    const Eigen::VectorXd &fs_fit,
+    Eigen::VectorXd &fs_resid2,
+    double &theta
+) {
+  spdlog::debug("Fitting quantile model, thread = {}", omp_get_thread_num());
+  Eigen::VectorXd fs_fit_lad = CqrReg::QRMM::fit(X_complete1, y_complete, fs_fit, 0.001, 200, 0.5);
+  Eigen::VectorXd fs_fitted = X_complete1 * fs_fit_lad;
+  Eigen::VectorXd fs_resid = y_complete - fs_fitted;
+  // estimate absolute residuals
+  fs_resid2 = fs_resid.array().abs();
+  theta = fs_fit_lad(1, 0);
+}
+void Model::second_stage(
+    const Eigen::MatrixXd &X_complete2,
+    const Eigen::VectorXd &fs_resid2,
+    Eigen::VectorXd &ss_resid,
+    Eigen::VectorXd &ss_fit
+) {
+  spdlog::debug("Estimating second stage model, thread = {}", omp_get_thread_num());
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr2(X_complete2);
+  if (qr2.rank() < X_complete2.cols()) {
+    throw std::runtime_error("Rank deficiency");
+  }
+  ss_fit = qr2.solve(fs_resid2);
+  Eigen::VectorXd ss_fitted = X_complete2 * ss_fit;
+  ss_resid = fs_resid2 - ss_fitted;
+  Eigen::VectorXd ss_resid2 = ss_resid.array().square();
+}
+Eigen::MatrixXd Model::white_vcov(const Eigen::MatrixXd &X_complete2, const Eigen::VectorXd &ss_resid) {
+  spdlog::debug("Estimating robust SE, thread = {}", omp_get_thread_num());
+  Eigen::MatrixXd hc_vcov = (X_complete2.transpose() * X_complete2).inverse() * X_complete2.transpose()
+      * ss_resid.cwiseProduct(ss_resid).asDiagonal() * X_complete2 * (X_complete2.transpose() * X_complete2).inverse();
+  return (hc_vcov);
+}
+void Model::delta_method(const Eigen::VectorXd &ss_fit,
+                         const Eigen::MatrixXd &hc_vcov,
+                         double &s1_dummy,
+                         double &s2_dummy) {
+  spdlog::debug("Preparing partial derivatives for deltamethod, thread = {}", omp_get_thread_num());
+  const double pi = boost::math::constants::pi<double>();
+  Eigen::MatrixXd grad1 = Eigen::MatrixXd(3, 1);
+  grad1(0, 0) = 0;
+  grad1(1, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(1, 0)) / (2 / pi);
+  grad1(2, 0) = 0;
+  Eigen::MatrixXd grad2 = Eigen::MatrixXd(3, 1);
+  grad2(0, 0) = 0;
+  grad2(1, 0) = 0;
+  grad2(2, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(2, 0)) / (2 / pi);
+
+  spdlog::debug("Estimating HC SE_1 using the deltamethod, thread = {}", omp_get_thread_num());
+  Eigen::MatrixXd s1_hc0 = grad1.transpose() * hc_vcov * grad1;
+  spdlog::debug("Estimating s1_dummy, thread = {}", omp_get_thread_num());
+  s1_dummy = sqrt(s1_hc0(0, 0));
+  spdlog::debug("Estimating HC SE_2 using the deltamethod, thread = {}", omp_get_thread_num());
+  Eigen::MatrixXd s2_hc0 = grad2.transpose() * hc_vcov * grad2;
+  spdlog::debug("Estimating s2_dummy, thread = {}", omp_get_thread_num());
+  s2_dummy = sqrt(s2_hc0(0, 0));
+}
+void Model::null_fit(const Eigen::MatrixXd &X_complete2,
+                     const Eigen::VectorXd &fs_resid2,
+                     double &phi_pval,
+                     double &f,
+                     int n,
+                     const Eigen::VectorXd &ss_resid) {
+  spdlog::debug("Preparing null model, thread = {}", omp_get_thread_num());
+  std::vector<unsigned> covariates_to_keep;
+  for (unsigned i = 0; i < X_complete2.cols(); ++i) {
+    // drop x==1 and x==2 but keep intercept & all covariates
+    if (i == 1 || i == 2) {
+      continue;
+    } else {
+      covariates_to_keep.push_back(i);
+    }
+  }
+  Eigen::MatrixXd X_complete3 = X_complete2(Eigen::all, covariates_to_keep).eval();
+  spdlog::debug("Fitting null model, thread = {}", omp_get_thread_num());
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr3(X_complete3);
+  if (qr3.rank() < X_complete3.cols()) {
+    throw std::runtime_error("Rank deficiency");
+  }
+  Eigen::VectorXd null_fit = qr3.solve(fs_resid2);
+  spdlog::debug("Estimating variance of the null model, thread = {}", omp_get_thread_num());
+  Eigen::VectorXd null_fitted = X_complete3 * null_fit;
+  Eigen::VectorXd null_resid = fs_resid2 - null_fitted;
+  Eigen::VectorXd null_resid2 = null_resid.array().square();
+  // F-test
+  // adapted from http://people.reed.edu/~jones/Courses/P24.pdf
+  spdlog::debug("F-test, thread = {}", omp_get_thread_num());
+  int df_f = n - X_complete2.cols();
+  spdlog::debug("DF full model " + std::to_string(df_f) + ", thread = {}", omp_get_thread_num());
+  int df_r = n - X_complete3.cols();
+  spdlog::debug("DF restricted model " + std::to_string(df_r) + ", thread = {}", omp_get_thread_num());
+  int df_n = df_r - df_f;
+  double rss_f = ss_resid.squaredNorm();
+  double rss_r = null_resid.squaredNorm();
+  f = ((rss_r - rss_f) / (df_r - df_f)) / (rss_f / df_f);
+  if (f < 0) {
+    throw std::runtime_error("Invalid F-stat");
+  }
+  boost::math::fisher_f f_dist(df_n, df_f);
+  phi_pval = boost::math::cdf(boost::math::complement(f_dist, f));
+}
+
 Result Model::fit(std::string &chromosome,
                   uint32_t position,
                   std::string &rsid,
@@ -189,6 +325,7 @@ Result Model::fit(std::string &chromosome,
   if (dosages.size() != X1.rows()) {
     throw std::runtime_error("Number of dosage values does not match number of participants");
   }
+  spdlog::debug("Preparing matrices, thread = {}", omp_get_thread_num());
   int j = 0;
   for (unsigned i = 0; i < dosages.size(); i++) {
     if (dosages[i] == -1) {
@@ -220,145 +357,60 @@ Result Model::fit(std::string &chromosome,
   Eigen::MatrixXd X_complete1 = X1(non_null_idx_vec, Eigen::all).eval();
   Eigen::MatrixXd X_complete2 = X2(non_null_idx_vec, Eigen::all).eval();
   Eigen::VectorXd y_complete = y(non_null_idx_vec, Eigen::all).eval();
-  int n = X_complete1.rows();
+  res.n = X_complete1.rows();
 
   // filter out low MAF
   res.eaf = X_complete1.col(1).mean() * 0.5;
   if (res.eaf < maf_threshold || (1 - res.eaf) < maf_threshold) {
-    spdlog::warn("Skipping variant " + res.rsid + " with EAF of " + std::to_string(res.eaf) + ", thread = {}", omp_get_thread_num());
+    spdlog::warn("Skipping variant " + res.rsid + " with EAF of " + std::to_string(res.eaf) + ", thread = {}",
+                 omp_get_thread_num());
     return res;
   }
 
-  // first stage model
-  spdlog::debug("Checking for rank deficiency for first fit, thread = {}", omp_get_thread_num());
-  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr1(X_complete1);
-  if (qr1.rank() < X_complete1.cols()) {
+  // first stage model ols
+  Eigen::VectorXd fs_se;
+  Eigen::VectorXd fs_fit;
+  try {
+    Model::first_stage_ols(X_complete1, y_complete, fs_se, fs_fit, res.pval, res.t);
+    res.beta = fs_fit(1, 0);
+    res.se = fs_se(1, 0);
+  }
+  catch (...) {
     return res;
   }
-  spdlog::debug("Estimating first stage model using OLS regression, thread = {}", omp_get_thread_num());
-  Eigen::VectorXd fs_fit = qr1.solve(y_complete);
-  Eigen::VectorXd fs_fitted = X_complete1 * fs_fit;
-  Eigen::VectorXd fs_resid = y_complete - fs_fitted;
-
-  // se
-  spdlog::debug("Estimating SE, thread = {}", omp_get_thread_num());
-  double fs_sig2 = fs_resid.squaredNorm();
-  long fs_df = X_complete1.rows() - X_complete1.cols();
-  Eigen::MatrixXd fs_vcov = (X_complete1.transpose() * X_complete1).inverse();
-  Eigen::VectorXd fs_se = (fs_vcov * (fs_sig2 / fs_df)).diagonal().cwiseSqrt();
-
-  // pval
-  spdlog::debug("Estimating P, thread = {}", omp_get_thread_num());
-  double t_stat = fs_fit(1, 0) / fs_se(1, 0);
-  boost::math::students_t t_dist(fs_df);
-  double pval = 2.0 * boost::math::cdf(boost::math::complement(t_dist, fabs(t_stat)));
 
   // LAD regression
-  spdlog::debug("Fitting quantile model, thread = {}", omp_get_thread_num());
-  Eigen::VectorXd fs_fit_lad = CqrReg::QRMM::fit(X_complete1, y_complete, fs_fit, 0.001, 200, 0.5);
-  fs_fitted = X_complete1 * fs_fit_lad;
-  fs_resid = y_complete - fs_fitted;
-  // estimate absolute residuals
-  Eigen::VectorXd fs_resid2 = fs_resid.array().abs();
+  Eigen::VectorXd fs_resid2;
+  Model::first_stage_lad(X_complete1, y_complete, fs_fit, fs_resid2, res.theta);
 
   // second stage model
-  spdlog::debug("Estimating second stage model, thread = {}", omp_get_thread_num());
-  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr2(X_complete2);
-  if (qr2.rank() < X_complete2.cols()) {
+  Eigen::VectorXd ss_resid;
+  Eigen::VectorXd ss_fit;
+  try {
+    Model::second_stage(X_complete2, fs_resid2, ss_resid, ss_fit);
+  }
+  catch (...) {
     return res;
   }
-  Eigen::VectorXd ss_fit = qr2.solve(fs_resid2);
-  Eigen::VectorXd ss_fitted = X_complete2 * ss_fit;
-  Eigen::VectorXd ss_resid = fs_resid2 - ss_fitted;
-  Eigen::VectorXd ss_resid2 = ss_resid.array().square();
 
   // HC0 White SE for second-stage estimates
-  spdlog::debug("Estimating robust SE, thread = {}", omp_get_thread_num());
-  double ss_sig2 = ss_resid.squaredNorm();
-  long ss_df = X_complete2.rows() - X_complete2.cols();
-  Eigen::MatrixXd hc_vcov = (X_complete2.transpose() * X_complete2).inverse() * X_complete2.transpose()
-      * ss_resid.cwiseProduct(ss_resid).asDiagonal() * X_complete2 * (X_complete2.transpose() * X_complete2).inverse();
-
-  spdlog::debug("Transforming MAD values to variance, thread = {}", omp_get_thread_num());
+  Eigen::MatrixXd hc_vcov = Model::white_vcov(X_complete2, ss_resid);
 
   // transform MAD estimates to variance effects (assuming normality)
-  double b1_dummy = (2 * ss_fit(0, 0) * ss_fit(1, 0) + pow (ss_fit(1, 0), 2.0)) / (2 / pi);
-  double b2_dummy = (2 * ss_fit(0, 0) * ss_fit(2, 0) + pow (ss_fit(2, 0), 2.0)) / (2 / pi);
+  spdlog::debug("Transforming MAD values to variance, thread = {}", omp_get_thread_num());
+  res.phi_x1 = (2 * ss_fit(0, 0) * ss_fit(1, 0) + pow(ss_fit(1, 0), 2.0)) / (2 / pi);
+  res.phi_x2 = (2 * ss_fit(0, 0) * ss_fit(2, 0) + pow(ss_fit(2, 0), 2.0)) / (2 / pi);
 
   // deltamethod to obtain the variance SE
-  spdlog::debug("Preparing partial derivatives for deltamethod, thread = {}", omp_get_thread_num());
-  Eigen::MatrixXd grad1 = Eigen::MatrixXd(3, 1);
-  grad1(0, 0) = 0;
-  grad1(1, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(1, 0))/(2/pi);
-  grad1(2, 0) = 0;
-  Eigen::MatrixXd grad2 = Eigen::MatrixXd(3, 1);
-  grad2(0, 0) = 0;
-  grad2(1, 0) = 0;
-  grad2(2, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(2, 0))/(2/pi);
-
-  spdlog::debug("Estimating HC SE_1 using the deltamethod, thread = {}", omp_get_thread_num());
-  Eigen::MatrixXd s1_hc0 = grad1.transpose() * hc_vcov * grad1;
-  spdlog::debug("Estimating s1_dummy, thread = {}", omp_get_thread_num());
-  double s1_dummy = sqrt(s1_hc0(0,0));
-  spdlog::debug("Estimating HC SE_2 using the deltamethod, thread = {}", omp_get_thread_num());
-  Eigen::MatrixXd s2_hc0 = grad2.transpose() * hc_vcov * grad2;
-  spdlog::debug("Estimating s2_dummy, thread = {}", omp_get_thread_num());
-  double s2_dummy = sqrt(s2_hc0(0,0));
+  Model::delta_method(ss_fit, hc_vcov, res.se_x1, res.se_x2);
 
   // null model (intercept & covariates)
-  spdlog::debug("Preparing null model, thread = {}", omp_get_thread_num());
-  std::vector<unsigned> covariates_to_keep;
-  for (unsigned i = 0; i < X_complete2.cols(); ++i) {
-    // drop x==1 and x==2 but keep intercept & all covariates
-    if (i == 1 || i == 2) {
-      continue;
-    } else {
-      covariates_to_keep.push_back(i);
-    }
+  try {
+    Model::null_fit(X_complete2, fs_resid2, res.phi_pval, res.phi_f, res.n, ss_resid);
   }
-  Eigen::MatrixXd X_complete3 = X_complete2(Eigen::all, covariates_to_keep).eval();
-  spdlog::debug("Fitting null model, thread = {}", omp_get_thread_num());
-  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr3(X_complete3);
-  if (qr3.rank() < X_complete3.cols()) {
+  catch (...) {
     return res;
   }
-  Eigen::VectorXd null_fit = qr3.solve(fs_resid2);
-  spdlog::debug("Estimating variance of the null model, thread = {}", omp_get_thread_num());
-  Eigen::VectorXd null_fitted = X_complete3 * null_fit;
-  Eigen::VectorXd null_resid = fs_resid2 - null_fitted;
-  Eigen::VectorXd null_resid2 = null_resid.array().square();
-
-  // F-test
-  // adapted from http://people.reed.edu/~jones/Courses/P24.pdf
-  spdlog::debug("F-test, thread = {}", omp_get_thread_num());
-  int df_f = n - X_complete2.cols();
-  spdlog::debug("DF full model " + std::to_string(df_f) + ", thread = {}", omp_get_thread_num());
-  int df_r = n - X_complete3.cols();
-  spdlog::debug("DF restricted model " + std::to_string(df_r) + ", thread = {}", omp_get_thread_num());
-  int df_n = df_r - df_f;
-  double rss_f = ss_resid.squaredNorm();
-  double rss_r = null_resid.squaredNorm();
-  double f = ((rss_r - rss_f) / (df_r - df_f)) / (rss_f / df_f);
-  if (f < 0) {
-    return res;
-  }
-  boost::math::fisher_f f_dist(df_n, df_f);
-  double phi_pval = boost::math::cdf(boost::math::complement(f_dist, f));
-
-  // set results
-  spdlog::debug("Setting results, thread = {}", omp_get_thread_num());
-  res.beta = fs_fit(1, 0);
-  res.se = fs_se(1, 0);
-  res.t = t_stat;
-  res.pval = pval;
-  res.theta = fs_fit_lad(1, 0);
-  res.phi_x1 = b1_dummy;
-  res.phi_x2 = b2_dummy;
-  res.se_x1 = s1_dummy;
-  res.se_x2 = s2_dummy;
-  res.phi_f = f;
-  res.phi_pval = phi_pval;
-  res.n = n;
 
   return res;
 }
