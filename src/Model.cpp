@@ -23,6 +23,12 @@
 namespace vargwas {
 
 void Model::run() {
+  std::string chromosome;
+  uint32_t position;
+  std::string rsid;
+  std::vector<std::string> alleles;
+  std::vector<std::vector<double>> probs;
+  std::vector<double> dosages;
   spdlog::info("Using {} thread(s)", _threads);
   omp_set_num_threads(_threads);
 
@@ -56,16 +62,9 @@ void Model::run() {
     file << "chr\tpos\trsid\toa\tea\tn\teaf\tbeta\tse\tt\tp\ttheta\tphi_x1\tse_x1\tphi_x2\tse_x2\tphi_f\tphi_p"
          << std::endl;
     file.flush();
-#pragma omp parallel default(none) shared(file, X1, X2, y)
+#pragma omp parallel default(none) shared(file, X1, X2, y) private(chromosome, position, rsid, alleles, probs, dosages)
     {
 #pragma omp master
-      std::string chromosome;
-      uint32_t position;
-      std::string rsid;
-      std::vector<std::string> alleles;
-      std::vector<std::vector<double>> probs;
-      std::vector<double> dosages;
-
       // Read variant-by-variant
       while (_bgen_parser.read_variant(&chromosome, &position, &rsid, &alleles)) {
 
