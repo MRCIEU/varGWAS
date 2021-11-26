@@ -28,13 +28,16 @@ class Model {
         std::set<unsigned> &non_null_idx,
         std::string &output_file,
         int threads,
-        double maf_threshold)
+        double maf_threshold,
+        bool flip)
       : _phenotype_file(phenotype_file),
         _bgen_parser(bgen_parser),
         _non_null_idx(non_null_idx),
         _output_file(output_file),
         _threads(threads),
-        _maf_threshold(maf_threshold) {}
+        _maf_threshold(maf_threshold),
+        _flip(flip)
+        {}
   void run();
   static Result fit(std::string &chromosome,
                     uint32_t position,
@@ -53,6 +56,7 @@ class Model {
   std::set<unsigned> &_non_null_idx;
   int _threads;
   double _maf_threshold;
+  bool _flip;
   std::string &_output_file;
   static void first_stage_ols(
       const Eigen::MatrixXd &X_complete1,

@@ -29,6 +29,7 @@ void Model::run() {
   std::vector<std::string> alleles;
   std::vector<std::vector<double>> probs;
   std::vector<double> dosages;
+  std::string a0, a1;
   spdlog::info("Using {} thread(s)", _threads);
   omp_set_num_threads(_threads);
 
@@ -62,7 +63,7 @@ void Model::run() {
     file << "chr\tpos\trsid\toa\tea\tn\teaf\tbeta\tse\tt\tp\ttheta\tphi_x1\tse_x1\tphi_x2\tse_x2\tphi_f\tphi_p"
          << std::endl;
     file.flush();
-#pragma omp parallel default(none) shared(file, X1, X2, y) private(chromosome, position, rsid, alleles, probs, dosages)
+#pragma omp parallel default(none) shared(file, X1, X2, y) private(chromosome, position, rsid, alleles, probs, dosages, a0, a1)
     {
 #pragma omp master
       // Read variant-by-variant
@@ -72,6 +73,14 @@ void Model::run() {
         if (alleles.size() != 2) {
           spdlog::warn("Skipping multi-allelic variant: {}, thread = {}", rsid, omp_get_thread_num());
           continue;
+        }
+
+        if (_flip) {
+          a0 = alleles[1];
+          a1 = alleles[0];
+        } else {
+          a0 = alleles[0];
+          a1 = alleles[1];
         }
 
         // convert probabilities to dosage values
@@ -98,7 +107,11 @@ void Model::run() {
           if ((prob[0] == -1 && prob[1] == -1 && prob[2] == -1) || (prob[0] == 0 && prob[1] == 0 && prob[2] == 0)) {
             dosages.push_back(-1);
           } else {
-            dosages.push_back(prob[1] + (2 * prob[0]));
+            if (_flip) {
+              dosages.push_back(prob[1] + (2 * prob[2]));
+            } else {
+              dosages.push_back(prob[1] + (2 * prob[0]));
+            }
           }
         }
 
@@ -115,8 +128,8 @@ void Model::run() {
               res = fit(chromosome,
                         position,
                         rsid,
-                        alleles[0],
-                        alleles[1],
+                        a0,
+                        a1,
                         dosages,
                         _non_null_idx,
                         X1,
@@ -219,14 +232,29 @@ void Model::delta_method(const Eigen::VectorXd &ss_fit,
                          double &s2_dummy) {
   spdlog::debug("Preparing partial derivatives for deltamethod, thread = {}", omp_get_thread_num());
   const double pi = boost::math::constants::pi<double>();
-  Eigen::MatrixXd grad1 = Eigen::MatrixXd(3, 1);
-  grad1(0, 0) = 0;
-  grad1(1, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(1, 0)) / (2 / pi);
-  grad1(2, 0) = 0;
-  Eigen::MatrixXd grad2 = Eigen::MatrixXd(3, 1);
-  grad2(0, 0) = 0;
-  grad2(1, 0) = 0;
-  grad2(2, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(2, 0)) / (2 / pi);
+
+  Eigen::MatrixXd grad1 = Eigen::MatrixXd(ss_fit.rows(), 1);
+  grad1(0, 0) = 0; // intercept
+  grad1(1, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(1, 0)) / (2 / pi); // SNP=1
+  grad1(2, 0) = 0; // SNP=2
+
+  Eigen::MatrixXd grad2 = Eigen::MatrixXd(ss_fit.rows(), 1);
+  grad2(0, 0) = 0; // intercept
+  grad2(1, 0) = 0; // SNP=1
+  grad2(2, 0) = (2 * ss_fit(0, 0) + 2 * ss_fit(2, 0)) / (2 / pi); // SNP=2
+
+  // fill in covariates as zeros
+  for (unsigned j = 3; j < ss_fit.rows(); j++) {
+    grad1(j, 0) = 0;
+    grad2(j, 0) = 0;
+  }
+
+  if (grad1.rows() != ss_fit.rows()) {
+    throw std::runtime_error("Number of observations for G1 and X differ");
+  }
+  if (grad2.rows() != ss_fit.rows()) {
+    throw std::runtime_error("Number of observations for G2 and X differ");
+  }
 
   spdlog::debug("Estimating HC SE_1 using the deltamethod, thread = {}", omp_get_thread_num());
   Eigen::MatrixXd s1_hc0 = grad1.transpose() * hc_vcov * grad1;
