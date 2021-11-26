@@ -19,6 +19,18 @@ for (t in c(1,2,4,8)){
         # simulate covariates
         data <- data.frame(
             S = paste0("S", seq(1, n_obs)),
+            Age = rnorm(n_obs),
+            Sex = rbinom(n_obs, 2, .5),
+            PC1 = rnorm(n_obs),
+            PC2 = rnorm(n_obs),
+            PC3 = rnorm(n_obs),
+            PC4 = rnorm(n_obs),
+            PC5 = rnorm(n_obs),
+            PC6 = rnorm(n_obs),
+            PC7 = rnorm(n_obs),
+            PC8 = rnorm(n_obs),
+            PC9 = rnorm(n_obs),
+            PC10 = rnorm(n_obs),
             Y = rnorm(n_obs),
             stringsAsFactors=F
         )
