@@ -29,6 +29,7 @@ void Model::run() {
   std::vector<std::string> alleles;
   std::vector<std::vector<double>> probs;
   std::vector<double> dosages;
+  std::string a0, a1;
   spdlog::info("Using {} thread(s)", _threads);
   omp_set_num_threads(_threads);
 
@@ -62,7 +63,7 @@ void Model::run() {
     file << "chr\tpos\trsid\toa\tea\tn\teaf\tbeta\tse\tt\tp\ttheta\tphi_x1\tse_x1\tphi_x2\tse_x2\tphi_f\tphi_p"
          << std::endl;
     file.flush();
-#pragma omp parallel default(none) shared(file, X1, X2, y) private(chromosome, position, rsid, alleles, probs, dosages)
+#pragma omp parallel default(none) shared(file, X1, X2, y) private(chromosome, position, rsid, alleles, probs, dosages, a0, a1)
     {
 #pragma omp master
       // Read variant-by-variant
@@ -74,12 +75,12 @@ void Model::run() {
           continue;
         }
 
-        if (flip) {
-          std::string a0 = alleles[1];
-          std::string a1 = alleles[0];
+        if (_flip) {
+          a0 = alleles[1];
+          a1 = alleles[0];
         } else {
-          std::string a0 = alleles[0];
-          std::string a1 = alleles[1];
+          a0 = alleles[0];
+          a1 = alleles[1];
         }
 
         // convert probabilities to dosage values
@@ -106,7 +107,7 @@ void Model::run() {
           if ((prob[0] == -1 && prob[1] == -1 && prob[2] == -1) || (prob[0] == 0 && prob[1] == 0 && prob[2] == 0)) {
             dosages.push_back(-1);
           } else {
-            if (flip) {
+            if (_flip) {
               dosages.push_back(prob[1] + (2 * prob[2]));
             } else {
               dosages.push_back(prob[1] + (2 * prob[0]));
