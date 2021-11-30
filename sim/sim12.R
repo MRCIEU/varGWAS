@@ -18,7 +18,7 @@ n_obs <- 10000
 n_sim <- 1000
 af <- 0.4
 
-# main effect size of X on Y detectable with 95% CI
+# main effect size of X on Y detectable with 95% power
 delta <- 0.0525
 theta <- delta * opt$phi
 
