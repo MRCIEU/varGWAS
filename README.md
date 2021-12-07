@@ -9,3 +9,7 @@ Software to perform genome-wide association study of SNP effects on trait varian
 ## Documentation
 
 Full documentation available from <https://mrcieu.github.io/varGWAS>
+
+## R
+
+R-package also available from https://github.com/MRCIEU/varGWASR
