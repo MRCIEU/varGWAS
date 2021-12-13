@@ -75,3 +75,5 @@ for (lambda in c(5, 50, 500)) {
     results <- rbind(results, phi_pr)
   }
 }
+
+# plot results
