@@ -130,3 +130,6 @@ cat */sim12_*csv | grep -v b1_dummy >> results.csv
 ## Sim13 - Adjusting the variance effect for the interaction
 
 Including U + XU in the second-stage model then the variance effect attenuates
+
+## Sim14 - Power to detect interaction: variance vs regression test for increasing modifiers
+
