@@ -70,6 +70,7 @@ for (lambda in c(1, 10, 100, 1000)) {
 
 # plot results
 results$lambda <- as.factor(results$lambda)
+pdf("sim14.pdf")
 ggplot(data=results, aes(x=lambda, y=estimate, ymin=conf.low, ymax=conf.high, group=model)) +
     geom_line() + 
     geom_point() + 
@@ -84,3 +85,4 @@ ggplot(data=results, aes(x=lambda, y=estimate, ymin=conf.low, ymax=conf.high, gr
         strip.background = element_blank(),
         legend.title.align=0.5
     )
+dev.off()
