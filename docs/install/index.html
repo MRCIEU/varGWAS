@@ -53,7 +53,21 @@
                 <ul class="current">
                     <li class="toctree-l1 current"><a class="reference internal current" href="./">Install</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#precompiled-binary">Precompiled binary</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#build-from-source">Build from source</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#docker">Docker</a>
+    </li>
     </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../usage/">Usage</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../tutorial/">Tutorial</a>
                     </li>
                 </ul>
       </div>
@@ -90,83 +104,54 @@
             <div class="section">
               
                 <h1 id="install">Install</h1>
-<p>Requires UNIX environment</p>
-<p>SRC</p>
+<h2 id="precompiled-binary">Precompiled binary</h2>
+<p>The precompiled binary for Linux systems can be downloaded from <a href="https://github.com/MRCIEU/varGWAS/releases">GitHub</a>. This is the simplest method and will work for most users.</p>
+<h2 id="build-from-source">Build from source</h2>
+<p>Obtain source</p>
 <pre><code class="language-shell">git clone git@github.com:MRCIEU/varGWAS.git
 cd varGWAS
 </code></pre>
-<p>Libraries</p>
+<p>Load compiler (may be necessary on HPC systems). Tested with GCC v7 &amp; v9.</p>
+<pre><code class="language-shell"># BlueCrystal Phase 4
+module load languages/gcc/9.3.0
+module load tools/cmake/3.20.0
+</code></pre>
+<p>Build dependencies</p>
 <pre><code class="language-shell">bash lib.sh
 </code></pre>
+<p>Configure cmake</p>
+<pre><code class="language-shell">mkdir -p build
+cd build
+
+# use default compiler path
+cmake .. -DCMAKE_BUILD_TYPE=Release
+
+### OR ###
+
+# use custom compiler path
+CC=/mnt/storage/software/languages/gcc-9.3/bin/gcc \
+CXX=/mnt/storage/software/languages/gcc-9.3/bin/g++ \
+cmake .. -DCMAKE_BUILD_TYPE=Release
+</code></pre>
 <p>Build</p>
-<p>Tested with GCC v5 &amp; v6. <a href="http://www.aronaldg.org/webfiles/libscl/">Libscl</a> does not build with GCC &gt;=v7.</p>
-<pre><code class="language-shell">mkdir -p build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make
+<pre><code class="language-shell">make
 </code></pre>
-<p>Note on HPC systems you may need to explicitly set the compiler path</p>
-<pre><code class="language-shell"># BC4
-module load build/gcc-5.5.0
-module load tools/cmake/3.20.0
-CC=/mnt/storage/software/languages/gcc-5.5.0/bin/gcc \
-CXX=/mnt/storage/software/languages/gcc-5.5.0/bin/g++ \
-cmake .. -DCMAKE_BUILD_TYPE=Release
+<p>Run</p>
+<pre><code class="language-shell">./bin/varGWAS
 </code></pre>
-<h1 id="usage">Usage</h1>
-<pre><code class="language-shell">./varGWAS
-
-Program to perform vGWAS of trait against variants in the BGEN format
-Usage:
-  varGWAS C++ v1.0.0 [OPTION...]
-
-  -v, --variable_file arg  Path to phenotype file
-  -s, --sep arg            File separator
-  -c, --covariates arg     List of covariates column names separated by a comma (whitespace and quotes are not permitted).
-  -o, --output_file arg    Path to output file
-  -b, --bgen_file arg      Path to BGEN file
-  -p, --phenotype arg      Column name for phenotype
-  -i, --id arg             Column name for genotype identifier
-  -r, --robust             Robust method using median value (Brown-Forsythe)
-  -h, --help               Print usage
-  -t, --threads arg        Number of threads (default: 8)
+<h2 id="docker">Docker</h2>
+<p>Image</p>
+<pre><code class="language-shell"># pull image from Dockerhub
+docker pull mrcieu/vargwas
+### OR ###
+# Build image from source
+docker build -t vargwas .
 </code></pre>
-<ul>
-<li>Unordered categorical variables should be one-hot encoded.</li>
-<li>Do not provide null values in the phenotype file - these should be filtered out.</li>
-</ul>
-<h1 id="docker">Docker</h1>
-<p>Build image</p>
-<pre><code class="language-shell">docker build -t varGWAS .
-</code></pre>
-<p>Perform GWAS</p>
+<p>Run</p>
 <pre><code class="language-shell">docker run \
--v /Users/ml18692/projects/varGWAS/test/data:/data \
--e SPDLOG_LEVEL=debug \
--it varGWAS \
--v /data/phenotypes.csv \
--s , \
--c sex,age,PC.1,PC.2,PC.3,PC.4,PC.5,PC.6,PC.7,PC.8,PC.9,PC.10 \
--o /data/output.txt \
--b /data/genotypes.bgen \
--p Y \
--i S \
--t 1
-</code></pre>
-<h1 id="unit-tests">Unit tests</h1>
-<p>Run unit tests</p>
-<pre><code class="language-shell">mkdir -p build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug
-make
-</code></pre>
-<h1 id="simulation">Simulation</h1>
-<p>See <a href="./sim/README.md">README</a></p>
-<h1 id="logging">Logging</h1>
-<p>By default logging level is set to INFO. This can be overidden using environmental variables. See details on
-the <a href="https://github.com/gabime/spdlog#load-log-levels-from-env-variable-or-from-argv">spdlog</a> page.</p>
-<pre><code class="language-shell">export SPDLOG_LEVEL=debug
-./varGWAS
+-it \
+-v $PWD:/home \
+mrcieu/vargwas
 </code></pre>
               
             </div>
@@ -174,6 +159,8 @@ the <a href="https://github.com/gabime/spdlog#load-log-levels-from-env-variable-
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../usage/" class="btn btn-neutral float-right" title="Usage">Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href=".." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -204,6 +191,8 @@ the <a href="https://github.com/gabime/spdlog#load-log-levels-from-env-variable-
     
       <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
     
+    
+      <span><a href="../usage/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
