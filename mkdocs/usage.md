@@ -7,7 +7,7 @@ Requires UNIX environment. Use [Docker](install.md#Docker) for Windows.
 
 Program to perform GWAS of trait variability against variants in the BGEN format
 Usage:
-  varGWAS v1.2.1 [OPTION...]
+  varGWAS v1.2.3 [OPTION...]
 
   -v, --variable_file arg  Path to phenotype file
   -s, --sep arg            File separator
@@ -17,8 +17,9 @@ Usage:
   -p, --phenotype arg      Column name for phenotype
   -i, --id arg             Column name for genotype identifier
   -m, --maf arg            Filter out variants with a MAF below this threshold
+  -f, --flip               Flip alleles
   -h, --help               Print usage
-  -t, --threads arg        Number of threads
+  -t, --threads arg        Number of threads (default: 8)
 ```
 
 ## Phenotypes
