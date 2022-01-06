@@ -13,3 +13,7 @@ Full documentation available from <https://mrcieu.github.io/varGWAS>
 ## R
 
 R-package also available from https://github.com/MRCIEU/varGWASR
+
+## Citation
+
+Lyon M, Millard L, Davey Smith G, Gaunt T, Tilling K. Hypothesis-free detection of gene-interaction effects on biomarker concentration in UK Biobank using variance prioritisation. MedRxiv (2022). <https://doi.org/10.1101/2022.01.05.21268406>
