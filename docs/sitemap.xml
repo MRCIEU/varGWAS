@@ -2,22 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://mrcieu.github.io/varGWAS/</loc>
-         <lastmod>2022-01-06</lastmod>
+         <lastmod>2022-01-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mrcieu.github.io/varGWAS/install/</loc>
-         <lastmod>2022-01-06</lastmod>
+         <lastmod>2022-01-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mrcieu.github.io/varGWAS/tutorial/</loc>
-         <lastmod>2022-01-06</lastmod>
+         <lastmod>2022-01-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mrcieu.github.io/varGWAS/usage/</loc>
-         <lastmod>2022-01-06</lastmod>
+         <lastmod>2022-01-10</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
