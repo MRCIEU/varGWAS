@@ -70,13 +70,13 @@ for (i in 1:n_sim) {
 
 estimates0 <- results %>% 
     dplyr::group_by(model) %>% 
-    dplyr::summarise(t.test(results$v0) %>% tidy %>% dplyr::mutate(genotype="0"))
+    dplyr::summarise(t.test(v0) %>% tidy %>% dplyr::mutate(genotype="0"))
 estimates1 <- results %>% 
     dplyr::group_by(model) %>% 
-    dplyr::summarise(t.test(results$v1) %>% tidy %>% dplyr::mutate(genotype="1"))
+    dplyr::summarise(t.test(v1) %>% tidy %>% dplyr::mutate(genotype="1"))
 estimates2 <- results %>% 
     dplyr::group_by(model) %>% 
-    dplyr::summarise(t.test(results$v2) %>% tidy %>% dplyr::mutate(genotype="2"))
+    dplyr::summarise(t.test(v2) %>% tidy %>% dplyr::mutate(genotype="2"))
 estimates <- rbind(
     estimates0,estimates1,estimates2
 )
@@ -100,31 +100,35 @@ for (i in 1:n_sim){
         fit <- lm(y ~ x)
         d <- resid(fit)
         d2 <- d^2
-        fit <- lm(d2 ~ x2) %>% tidy %>% dplyr::filter(term == "x2")
-        fit$var1 <- var(y[x==1]) - var(y[x==0])
-        fit$var2 <- var(y[x==2]) - var(y[x==0])
-        fit$phi <- phi
-        results <- rbind(results, fit)
+        res <- data.frame(
+            var0=var(y[x==0]),
+            var1=var(y[x==1]),
+            var2=var(y[x==2])
+        )
+        fit <- lm(d2 ~ x2)
+        b0 <- fit %>% tidy %>% dplyr::filter(term == "(Intercept)") %>% dplyr::pull(estimate)
+        b1 <- fit %>% tidy %>% dplyr::filter(term == "x2") %>% dplyr::pull(estimate)
+        res$e0 <- b0
+        res$e1 <- b0 + b1 * 1
+        res$e2 <- b0 + b1 * 4
+        res$phi <- phi
+        results <- rbind(results, res)
     }
 }
 
-estimate <- results %>% dplyr::group_by(phi) %>%
-    dplyr::summarise(t.test(estimate) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::mutate(genotype="1"))
-vestimate <- results %>% dplyr::group_by(phi) %>%
-    dplyr::summarise(var=mean(var1)) %>% dplyr::select(var)
-vestimate2 <- results %>% dplyr::group_by(phi) %>%
-    dplyr::summarise(var=mean(var2))
-estimate <- cbind(estimate, vestimate)
-estimate2 <- estimate
-estimate2$estimate <- estimate2$estimate * 2
-estimate2$conf.low <- estimate2$conf.low * 2
-estimate2$conf.high <- estimate2$conf.high * 2
-estimate2$var <- vestimate2$var
-estimate2$genotype <- "2"
-estimate <- rbind(estimate, estimate2)
+var0 <- results %>% 
+    dplyr::group_by(phi) %>% 
+    dplyr::summarise(t.test(var0) %>% tidy %>% dplyr::mutate(genotype="0"))
+var1 <- results %>% 
+    dplyr::group_by(phi) %>% 
+    dplyr::summarise(t.test(var1) %>% tidy %>% dplyr::mutate(genotype="1"))
+var2 <- results %>% 
+    dplyr::group_by(phi) %>% 
+    dplyr::summarise(t.test(var2) %>% tidy %>% dplyr::mutate(genotype="2"))
+var_est <- rbind(var0, var1, var2)
 
 pdf("Quadratic_model.pdf")
-ggplot(estimate, aes(x=var, y=estimate, ymin=conf.low, ymax=conf.high)) +
+ggplot(estimates, aes(x=var, y=estimate, ymin=conf.low, ymax=conf.high)) +
     geom_point(position=position_dodge(width=0.3)) + geom_errorbar(width=.05) + theme_classic() + facet_wrap(~genotype, scales="free")
     labs(y="Variance (95% CI)",x="Genotype",shape="Model")
 dev.off()
