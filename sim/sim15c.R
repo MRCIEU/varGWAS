@@ -18,19 +18,10 @@ b <- 0.09 # main effect size to have 80% power
 #}
 #binom.test(sum(results$p.value<0.05),n_sim)
 
-results <- data.frame()
-for (i in 1:n_sim){
-    for (phi in seq(0, 12, 0.5)){
-        theta <- phi * b
-        x <- get_simulated_genotypes(q, n_obs)
-        u <- rnorm(n_obs)
-        y <- x*b + x*u*theta + u*0 + rnorm(n_obs)
-        results <- rbind(results, data.frame(
-            phi, var=var(y) - 1, u="None"
-        ))
-        y <- x*b + x*u*theta + u*b + rnorm(n_obs)
-        results <- rbind(results, data.frame(
-            phi, var=var(y) - 1, u="Detectable with 80% power"
-        ))
-    }
-}
+n_obs <- 100000
+x <- rnorm(n_obs)
+u <- rnorm(n_obs)
+y <- x + u + x*u + rnorm(n_obs)
+fit <- lm(y ~ x)
+d <- resid(fit)^2
+plot(x,d)
