@@ -133,3 +133,8 @@ Including U + XU in the second-stage model then the variance effect attenuates
 
 ## Sim14 - Power to detect interaction: variance vs regression test for increasing modifiers
 
+## Sim16 - Variance effect T1E - OLS adjusted BF vs LAD-BF
+
+- Does adjusting the variance model help control T1E from population stratification?
+- Does LAD-BF provide better adjustment of mean/variance model than BF?
+- Confounder = ancestry/population stratification
