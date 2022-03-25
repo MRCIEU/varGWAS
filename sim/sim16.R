@@ -9,17 +9,17 @@ library("varGWASR")
 source("funs.R")
 set.seed(123)
 
-n_sim <- 50
-n_obs <- 10000
+n_sim <- 1000
+n_obs <- 1000
 
 # Sim to evaluate population stratification effects on outcome variance and ability to adjust these effects using LAD-BF vs BF with OLS adjustment
 
 # genotype allele frequency by ancestral groups
-AF <- runif(10, min = 0.05, max = 0.5)
+AF <- runif(10, min = 0, max = 0.5)
 
 results <- data.frame()
-for (A_U1 in c(0, 0.05, 0.1, 0.15)) {
-    for (X_U2 in c(0, 0.01, 0.02, 0.05)) {
+for (A_U1 in c(0, 0.025, 0.05)) {
+    for (X_U2 in c(0, 0.025, 0.05)) {
         for (i in 1:n_sim){
             # simulate variables
 
@@ -28,6 +28,7 @@ for (A_U1 in c(0, 0.05, 0.1, 0.15)) {
 
             # genotype
             X <- sapply(A, function(a) {get_simulated_genotypes(AF[a], 1)})
+            maf <- mean(X) * .5
 
             # modifier
             U1 <- rnorm(n_obs)
@@ -36,7 +37,7 @@ for (A_U1 in c(0, 0.05, 0.1, 0.15)) {
             # outcome
             A <- scale(A)
             X <- scale(X)
-            Y <- A*sqrt(.1) + A*U1*sqrt(A_U1) + U1*sqrt(0.1) + X*sqrt(.05) + X*U2*sqrt(X_U2) + U2*sqrt(0.1) + rnorm(n_obs, sd=sqrt(1-(.1+A_U1+.1+0.05+X_U2+.1)))
+            Y <- A*sqrt(.05) + A*U1*sqrt(A_U1) + U1*sqrt(.05) + X*sqrt(.05) + X*U2*sqrt(X_U2) + U2*sqrt(.05) + rnorm(n_obs, sd=sqrt(1-(.05+A_U1+.05+0.05+X_U2+.05)))
             varY <- var(Y)
 
             data <- data.frame(
@@ -72,7 +73,7 @@ for (A_U1 in c(0, 0.05, 0.1, 0.15)) {
                 p_adj4=vargwas_model(data, "X", "Y", covar1 = c("A"), covar2 = c("A", "Asq")) %>% dplyr::pull("phi_p"),
                 p_bf0=leveneTest(data$Y, as.factor(data$X), center=median) %>% tidy %>% dplyr::filter(!is.na(p.value)) %>% dplyr::pull(p.value),
                 p_bf1=leveneTest(data$Y_A, as.factor(data$X), center=median) %>% tidy %>% dplyr::filter(!is.na(p.value)) %>% dplyr::pull(p.value),
-                A_U1,X_U2,varY
+                A_U1,X_U2,varY,maf
             )
 
             results <- rbind(results, res)
