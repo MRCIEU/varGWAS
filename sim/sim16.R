@@ -6,11 +6,13 @@ library("GWASTools")
 library("jlst")
 library("data.table")
 library("varGWASR")
+library("grid")
+library("gtable")
 source("funs.R")
 set.seed(123)
 
 n_sim <- 1000
-n_obs <- 1000
+n_obs <- 50
 
 # Sim to evaluate population stratification effects on outcome variance and ability to adjust these effects using LAD-BF vs BF with OLS adjustment
 
@@ -18,7 +20,7 @@ n_obs <- 1000
 AF <- runif(10, min = 0, max = 0.5)
 
 results <- data.frame()
-for (A_U1 in c(0, 0.025, 0.05)) {
+for (A_U1 in c(0, 0.05, 0.1)) {
     for (X_U2 in c(0, 0.025, 0.05)) {
         for (i in 1:n_sim){
             # simulate variables
@@ -37,7 +39,7 @@ for (A_U1 in c(0, 0.025, 0.05)) {
             # outcome
             A <- scale(A)
             X <- scale(X)
-            Y <- A*sqrt(.05) + A*U1*sqrt(A_U1) + U1*sqrt(.05) + X*sqrt(.05) + X*U2*sqrt(X_U2) + U2*sqrt(.05) + rnorm(n_obs, sd=sqrt(1-(.05+A_U1+.05+0.05+X_U2+.05)))
+            Y <- A*sqrt(.1) + A*U1*sqrt(A_U1) + U1*sqrt(.05) + X*sqrt(.05) + X*U2*sqrt(X_U2) + U2*sqrt(.05) + rnorm(n_obs, sd=sqrt(1-(.05+A_U1+.05+0.05+X_U2+.05)))
             varY <- var(Y)
 
             data <- data.frame(
@@ -94,7 +96,7 @@ r2 <- results %>%
         t.test(rsq.yu2) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(rsq.yu2="estimate", rsq.yu2.low="conf.low", rsq.yu2.high="conf.high")
     )
 
-# estimate T1E
+# estimate T1E/Power
 power <- results %>% 
     dplyr::group_by(A_U1, X_U2) %>%
     dplyr::summarize(
@@ -106,3 +108,71 @@ power <- results %>%
         binom.test(sum(p_bf0 < 0.05), n_sim) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(p_bf0="estimate", p_bf0.low="conf.low", p_bf0.high="conf.high"),
         binom.test(sum(p_bf1 < 0.05), n_sim) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(p_bf1="estimate", p_bf1.low="conf.low", p_bf1.high="conf.high")
     )
+
+long <- rbind(
+    power %>% dplyr::select(A_U1, X_U2, p_adj0, p_adj0.low, p_adj0.high) %>% dplyr::rename(estimate="p_adj0", conf.low="p_adj0.low", conf.high="p_adj0.high") %>% dplyr::mutate(estimand = "p_adj0"),
+    power %>% dplyr::select(A_U1, X_U2, p_adj1, p_adj1.low, p_adj1.high) %>% dplyr::rename(estimate="p_adj1", conf.low="p_adj1.low", conf.high="p_adj1.high") %>% dplyr::mutate(estimand = "p_adj1"),
+    power %>% dplyr::select(A_U1, X_U2, p_adj2, p_adj2.low, p_adj2.high) %>% dplyr::rename(estimate="p_adj2", conf.low="p_adj2.low", conf.high="p_adj2.high") %>% dplyr::mutate(estimand = "p_adj2"),
+    power %>% dplyr::select(A_U1, X_U2, p_adj3, p_adj3.low, p_adj3.high) %>% dplyr::rename(estimate="p_adj3", conf.low="p_adj3.low", conf.high="p_adj3.high") %>% dplyr::mutate(estimand = "p_adj3"),
+    power %>% dplyr::select(A_U1, X_U2, p_adj4, p_adj4.low, p_adj4.high) %>% dplyr::rename(estimate="p_adj4", conf.low="p_adj4.low", conf.high="p_adj4.high") %>% dplyr::mutate(estimand = "p_adj4"),
+    power %>% dplyr::select(A_U1, X_U2, p_bf0, p_bf0.low, p_bf0.high) %>% dplyr::rename(estimate="p_bf0", conf.low="p_bf0.low", conf.high="p_bf0.high") %>% dplyr::mutate(estimand = "p_bf0"),
+    power %>% dplyr::select(A_U1, X_U2, p_bf1, p_bf1.low, p_bf1.high) %>% dplyr::rename(estimate="p_bf1", conf.low="p_bf1.low", conf.high="p_bf1.high") %>% dplyr::mutate(estimand = "p_bf1")
+)
+
+# plot
+long$estimand <- gsub("p_adj0", "    LAD-BF_1", long$estimand)
+long$estimand <- gsub("p_adj1", "    LAD-BF_2", long$estimand)
+long$estimand <- gsub("p_adj2", "    LAD-BF_3", long$estimand)
+long$estimand <- gsub("p_adj3", "    LAD-BF_4", long$estimand)
+long$estimand <- gsub("p_adj4", "    LAD-BF_5", long$estimand)
+long$estimand <- gsub("p_bf0", "    BF_1", long$estimand)
+long$estimand <- gsub("p_bf1", "    BF_2", long$estimand)
+p <- ggplot(long, aes(x=estimand, y=estimate, ymin=conf.low, ymax=conf.high)) +
+    geom_point() +
+    geom_errorbar(width=0.3) +
+    facet_grid(A_U1~X_U2) +
+    theme_classic()+
+    labs(y="Proportion P < 0.05 (95% CI)", x="Method") +
+    scale_y_continuous(limits = c(0, 1)) +
+    geom_hline(yintercept = 0.8, linetype = "dashed", color = "grey") +
+    geom_hline(yintercept = 0.05, linetype = "dashed", color = "grey") +
+    ggtitle("Variance explained by genotype interaction effect") +
+    theme(
+        strip.background = element_blank(),
+        legend.position = "bottom",
+        legend.background = element_blank(),
+        legend.box.background = element_rect(colour = "black"),
+        panel.spacing = unit(1, "lines"), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        plot.title = element_text(hjust = 0.5, size=11)
+    )
+
+# text, size, colour for added text
+text = "Variance explained by ancestry interaction effect"
+size = 11
+col = "black"
+
+# Convert the plot to a grob
+gt <- ggplot2::ggplotGrob(p)
+
+# Get the positions of the right strips in the layout: t = top, l = left, ...
+strip <-c(subset(gt$layout, grepl("strip-r", gt$layout$name), select = t:r))
+
+# Text grob
+text.grob = grid::textGrob(text, rot = -90, gp = gpar(fontsize = size, col = col))
+
+# New column to the right of current strip
+# Adjusts its width to text size
+width = unit(2, "grobwidth", text.grob) + unit(1, "lines")
+gt <- gtable::gtable_add_cols(gt, width, max(strip$r))  
+
+# Add text grob to new column
+gt <- gtable::gtable_add_grob(gt, text.grob, 
+        t = min(strip$t), l = max(strip$r) + 1, b = max(strip$b))
+    
+
+pdf("sim16.pdf")
+# Draw it
+grid.newpage()
+grid.draw(gt)
+dev.off()
