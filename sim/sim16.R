@@ -18,8 +18,8 @@ n_obs <- 10000
 AF <- runif(10, min = 0.05, max = 0.5)
 
 results <- data.frame()
-for (A_U1 in c(0, 0.1, 0.2)) {
-    for (X_U2 in c(0, 0.025, 0.05, 0.1)) {
+for (A_U1 in c(0, 0.05, 0.1, 0.15)) {
+    for (X_U2 in c(0, 0.01, 0.02, 0.05)) {
         for (i in 1:n_sim){
             # simulate variables
 
@@ -36,7 +36,8 @@ for (A_U1 in c(0, 0.1, 0.2)) {
             # outcome
             A <- scale(A)
             X <- scale(X)
-            Y <- A*sqrt(.2) + A*U1*sqrt(A_U1) + U1*sqrt(0.1) + X*sqrt(.05) + X*U2*sqrt(X_U2) + U2*sqrt(0.1) + rnorm(n_obs, sd=sqrt(1-(.2+A_U1+.1+0.05+X_U2+.1)))
+            Y <- A*sqrt(.1) + A*U1*sqrt(A_U1) + U1*sqrt(0.1) + X*sqrt(.05) + X*U2*sqrt(X_U2) + U2*sqrt(0.1) + rnorm(n_obs, sd=sqrt(1-(.1+A_U1+.1+0.05+X_U2+.1)))
+            varY <- var(Y)
 
             data <- data.frame(
                 A,
@@ -71,7 +72,7 @@ for (A_U1 in c(0, 0.1, 0.2)) {
                 p_adj4=vargwas_model(data, "X", "Y", covar1 = c("A"), covar2 = c("A", "Asq")) %>% dplyr::pull("phi_p"),
                 p_bf0=leveneTest(data$Y, as.factor(data$X), center=median) %>% tidy %>% dplyr::filter(!is.na(p.value)) %>% dplyr::pull(p.value),
                 p_bf1=leveneTest(data$Y_A, as.factor(data$X), center=median) %>% tidy %>% dplyr::filter(!is.na(p.value)) %>% dplyr::pull(p.value),
-                A_U1,X_U2
+                A_U1,X_U2,varY
             )
 
             results <- rbind(results, res)
@@ -79,9 +80,22 @@ for (A_U1 in c(0, 0.1, 0.2)) {
     }
 }
 
+# check R2 is correct
+r2 <- results %>%
+    dplyr::group_by(A_U1, X_U2) %>%
+    dplyr::summarize(
+        t.test(rsq.xa) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(rsq.xa="estimate", rsq.xa.low="conf.low", rsq.xa.high="conf.high"),
+        t.test(rsq.ya) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(rsq.ya="estimate", rsq.ya.low="conf.low", rsq.ya.high="conf.high"),
+        t.test(rsq.yau1) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(rsq.yau1="estimate", rsq.yau1.low="conf.low", rsq.yau1.high="conf.high"),
+        t.test(rsq.yu1) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(rsq.yu1="estimate", rsq.yu1.low="conf.low", rsq.yu1.high="conf.high"),
+        t.test(rsq.yx) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(rsq.yx="estimate", rsq.yx.low="conf.low", rsq.yx.high="conf.high"),
+        t.test(rsq.yxu2) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(rsq.yxu2="estimate", rsq.yxu2.low="conf.low", rsq.yxu2.high="conf.high"),
+        t.test(rsq.yu2) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(rsq.yu2="estimate", rsq.yu2.low="conf.low", rsq.yu2.high="conf.high")
+    )
+
 # estimate T1E
-est <- results %>% 
-    dplyr::group_by(vars(A_U1, X_U2)) %>%
+power <- results %>% 
+    dplyr::group_by(A_U1, X_U2) %>%
     dplyr::summarize(
         binom.test(sum(p_adj0 < 0.05), n_sim) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(p_adj0="estimate", p_adj0.low="conf.low", p_adj0.high="conf.high"),
         binom.test(sum(p_adj1 < 0.05), n_sim) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(p_adj1="estimate", p_adj1.low="conf.low", p_adj1.high="conf.high"),
@@ -90,4 +104,4 @@ est <- results %>%
         binom.test(sum(p_adj4 < 0.05), n_sim) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(p_adj4="estimate", p_adj4.low="conf.low", p_adj4.high="conf.high"),
         binom.test(sum(p_bf0 < 0.05), n_sim) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(p_bf0="estimate", p_bf0.low="conf.low", p_bf0.high="conf.high"),
         binom.test(sum(p_bf1 < 0.05), n_sim) %>% tidy %>% dplyr::select(estimate, conf.low, conf.high) %>% dplyr::rename(p_bf1="estimate", p_bf1.low="conf.low", p_bf1.high="conf.high")
-)
+    )
