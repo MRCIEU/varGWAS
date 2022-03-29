@@ -8,25 +8,26 @@ library("data.table")
 library("varGWASR")
 library("grid")
 library("gtable")
+library("ggplot2")
 source("funs.R")
 set.seed(123)
 
 n_sim <- 1000
-n_obs <- 50
+n_obs <- 1000
 
 # Sim to evaluate population stratification effects on outcome variance and ability to adjust these effects using LAD-BF vs BF with OLS adjustment
 
 # genotype allele frequency by ancestral groups
-AF <- runif(10, min = 0, max = 0.5)
+AF <- runif(5, min = 0, max = 0.5)
 
 results <- data.frame()
-for (A_U1 in c(0, 0.05, 0.1)) {
-    for (X_U2 in c(0, 0.025, 0.05)) {
+for (A_U1 in c(0, 0.1, 0.2)) {
+    for (X_U2 in c(0, 0.01, 0.02)) {
         for (i in 1:n_sim){
             # simulate variables
 
             # ancestry
-            A <- sample(seq(1,10), n_obs, replace = T)
+            A <- sample(seq(1,5), n_obs, replace = T)
 
             # genotype
             X <- sapply(A, function(a) {get_simulated_genotypes(AF[a], 1)})
@@ -39,7 +40,7 @@ for (A_U1 in c(0, 0.05, 0.1)) {
             # outcome
             A <- scale(A)
             X <- scale(X)
-            Y <- A*sqrt(.1) + A*U1*sqrt(A_U1) + U1*sqrt(.05) + X*sqrt(.05) + X*U2*sqrt(X_U2) + U2*sqrt(.05) + rnorm(n_obs, sd=sqrt(1-(.05+A_U1+.05+0.05+X_U2+.05)))
+            Y <- A*sqrt(.25) + A*U1*sqrt(A_U1) + U1*sqrt(.1) + X*sqrt(.05) + X*U2*sqrt(X_U2) + U2*sqrt(.1) + rnorm(n_obs, sd=sqrt(1-(.25+A_U1+.1+0.05+X_U2+.1)))
             varY <- var(Y)
 
             data <- data.frame(
@@ -120,20 +121,19 @@ long <- rbind(
 )
 
 # plot
-long$estimand <- gsub("p_adj0", "    LAD-BF_1", long$estimand)
-long$estimand <- gsub("p_adj1", "    LAD-BF_2", long$estimand)
-long$estimand <- gsub("p_adj2", "    LAD-BF_3", long$estimand)
-long$estimand <- gsub("p_adj3", "    LAD-BF_4", long$estimand)
-long$estimand <- gsub("p_adj4", "    LAD-BF_5", long$estimand)
-long$estimand <- gsub("p_bf0", "    BF_1", long$estimand)
-long$estimand <- gsub("p_bf1", "    BF_2", long$estimand)
+long$estimand <- gsub("p_adj0", "LAD-BF_1", long$estimand)
+long$estimand <- gsub("p_adj1", "LAD-BF_2", long$estimand)
+long$estimand <- gsub("p_adj2", "LAD-BF_3", long$estimand)
+long$estimand <- gsub("p_adj3", "LAD-BF_4", long$estimand)
+long$estimand <- gsub("p_adj4", "LAD-BF_5", long$estimand)
+long$estimand <- gsub("p_bf0", "BF_1", long$estimand)
+long$estimand <- gsub("p_bf1", "BF_2", long$estimand)
 p <- ggplot(long, aes(x=estimand, y=estimate, ymin=conf.low, ymax=conf.high)) +
     geom_point() +
     geom_errorbar(width=0.3) +
     facet_grid(A_U1~X_U2) +
     theme_classic()+
     labs(y="Proportion P < 0.05 (95% CI)", x="Method") +
-    scale_y_continuous(limits = c(0, 1)) +
     geom_hline(yintercept = 0.8, linetype = "dashed", color = "grey") +
     geom_hline(yintercept = 0.05, linetype = "dashed", color = "grey") +
     ggtitle("Variance explained by genotype interaction effect") +
