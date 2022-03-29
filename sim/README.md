@@ -137,3 +137,6 @@ Including U + XU in the second-stage model then the variance effect attenuates
 
 - Does adjusting the variance model help control T1E from population stratification?
 - Does LAD-BF provide better adjustment of mean w/wo variance model than OLS adjusted BF?
+
+## Sim17 - T1E of BP vs BF
+
