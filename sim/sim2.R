@@ -1,16 +1,14 @@
 library("dplyr")
-library("broom")
-library("tidyr")
-library("ggpubr")
-library("lmtest")
+library("varGWASR")
 library("data.table")
+library("jlst")
+library("ggplot2")
+library("ggpubr")
 source("funs.R")
 set.seed(123)
 
-# Requires OSCA and QCTOOL on PATH
-
 n_sim <- 1000
-n_obs <- 1000
+n_obs <- 10000
 b <- 0
 
 results <- data.frame()
@@ -34,8 +32,11 @@ for (af in c(0.05, 0.1, 0.15, 0.2)){
                 data$Y <- data$X * b + c(rnorm(n_obs * .9), rnorm(n_obs * .1, mean=5))
             }
 
-            # run models
-            res <- run_models(data)
+            bp_p <- vartest(data$Y, data$X, covar=NULL, covar.var=F, type=1, x.sq=T)$test$P
+            bf_p <- varGWASR::model(data, "X", "Y", covar1 = NULL, covar2 = NULL)$phi_p
+            res <- data.frame(
+                bp_p, bf_p
+            )
             res$dist <- dist
             res$af <- af
             res$b <- b
@@ -86,42 +87,22 @@ warnings()
 # save results for plotting
 write.csv(results, file = paste0("data/sim2.csv"))
 
-p1 <- qqgplot(results, 0.05, "P.cpp_bp")
-p2 <- qqgplot(results, 0.1, "P.cpp_bp")
-p3 <- qqgplot(results, 0.15, "P.cpp_bp")
-p4 <- qqgplot(results, 0.2, "P.cpp_bp")
+p1 <- qqgplot(results, 0.05, "bp_p")
+p2 <- qqgplot(results, 0.1, "bp_p")
+p3 <- qqgplot(results, 0.15, "bp_p")
+p4 <- qqgplot(results, 0.2, "bp_p")
 
 p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
 pdf("data/maf_t1e_bp.pdf")
 print(p)
 dev.off()
 
-p1 <- qqgplot(results, 0.05, "P.cpp_bf")
-p2 <- qqgplot(results, 0.1, "P.cpp_bf")
-p3 <- qqgplot(results, 0.15, "P.cpp_bf")
-p4 <- qqgplot(results, 0.2, "P.cpp_bf")
+p1 <- qqgplot(results, 0.05, "bf_p")
+p2 <- qqgplot(results, 0.1, "bf_p")
+p3 <- qqgplot(results, 0.15, "bf_p")
+p4 <- qqgplot(results, 0.2, "bf_p")
 
 p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
 pdf("data/maf_t1e_bf.pdf")
-print(p)
-dev.off()
-
-p1 <- qqgplot(results, 0.05, "P.osca_mean")
-p2 <- qqgplot(results, 0.1, "P.osca_mean")
-p3 <- qqgplot(results, 0.15, "P.osca_mean")
-p4 <- qqgplot(results, 0.2, "P.osca_mean")
-
-p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
-pdf("data/maf_t1e_osca_mean.pdf")
-print(p)
-dev.off()
-
-p1 <- qqgplot(results, 0.05, "P.osca_median")
-p2 <- qqgplot(results, 0.1, "P.osca_median")
-p3 <- qqgplot(results, 0.15, "P.osca_median")
-p4 <- qqgplot(results, 0.2, "P.osca_median")
-
-p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
-pdf("data/maf_t1e_osca_median.pdf")
 print(p)
 dev.off()
