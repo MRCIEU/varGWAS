@@ -3,6 +3,7 @@ library("broom")
 library("tidyr")
 library("ggpubr")
 library("lmtest")
+library("jlst")
 library("data.table")
 source("funs.R")
 set.seed(123)
@@ -36,6 +37,8 @@ for (dist in c("Normal", "T", "Lognormal", "Mixed Normal")){
 
         # run models
         res <- run_models(data)
+        bp_p <- vartest(data$Y, data$X, covar=NULL, covar.var=F, type=1, x.sq=T)$test$P
+        res$bp_p <- bp_p
         res$dist <- dist
         res$af <- af
         res$b <- b
@@ -82,10 +85,11 @@ qqgplot <- function(data, af, pcol, ci = 0.95) {
 # print warnings
 warnings()
 
-p2 <- qqgplot(results, 0.05, "P.cpp_bf")
-p4 <- qqgplot(results, 0.05, "P.osca_median")
+p1 <- qqgplot(results, 0.05, "P.osca_median")
+p2 <- qqgplot(results, 0.05, "bp_p")
+p3 <- qqgplot(results, 0.05, "P.cpp_bf")
 
-p <- ggarrange(p2, p4, labels = c("A", "B"), ncol = 2, nrow = 1)
-pdf("data/t1e_10k.pdf", height=7, width=14)
+p <- ggarrange(p1, p2, p3, labels = c("A", "B", "C"), ncol = 3, nrow = 1)
+pdf("data/t1e_10k.pdf", height=7, width=21)
 print(p)
 dev.off()
