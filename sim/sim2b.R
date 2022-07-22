@@ -82,6 +82,9 @@ qqgplot <- function(data, af, pcol, ci = 0.95) {
     return(pl)
 }
 
+# save data
+write.table(results, file="data/results.txt")
+
 # print warnings
 warnings()
 

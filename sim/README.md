@@ -140,3 +140,5 @@ Including U + XU in the second-stage model then the variance effect attenuates
 
 ## Sim17 - T1E of BP vs BF
 
+## Sim18 - Power of VP vs exhaustive testing
+
