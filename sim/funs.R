@@ -82,7 +82,7 @@ run_models <- function(data, covar=NULL){
   } else {
       write.csv(file = "data/phenotypes_quail_covar.txt", quote = F, row.names = F, data %>% dplyr::mutate(FID=S, IID=S) %>% dplyr::select(FID, IID, covar))
   }
-  system("Rscript /Users/ml18692/projects/QUAIL/Obtain_Rank_Score.R --pheno data/phenotypes_quail_pheno.txt --covar data/phenotypes_quail_covar.txt --output data/pheno_rank_score.txt --num_levels 2000 --num_cores 5")
+  system("Rscript ~/apps/QUAIL/Obtain_Rank_Score.R --pheno data/phenotypes_quail_pheno.txt --covar data/phenotypes_quail_covar.txt --output data/pheno_rank_score.txt --num_levels 2000 --num_cores 5")
   fileConn <- file("data/samples.txt")
   writeLines(c("ID_1 ID_2 missing sex\n0 0 0 D", paste0(data$S, " ", data$S, " ", 0, " ", 1)), fileConn)
   close(fileConn)
