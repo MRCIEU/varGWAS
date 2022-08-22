@@ -74,6 +74,15 @@ run_models <- function(data, covar=NULL){
   # write phenotype & sample file
   write.table(file = "data/phenotypes.csv", sep = ",", quote = F, row.names = F, data)
   write.table(file = "data/phenotypes.txt", sep = "\t", quote = F, row.names = F, col.names = F, data[, c("S", "S", "Y")])
+  write.table(file = "data/phenotypes_drm.txt", sep = "\t", quote = F, row.names = F, data %>% dplyr::mutate(FID=S, IID=S) %>% dplyr::select(FID, IID, Y))
+  write.csv(file = "data/phenotypes_quail_pheno.txt", quote = F, row.names = F, data %>% dplyr::mutate(FID=S, IID=S) %>% dplyr::select(FID, IID, Y))
+  if (is.null(covar)){
+    data$null <- rnorm(nrow(data))
+    write.csv(file = "data/phenotypes_quail_covar.txt", quote = F, row.names = F, data %>% dplyr::mutate(FID=S, IID=S) %>% dplyr::select(FID, IID, null))
+  } else {
+      write.csv(file = "data/phenotypes_quail_covar.txt", quote = F, row.names = F, data %>% dplyr::mutate(FID=S, IID=S) %>% dplyr::select(FID, IID, covar))
+  }
+  system("Rscript /Users/ml18692/projects/QUAIL/Obtain_Rank_Score.R --pheno data/phenotypes_quail_pheno.txt --covar data/phenotypes_quail_covar.txt --output data/pheno_rank_score.txt --num_levels 2000 --num_cores 5")
   fileConn <- file("data/samples.txt")
   writeLines(c("ID_1 ID_2 missing sex\n0 0 0 D", paste0(data$S, " ", data$S, " ", 0, " ", 1)), fileConn)
   close(fileConn)
@@ -91,10 +100,16 @@ run_models <- function(data, covar=NULL){
     bf.time <- system.time(system(paste0("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t 1 -c ", paste0(covar, collapse=","))))
   }
   osca_median.time <- system.time(system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-median.txt --vqtl-mtd 2"))
+  drm.time <- system.time(system("Rscript /Users/ml18692/projects/DRM/DRM.R data/genotypes data/phenotypes_drm.txt Y data/gwas-drm.txt 1"))
+  quail.time <- system.time(system("Rscript /Users/ml18692/projects/QUAIL/QUAIL_vQTL.R --pheno_rs data/pheno_rank_score.txt --geno data/genotypes --covar data/phenotypes_quail_covar.txt --output data/gwas-quail.txt --num_cores 1"))
   bf.time <- t(data.matrix(bf.time)) %>% as.data.frame
   osca_median.time <- t(data.matrix(osca_median.time)) %>% as.data.frame
+  drm.time <- t(data.matrix(drm.time)) %>% as.data.frame
+  quail.time <- t(data.matrix(quail.time)) %>% as.data.frame
   names(bf.time) <- paste0(names(bf.time), ".cpp_bf")
   names(osca_median.time) <- paste0(names(osca_median.time), ".osca_median")
+  names(drm.time) <- paste0(names(drm.time), ".drm")
+  names(quail.time) <- paste0(names(quail.time), ".quail")
 
   # R
   if (is.null(covar)){
@@ -118,8 +133,14 @@ run_models <- function(data, covar=NULL){
   # Note this method will not produce effect or se if P==0
   res_osca_median <- fread("data/osca-median.txt.vqtl", select = c("beta", "se", "P"), col.names = c("BETA_x.osca_median", "SE_x.osca_median", "P.osca_median"))
 
+  # DRM
+  res_drm <- fread("data/gwas-drm.txt", select = c("effect_size", "se", "pval"), col.names = c("BETA_x.DRM", "SE_x.DRM", "P.DRM"))
+
+  # QUAIL
+  res_quail <- fread("data/gwas-quail.txt", select = c("BETA", "SE", "P"), col.names = c("BETA_x.QUAIL", "SE_x.QUAIL", "P.QUAIL"))
+
   # combine results
-  res <- cbind(res_r_bf, res_cpp_bf, res_osca_median, bf.time, osca_median.time)
+  res <- cbind(res_r_bf, res_cpp_bf, res_osca_median, res_drm, res_quail, bf.time, osca_median.time, drm.time, quail.time)
 
   # add LM
   if ("U" %in% names(data)){
