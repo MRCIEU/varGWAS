@@ -100,8 +100,8 @@ run_models <- function(data, covar=NULL){
     bf.time <- system.time(system(paste0("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t 1 -c ", paste0(covar, collapse=","))))
   }
   osca_median.time <- system.time(system("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-median.txt --vqtl-mtd 2"))
-  drm.time <- system.time(system("Rscript /Users/ml18692/projects/DRM/DRM.R data/genotypes data/phenotypes_drm.txt Y data/gwas-drm.txt 1"))
-  quail.time <- system.time(system("Rscript /Users/ml18692/projects/QUAIL/QUAIL_vQTL.R --pheno_rs data/pheno_rank_score.txt --geno data/genotypes --covar data/phenotypes_quail_covar.txt --output data/gwas-quail.txt --num_cores 1"))
+  drm.time <- system.time(system("Rscript ~/apps/DRM/DRM.R data/genotypes data/phenotypes_drm.txt Y data/gwas-drm.txt 1"))
+  quail.time <- system.time(system("Rscript ~/apps/QUAIL/QUAIL_vQTL.R --pheno_rs data/pheno_rank_score.txt --geno data/genotypes --covar data/phenotypes_quail_covar.txt --output data/gwas-quail.txt --num_cores 1"))
   bf.time <- t(data.matrix(bf.time)) %>% as.data.frame
   osca_median.time <- t(data.matrix(osca_median.time)) %>% as.data.frame
   drm.time <- t(data.matrix(drm.time)) %>% as.data.frame
