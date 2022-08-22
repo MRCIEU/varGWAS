@@ -43,47 +43,79 @@ t <- fread(paste0("t/data/power_t.csv"))
 # N
 cpp_bf_n <- calc_power(n, "P.cpp_bf", 200, c("phi", "lambda"))
 cpp_bf_n$dist <- "Normal"
-cpp_bf_n$method <- "Brown-Forsythe (LAD)"
+cpp_bf_n$method <- "LAD-BF"
 
 osca_bf_n <- calc_power(n, "P.osca_median", 200, c("phi", "lambda"))
 osca_bf_n$dist <- "Normal"
 osca_bf_n$method <- "Brown-Forsythe"
 
+drm_n <- calc_power(n, "P.DRM", 200, c("phi", "lambda"))
+drm_n$dist <- "Normal"
+drm_n$method <- "DRM"
+
+quail_n <- calc_power(n, "P.QUAIL", 200, c("phi", "lambda"))
+quail_n$dist <- "Normal"
+quail_n$method <- "QUAIL"
+
 # Mixed N
 cpp_bf_mn <- calc_power(mn, "P.cpp_bf", 200, c("phi", "lambda"))
 cpp_bf_mn$dist <- "Mixed normal"
-cpp_bf_mn$method <- "Brown-Forsythe (LAD)"
+cpp_bf_mn$method <- "LAD-BF"
 
 osca_bf_mn <- calc_power(mn, "P.osca_median", 200, c("phi", "lambda"))
 osca_bf_mn$dist <- "Mixed normal"
 osca_bf_mn$method <- "Brown-Forsythe"
 
+drm_mn <- calc_power(mn, "P.DRM", 200, c("phi", "lambda"))
+drm_mn$dist <- "Mixed normal"
+drm_mn$method <- "DRM"
+
+quail_mn <- calc_power(mn, "P.QUAIL", 200, c("phi", "lambda"))
+quail_mn$dist <- "Mixed normal"
+quail_mn$method <- "QUAIL"
+
 # Lognormal
 cpp_bf_l <- calc_power(l, "P.cpp_bf", 200, c("phi", "lambda"))
 cpp_bf_l$dist <- "Lognormal"
-cpp_bf_l$method <- "Brown-Forsythe (LAD)"
+cpp_bf_l$method <- "LAD-BF"
 
 osca_bf_l <- calc_power(l, "P.osca_median", 200, c("phi", "lambda"))
 osca_bf_l$dist <- "Lognormal"
 osca_bf_l$method <- "Brown-Forsythe"
 
+drm_l <- calc_power(l, "P.DRM", 200, c("phi", "lambda"))
+drm_l$dist <- "Lognormal"
+drm_l$method <- "DRM"
+
+quail_l <- calc_power(l, "P.QUAIL", 200, c("phi", "lambda"))
+quail_l$dist <- "Lognormal"
+quail_l$method <- "QUAIL"
+
 # T-dist
 cpp_bf_t <- calc_power(t, "P.cpp_bf", 200, c("phi", "lambda"))
 cpp_bf_t$dist <- "T-dist"
-cpp_bf_t$method <- "Brown-Forsythe (LAD)"
+cpp_bf_t$method <- "LAD-BF"
 
 osca_bf_t <- calc_power(t, "P.osca_median", 200, c("phi", "lambda"))
 osca_bf_t$dist <- "T-dist"
 osca_bf_t$method <- "Brown-Forsythe"
 
+drm_t <- calc_power(t, "P.DRM", 200, c("phi", "lambda"))
+drm_t$dist <- "T-dist"
+drm_t$method <- "DRM"
+
+quail_t <- calc_power(t, "P.QUAIL", 200, c("phi", "lambda"))
+quail_t$dist <- "T-dist"
+quail_t$method <- "QUAIL"
+
 # combine
 results <- rbind(
-    cpp_bf_n,  osca_bf_n,
-    cpp_bf_mn,  osca_bf_mn,
-    cpp_bf_l,  osca_bf_l,
-    cpp_bf_t,  osca_bf_t
+    cpp_bf_n,  osca_bf_n, drm_n, quail_n,
+    cpp_bf_mn,  osca_bf_mn, drm_mn, quail_mn,
+    cpp_bf_l,  osca_bf_l, drm_l, quail_l,
+    cpp_bf_t,  osca_bf_t, drm_t, quail_t
 )
-results$method <- factor(results$method, levels = c("Brown-Forsythe", "Brown-Forsythe (LAD)"))
+results$method <- factor(results$method, levels = c("Brown-Forsythe", "LAD-BF", "DRM", "QUAIL"))
 results$dist <- factor(results$dist, levels = c("Normal", "Mixed normal", "Lognormal", "T-dist"))
 results$lambda <- factor(results$lambda, levels = c(1,10,100,1000))
 
