@@ -56,7 +56,15 @@ for (i in 1:n_sim) {
         b1_osca=fit$BETA_x.osca_median * 1,
         s1_osca=fit$SE_x.osca_median * 1,
         b2_osca=fit$BETA_x.osca_median * 2,
-        s2_osca=fit$SE_x.osca_median * 2
+        s2_osca=fit$SE_x.osca_median * 2,
+        b1_drm=fit$BETA_x.DRM * 1,
+        s1_drm=fit$SE_x.DRM * 1,
+        b2_drm=fit$BETA_x.DRM * 2,
+        s2_drm=fit$SE_x.DRM * 2,
+        b1_quail=fit$BETA_x.QUAIL * 1,
+        s1_quail=fit$SE_x.QUAIL * 1,
+        b2_quail=fit$BETA_x.QUAIL * 2,
+        s2_quail=fit$SE_x.QUAIL * 2
     )
 
     # add params
