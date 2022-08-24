@@ -118,7 +118,7 @@ for p in $(seq 0 1 12); do
     ln -s ../../funs.R
     ln -s ../../runR.sh
     ln -s ../../sim12.R
-    sbatch runR.sh sim12.R -p "$p" -i <i>
+    sbatch runR.sh sim12.R -p "$p" -i 1
     cd ..
 done
 head -n1 0/sim12_0_0.csv > results.csv
