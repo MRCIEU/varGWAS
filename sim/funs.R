@@ -4,7 +4,7 @@ library("jlst")
 
 system3 <- function(cmd){
   x <- system(cmd)
-  if (x ! = 0){
+  if (x != 0){
     stop(paste0(cmd, " exit code: ", x))
   }
 }
