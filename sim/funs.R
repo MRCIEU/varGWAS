@@ -3,10 +3,21 @@ library("cqrReg")
 library("jlst")
 
 system3 <- function(cmd){
+  start <- Sys.time()
   x <- system(cmd)
   if (x != 0){
-    stop(paste0(cmd, " exit code: ", x))
+    start <- Sys.time()
+    x <- system(cmd)
+      if (x != 0){
+        start <- Sys.time()
+        x <- system(cmd)
+        if (x != 0){
+          stop(paste0(cmd, ". exit code: ", x))
+        }
+      }
   }
+  end <- Sys.time()
+  return(end-start)
 }
 
 #' Function to simulate genotypes in HWE
@@ -102,21 +113,13 @@ run_models <- function(data, covar=NULL){
 
   # run vGWAS
   if (is.null(covar)){
-    bf.time <- system.time(system3("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t 1"))
+    elapsed.cpp_bf <- system3("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t 1")
   } else {
-    bf.time <- system.time(system3(paste0("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t 1 -c ", paste0(covar, collapse=","))))
+    elapsed.cpp_bf <- system3(paste0("varGWAS -v data/phenotypes.csv -s , -o data/gwas-bf.txt -b data/genotypes.bgen -p Y -i S -t 1 -c ", paste0(covar, collapse=",")))
   }
-  osca_median.time <- system.time(system3("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-median.txt --vqtl-mtd 2"))
-  drm.time <- system.time(system3("Rscript ~/apps/DRM/DRM.R data/genotypes data/phenotypes_drm.txt Y data/gwas-drm.txt 1"))
-  quail.time <- system.time(system3("Rscript ~/apps/QUAIL/QUAIL_vQTL.R --pheno_rs data/pheno_rank_score.txt --geno data/genotypes --covar data/phenotypes_quail_covar.txt --output data/gwas-quail.txt --num_cores 1"))
-  bf.time <- t(data.matrix(bf.time)) %>% as.data.frame
-  osca_median.time <- t(data.matrix(osca_median.time)) %>% as.data.frame
-  drm.time <- t(data.matrix(drm.time)) %>% as.data.frame
-  quail.time <- t(data.matrix(quail.time)) %>% as.data.frame
-  names(bf.time) <- paste0(names(bf.time), ".cpp_bf")
-  names(osca_median.time) <- paste0(names(osca_median.time), ".osca_median")
-  names(drm.time) <- paste0(names(drm.time), ".drm")
-  names(quail.time) <- paste0(names(quail.time), ".quail")
+  elapsed.osca_median <- system3("osca --vqtl --bfile data/genotypes --pheno data/phenotypes.txt --out data/osca-median.txt --vqtl-mtd 2")
+  elapsed.drm <- system3("Rscript ~/apps/DRM/DRM.R data/genotypes data/phenotypes_drm.txt Y data/gwas-drm.txt 1")
+  elapsed.quail <- system3("Rscript ~/apps/QUAIL/QUAIL_vQTL.R --pheno_rs data/pheno_rank_score.txt --geno data/genotypes --covar data/phenotypes_quail_covar.txt --output data/gwas-quail.txt --num_cores 1")
 
   # R
   if (is.null(covar)){
@@ -147,7 +150,7 @@ run_models <- function(data, covar=NULL){
   res_quail <- fread("data/gwas-quail.txt", select = c("BETA", "SE", "P"), col.names = c("BETA_x.QUAIL", "SE_x.QUAIL", "P.QUAIL"))
 
   # combine results
-  res <- cbind(res_r_bf, res_cpp_bf, res_osca_median, res_drm, res_quail, bf.time, osca_median.time, drm.time, quail.time)
+  res <- cbind(res_r_bf, res_cpp_bf, res_osca_median, res_drm, res_quail, elapsed.cpp_bf, elapsed.osca_median, elapsed.drm, elapsed.quail)
 
   # add LM
   if ("U" %in% names(data)){
