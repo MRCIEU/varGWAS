@@ -12,7 +12,15 @@ system3 <- function(cmd){
         start <- Sys.time()
         x <- system(cmd)
         if (x != 0){
-          stop(paste0(cmd, ". exit code: ", x))
+          start <- Sys.time()
+          x <- system(cmd)
+          if (x != 0){
+            start <- Sys.time()
+            x <- system(cmd)
+            if (x != 0){
+              stop(paste0(cmd, ". exit code: ", x))
+            }
+          }
         }
       }
   }
