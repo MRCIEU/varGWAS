@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem 12G
-#SBATCH --time=96:00:00
-#SBATCH --partition=mrcieu
+#SBATCH --cpus-per-task=8
+#SBATCH --mem 28571
+#SBATCH --time=12:00:00
+#SBATCH --partition=mrcieu,cpu
 set -euo pipefail
 
 module load languages/r/3.6.0

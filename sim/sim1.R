@@ -10,7 +10,7 @@ source("funs.R")
 
 option_list <- list(
   make_option(c("-d", "--dist"), type = "character", default = "n", help = "Outcome distribution"),
-  make_option(c("-n", "--n_sim"), type = "integer", default = 1, help = "Number of simulations to run")
+  make_option(c("-n", "--n_sim"), type = "integer", default = 10, help = "Number of simulations to run")
 );
 opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
