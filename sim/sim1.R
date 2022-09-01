@@ -4,18 +4,19 @@ library("genpwr")
 library('optparse')
 library("jlst")
 source("funs.R")
-set.seed(12345)
+#set.seed(12345)
 
 # Requires OSCA and QCTOOL on PATH
 
 option_list <- list(
-  make_option(c("-d", "--dist"), type = "character", default = "n", help = "Outcome distribution", metavar = "character")
+  make_option(c("-d", "--dist"), type = "character", default = "n", help = "Outcome distribution"),
+  make_option(c("-n", "--n_sim"), type = "integer", default = 1, help = "Number of simulations to run")
 );
 opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
 
 n_obs <- 200
-n_sim <- 200
+n_sim <- opt$n_sim
 af <- 0.4
 
 # main effect size of X on Y detectable with 80% power
