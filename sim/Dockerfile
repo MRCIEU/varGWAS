@@ -6,8 +6,8 @@ WORKDIR /tmp
 RUN mkdir ~/apps
 
 # install packages
-RUN apt update && \
-    apt install -y \
+RUN apt-get update && \
+    apt-get install -y \
     build-essential \
     cmake \
     git \
