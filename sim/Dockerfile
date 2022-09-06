@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:18.04
 ENV TZ=Europe/London
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -9,8 +9,14 @@ RUN mkdir ~/apps
 RUN apt update && \
     apt install -y \
     build-essential \
+    cmake \
+    git \
+    wget \
     r-base \
     python3
+
+# alias python
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # install R-packages
 RUN R -e "install.packages(c('pwr', 'cqrReg', 'data.table', 'optparse', 'quantreg', 'BEDMatrix', 'broom', 'genpwr', 'dplyr', 'remotes'))"
@@ -30,29 +36,28 @@ RUN mv DRM ~/apps
 RUN wget https://code.enkre.net/qctool/zip/release/qctool.tgz
 RUN unzip qctool.tgz
 WORKDIR /tmp/qctool
-RUN ./waf configure
+RUN ./waf configure --prefix=/usr
 RUN ./waf
+RUN ./waf install
+RUN ln -s /usr/bin/qctool_v2.2.0 /usr/bin/qctool
 
 # install BGENIX
 WORKDIR /tmp
 RUN wget http://code.enkre.net/bgen/tarball/release/bgen.tgz
 RUN tar -xvf bgen.tgz
-WORKDIR /tmp/bgen
-RUN ./waf configure
-RUN ./waf
+WORKDIR /tmp/bgen.tgz
+RUN ./waf configure --prefix=/usr
+RUN ./waf.
+RUN ./waf install
 
 # install varGWAS
-WORKDIR /tmp
-RUN git clone git@github.com:MRCIEU/varGWAS.git
-WORKDIR /tmp/varGWAS
-RUN bash lib.sh
-RUN mkdir -p build
-WORKDIR /tmp/varGWAS/build
-RUN cmake .. -DCMAKE_BUILD_TYPE=Release
+WORKDIR /usr/bin
+RUN wget https://github.com/MRCIEU/varGWAS/releases/download/1.2.3/varGWAS
+RUN chmod a+x ./varGWAS
 
 # install QUAIL
 WORKDIR /tmp
 RUN git clone https://github.com/qlu-lab/QUAIL
 
-
+# set working env
 WORKDIR /app
