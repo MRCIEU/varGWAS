@@ -4,7 +4,7 @@ Stage: spython-base
 
 %post
 TZ=Europe/London
-DEBIAN_FRONTEND=noninteractive
+export DEBIAN_FRONTEND=noninteractive
 
 cd /tmp
 mkdir ~/apps
