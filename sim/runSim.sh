@@ -1,14 +1,13 @@
 #!/bin/bash
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem 28571
-#SBATCH --time=12:00:00
-#SBATCH --partition=mrcieu,cpu
+#SBATCH --cpus-per-task=3
+#SBATCH --mem 10700
+#SBATCH --time=72:00:00
+#SBATCH --partition=cpu,mrcieu
 set -euo pipefail
 
 module load apps/singularity/3.8.3
 
-# run
 mkdir -p data
 singularity exec \
 --no-mount home \
