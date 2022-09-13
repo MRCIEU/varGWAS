@@ -7,12 +7,12 @@ library("tidyr")
 library("data.table")
 library('optparse')
 source("funs.R")
-set.seed(123)
+#set.seed(123)
 
 # Requires OSCA and QCTOOL on PATH
 
 option_list <- list(
-  make_option(c("-n", "--n_sim"), type = "integer", default = 20, help = "Number of simulations to run")
+  make_option(c("-n", "--n_sim"), type = "integer", default = 10, help = "Number of simulations to run")
 );
 opt_parser <- OptionParser(option_list = option_list);
 opt <- parse_args(opt_parser);
