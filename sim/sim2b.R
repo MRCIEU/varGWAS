@@ -5,12 +5,19 @@ library("ggpubr")
 library("lmtest")
 library("jlst")
 library("data.table")
+library('optparse')
 source("funs.R")
 set.seed(123)
 
 # Requires OSCA and QCTOOL on PATH
 
-n_sim <- 1000
+option_list <- list(
+  make_option(c("-n", "--n_sim"), type = "integer", default = 20, help = "Number of simulations to run")
+);
+opt_parser <- OptionParser(option_list = option_list);
+opt <- parse_args(opt_parser);
+
+n_sim <- opt$n_sim
 n_obs <- 100000
 af <- 0.05
 b <- 0
@@ -83,18 +90,18 @@ qqgplot <- function(data, af, pcol, ci = 0.95) {
 }
 
 # save data
-write.table(results, file="data/results.txt")
+write.csv(results, file="data/results.csv")
 
 # print warnings
 warnings()
 
-p1 <- qqgplot(results, 0.05, "P.osca_median")
-p2 <- qqgplot(results, 0.05, "bp_p")
-p3 <- qqgplot(results, 0.05, "P.cpp_bf")
-p4 <- qqgplot(results, 0.05, "P.QUAIL")
-p5 <- qqgplot(results, 0.05, "P.DRM")
+#p1 <- qqgplot(results, 0.05, "P.osca_median")
+#p2 <- qqgplot(results, 0.05, "bp_p")
+#p3 <- qqgplot(results, 0.05, "P.cpp_bf")
+#p4 <- qqgplot(results, 0.05, "P.QUAIL")
+#p5 <- qqgplot(results, 0.05, "P.DRM")
 
-p <- ggarrange(p1, p2, p3, p4, p5, labels = c("A", "B", "C", "D", "E"), ncol = 3, nrow = 2)
-pdf("data/t1e_10k.pdf", height=14, width=21*.5)
-print(p)
-dev.off()
+#p <- ggarrange(p1, p2, p3, p4, p5, labels = c("A", "B", "C", "D", "E"), ncol = 3, nrow = 2)
+#pdf("data/t1e_10k.pdf", height=14, width=21*.5)
+#print(p)
+#dev.off()

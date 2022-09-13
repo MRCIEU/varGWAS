@@ -15,6 +15,12 @@ sbatch runR.sh sim1.R --dist "t"
 sbatch runR.sh sim1.R --dist "l"
 ```
 
+Combine analyses
+
+```
+mkdir data; head -n1 1/data/power_l.csv > data/power_l.csv; grep -v BETA */data/power*csv >> data/power_l.csv
+```
+
 Plot
 
 ```shell
