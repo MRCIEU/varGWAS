@@ -15,7 +15,7 @@ opt <- parse_args(opt_parser);
 # Requires OSCA and QCTOOL on PATH
 
 n_obs <- 10000
-n_sim <- 500
+n_sim <- 200
 af <- 0.4
 
 # main effect size of X on Y detectable with 95% power
