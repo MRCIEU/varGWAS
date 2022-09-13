@@ -2,6 +2,7 @@ library("data.table")
 library("broom")
 library("boot")
 library('optparse')
+library('dplyr')
 source("funs.R")
 set.seed(12345)
 
