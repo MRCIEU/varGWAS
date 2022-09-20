@@ -4,7 +4,7 @@ library("boot")
 library('optparse')
 library('dplyr')
 source("funs.R")
-set.seed(12345)
+#set.seed(12345)
 
 option_list <- list(
   make_option(c("-p", "--phi"), type = "numeric", default = NULL, help = "Effect size of interaction relative to main effect"),
@@ -46,8 +46,6 @@ for (i in 1:n_sim) {
 
     # test for variance effect
     fit <- run_models(data)
-    fit$BETA_x.osca_median <- fit$BETA_x.osca_median / (2/pi)
-    fit$SE_x.osca_median <- fit$SE_x.osca_median / (2/pi)
 
     res <- data.frame(
         b1_dummy=fit$BETA_x1.cpp_bf,

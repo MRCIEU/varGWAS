@@ -1,13 +1,13 @@
 library("dplyr")
 library("broom")
 library("tidyr")
-#library("ggpubr")
-#library("lmtest")
-#library("jlst")
+library("ggpubr")
+library("lmtest")
+library("jlst")
 library("data.table")
 library('optparse')
 source("funs.R")
-#set.seed(123)
+set.seed(123)
 
 # Requires OSCA and QCTOOL on PATH
 
@@ -102,6 +102,6 @@ warnings()
 #p5 <- qqgplot(results, 0.05, "P.DRM")
 
 #p <- ggarrange(p1, p2, p3, p4, p5, labels = c("A", "B", "C", "D", "E"), ncol = 3, nrow = 2)
-#pdf("data/t1e_10k.pdf", height=14, width=21*.5)
-#print(p)
-#dev.off()
+pdf("data/t1e_10k.pdf", height=14, width=21*.5)
+print(p)
+dev.off()
