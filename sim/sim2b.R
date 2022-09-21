@@ -44,8 +44,8 @@ for (dist in c("Normal", "T", "Lognormal", "Mixed Normal")){
 
         # run models
         res <- run_models(data)
-        bp_p <- vartest(data$Y, data$X, covar=NULL, covar.var=F, type=1, x.sq=T)$test$P
-        res$bp_p <- bp_p
+        #bp_p <- vartest(data$Y, data$X, covar=NULL, covar.var=F, type=1, x.sq=T)$test$P
+        #res$bp_p <- bp_p
         res$dist <- dist
         res$af <- af
         res$b <- b
@@ -95,13 +95,12 @@ write.csv(results, file="data/results.csv")
 # print warnings
 warnings()
 
-#p1 <- qqgplot(results, 0.05, "P.osca_median")
-#p2 <- qqgplot(results, 0.05, "bp_p")
-#p3 <- qqgplot(results, 0.05, "P.cpp_bf")
-#p4 <- qqgplot(results, 0.05, "P.QUAIL")
-#p5 <- qqgplot(results, 0.05, "P.DRM")
+p1 <- qqgplot(results, 0.05, "P.osca_median")
+p2 <- qqgplot(results, 0.05, "P.cpp_bf")
+p3 <- qqgplot(results, 0.05, "P.DRM")
+p4 <- qqgplot(results, 0.05, "P.QUAIL")
 
-#p <- ggarrange(p1, p2, p3, p4, p5, labels = c("A", "B", "C", "D", "E"), ncol = 3, nrow = 2)
-pdf("data/t1e_10k.pdf", height=14, width=21*.5)
+p <- ggarrange(p1, p2, p3, p4, labels = c("A", "B", "C", "D"), ncol = 2, nrow = 2)
+pdf("data/t1e_10k.pdf", height=14, width=14)
 print(p)
 dev.off()
